@@ -1,0 +1,2908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haki Stories — Lebanese Arabic Through Progressive Stories</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React 18, ReactDOM 18 & Babel Standalone (UMD builds for zero-bundler file:// execution) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Google Fonts: Cairo (Arabic) & Plus Jakarta Sans (Latin) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      background-color: #FAF7F2;
+      color: #1E2421;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .font-arabic {
+      font-family: 'Cairo', sans-serif;
+    }
+    .font-latin {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    /* Custom scrollbar for conjugation tables and modals */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F2ECE1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #C9BFA9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1B4332;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#FAF7F2] text-[#1E2421] selection:bg-[#1B4332] selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // ============================================================================
+    // INLINE SVG ICONS (Zero external icon library dependencies for file:// safety)
+    // ============================================================================
+    const IconWrapper = ({ children, className = "w-4 h-4" }) => (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+      >
+        {children}
+      </svg>
+    );
+
+    const Icons = {
+      BookOpen: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </IconWrapper>
+      ),
+      Volume2: ({ className }) => (
+        <IconWrapper className={className}>
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </IconWrapper>
+      ),
+      Play: ({ className }) => (
+        <IconWrapper className={className}>
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </IconWrapper>
+      ),
+      Square: ({ className }) => (
+        <IconWrapper className={className}>
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        </IconWrapper>
+      ),
+      LinkIcon: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </IconWrapper>
+      ),
+      Plus: ({ className }) => (
+        <IconWrapper className={className}>
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </IconWrapper>
+      ),
+      RotateCcw: ({ className }) => (
+        <IconWrapper className={className}>
+          <polyline points="1 4 1 10 7 10" />
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+        </IconWrapper>
+      ),
+      Sparkles: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        </IconWrapper>
+      ),
+      Languages: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="m5 8 6 6" />
+          <path d="m4 14 6-6 2-3" />
+          <path d="M2 5h12" />
+          <path d="M7 2h1" />
+          <path d="m22 22-5-10-5 10" />
+          <path d="M14 18h6" />
+        </IconWrapper>
+      ),
+      GraduationCap: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+          <path d="M6 12v5c3 3 9 3 12 0v-5" />
+        </IconWrapper>
+      ),
+      Gamepad2: ({ className }) => (
+        <IconWrapper className={className}>
+          <line x1="6" y1="12" x2="10" y2="12" />
+          <line x1="8" y1="10" x2="8" y2="14" />
+          <line x1="15" y1="13" x2="15.01" y2="13" />
+          <line x1="18" y1="11" x2="18.01" y2="11" />
+          <rect x="2" y="6" width="20" height="12" rx="2" />
+        </IconWrapper>
+      ),
+      ChevronRight: ({ className }) => (
+        <IconWrapper className={className}>
+          <polyline points="9 18 15 12 9 6" />
+        </IconWrapper>
+      ),
+      Award: ({ className }) => (
+        <IconWrapper className={className}>
+          <circle cx="12" cy="8" r="7" />
+          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+        </IconWrapper>
+      ),
+      Eye: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </IconWrapper>
+      ),
+      EyeOff: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+          <line x1="1" y1="1" x2="23" y2="23" />
+        </IconWrapper>
+      ),
+      Upload: ({ className }) => (
+        <IconWrapper className={className}>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </IconWrapper>
+      ),
+      Check: ({ className }) => (
+        <IconWrapper className={className}>
+          <polyline points="20 6 9 17 4 12" />
+        </IconWrapper>
+      ),
+      Shuffle: ({ className }) => (
+        <IconWrapper className={className}>
+          <polyline points="16 3 21 3 21 8" />
+          <line x1="4" y1="20" x2="21" y2="3" />
+          <polyline points="21 16 21 21 16 21" />
+          <line x1="15" y1="15" x2="21" y2="21" />
+          <line x1="4" y1="4" x2="9" y2="9" />
+        </IconWrapper>
+      ),
+      Trash2: ({ className }) => (
+        <IconWrapper className={className}>
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </IconWrapper>
+      )
+    };
+
+    // ============================================================================
+    // SAFE LOCALSTORAGE HELPERS (Prevents SecurityError on strict file:// browsers)
+    // ============================================================================
+    const STORAGE_KEY = 'haki_stories_custom_lessons_v1';
+    const VOCAB_STORAGE_KEY = 'haki_stories_learned_vocab_v1';
+
+    function safeLoadStorage(key, fallback) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (err) {
+        return fallback;
+      }
+    }
+
+    function safeSaveStorage(key, value) {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      } catch (err) {
+        // Silently ignore storage quota or file:// restrictions
+      }
+    }
+
+    // ============================================================================
+    // INITIAL CURRICULUM DATA (Pre-loaded with User's Exact Story as Lesson 1)
+    // ============================================================================
+    const INITIAL_LESSONS = [
+      {
+        id: 'lesson-1',
+        number: 1,
+        level: 'Beginner-Intermediate (A2)',
+        titleAr: 'مشكلة بالشغل',
+        titleEn: 'A Problem at Work',
+        description:
+          'Learn everyday workplace vocabulary, how to express frustration politely, and master Lebanese "bi-" present vs. past tense verbs.',
+        audioLinks: {
+          Lebanese: '',
+          Jordanian: '',
+          Egyptian: '',
+          Emirati: ''
+        },
+        sentences: [
+          {
+            ar: 'كريم بيشتغل بِمكتب مَعْ فَريقْ صغير.',
+            translit: "Karim byishtighil bi-maktab ma' faree' zgheer.",
+            en: 'Karim works in an office with a small team.'
+          },
+          {
+            ar: 'بيحب شغلو، بس بالفترة الأخيرة صار عندو مشكلة مع واحد من زُمَلا، سامر',
+            translit: 'Byihibb shighlo, bass bil-fatra l-akheera saar 3indo mishkle ma3 waaHad min zumalaa, Samer',
+            en: 'He loves his job, but recently he had a problem with one of his colleagues, Samer.'
+          },
+          {
+            ar: 'كريم وسامر عم يشتغلوا عَ/عَلَى نفس المشروع.',
+            translit: 'Karim w Samer 3am yishtighlo 3a / 3ala nafs il-mashroo3.',
+            en: 'Karim and Samer are working on the same project.'
+          },
+          {
+            ar: 'كريم بيحسّ إنّو سامر ما بيتواصل كفاية، ومرّات بياخد قرارات بلا ما يسأل الفريق',
+            translit: 'Karim byiHiss inno Samer maa byitwaasal kfaaye, w marraat byaakhod qaraaraat bala maa yis’al il-faree’',
+            en: 'Karim feels that Samer does not communicate enough, and sometimes makes decisions without asking the team.'
+          },
+          {
+            ar: 'الأسبوع الماضي، سامر غَيَّرْ جزء من المشروع بلا ما يخبر كريم',
+            translit: 'Il-isboo3 il-maaDi, Samer ghayyar jizi’ min il-mashroo3 bala maa ykhabbir Karim',
+            en: 'Last week, Samer changed part of the project without telling Karim.'
+          },
+          {
+            ar: 'لمّا كريم عِرِفْ، زِعِلْ لأنّو كان صارلو كم ساعة عم يشتغل عَ الفكرة القديمة',
+            translit: 'Lamma Karim 3irif, zi3il la’anno kaan saarlo kam saa3a 3am yishtighil 3al-fikra l-’adeeme',
+            en: 'When Karim found out, he got upset because he had been working for a few hours on the old idea.'
+          },
+          {
+            ar: 'بالأوّل، كريم كان بدّو يقول للمُدير، بس بعدين قرّر يحكي مع سامر دغري.',
+            translit: 'Bil-awwal, Karim kaan baddo y’ool lal-mudeer, bass ba3den qarrar yiHki ma3 Samer dughri.',
+            en: 'At first, Karim wanted to tell the manager, but later he decided to talk to Samer directly.'
+          },
+          {
+            ar: 'قالّو:',
+            translit: '’Allo:',
+            en: 'He told him:'
+          },
+          {
+            ar: '«ما عندي مشكلة إذا بِدِّكْ تْغَيِّرْ شي، بس لازم نحكي مع بعض قبل ما ناخُد قرارات كبيرة».',
+            translit: '«Maa 3indi mishkle iza baddak tghayyir shi, bass laazim niHki ma3 ba3D ’abl maa naakhod qaraaraat kbeere».',
+            en: '"I don’t have a problem if you want to change something, but we need to talk together before making big decisions."'
+          },
+          {
+            ar: 'سامر اعتذر وشَرَحْ إنّو كان مِستَعْجِلْ وما فَكَّرْ إنّو هيدا التغيير رح يَعمُل مِشِكْلِة.',
+            translit: 'Samer i3tazar w sharaH inno kaan mista3jil w maa fakkar inno hayda t-taghyeer raH ya3mol mishkle.',
+            en: 'Samer apologized and explained that he was in a hurry and didn’t think this change would cause a problem.'
+          },
+          {
+            ar: 'اتّفقوا يعملوا اجْتِماع صغير كلّ صبح لَ يخبروا بعضُنْ شو عم يصير.',
+            translit: 'Ittafa’o ya3mlo ijtimaa3 zgheer kill SubH la ykhabbro ba3Don shoo 3am yiSeer.',
+            en: 'They agreed to have a short meeting every morning to tell each other what is going on.'
+          },
+          {
+            ar: 'بعد هيدا، صار الشغل مع بعضُن أسهل كتير',
+            translit: 'Ba3d hayda, saar ish-shighil ma3 ba3Don ashal kteer',
+            en: 'After this, working together became much easier.'
+          }
+        ],
+        vocabulary: [
+          { id: 'v1', ar: 'مَكتَب', translit: 'maktab', en: 'office / desk', pos: 'Noun', example: 'كريم بيشتغل بمكتب صغير.' },
+          { id: 'v2', ar: 'فَريق', translit: "faree'", en: 'team', pos: 'Noun', example: 'بيشتغل مع فريق صغير.' },
+          { id: 'v3', ar: 'زُمَلا', translit: 'zumala', en: 'colleagues', pos: 'Plural Noun', example: 'واحد من زملاه اسمو سامر.' },
+          { id: 'v4', ar: 'مَشروع', translit: "mashroo'", en: 'project', pos: 'Noun', example: 'عم يشتغلوا على نفس المشروع.' },
+          { id: 'v5', ar: 'يِتْواصَل', translit: 'yitwaasal', en: 'to communicate', pos: 'Verb', example: 'سامر ما بيتواصل كفاية.' },
+          { id: 'v6', ar: 'كِفايِة', translit: 'kfaaye', en: 'enough', pos: 'Adverb', example: 'ما بيتواصل كفاية.' },
+          { id: 'v7', ar: 'قَرارات', translit: 'qaraaraat', en: 'decisions', pos: 'Plural Noun', example: 'بياخد قرارات كبيرة.' },
+          { id: 'v8', ar: 'بَلا ما', translit: 'bala maa', en: 'without (doing)', pos: 'Conjunction', example: 'بلا ما يسأل الفريق.' },
+          { id: 'v9', ar: 'غَيَّر', translit: 'ghayyar', en: 'to change (past)', pos: 'Verb', example: 'غيّر جزء من المشروع.' },
+          { id: 'v10', ar: 'جُزء', translit: "jizi'", en: 'part / section', pos: 'Noun', example: 'غيّر جزء من المشروع.' },
+          { id: 'v11', ar: 'فِكرة قَديمة', translit: "fikra 'adeeme", en: 'old idea', pos: 'Phrase', example: 'عم يشتغل ع الفكرة القديمة.' },
+          { id: 'v12', ar: 'مُدير', translit: 'mudeer', en: 'manager / boss', pos: 'Noun', example: 'كان بدّو يقول للمدير.' },
+          { id: 'v13', ar: 'دُغري', translit: 'dughri', en: 'directly / straight away', pos: 'Adverb', example: 'قرّر يحكي مع سامر دغري.' },
+          { id: 'v14', ar: 'اعْتَذَر', translit: 'i3tazar', en: 'apologized', pos: 'Verb', example: 'سامر اعتذر وشرح.' },
+          { id: 'v15', ar: 'مِستَعجِل', translit: "mista'jil", en: 'in a hurry / rushed', pos: 'Adjective', example: 'شرح إنّو كان مستعجل.' },
+          { id: 'v16', ar: 'تَغيير', translit: 'taghyeer', en: 'change', pos: 'Noun', example: 'هيدا التغيير رح يعمل مشكلة.' },
+          { id: 'v17', ar: 'اجْتِماع', translit: "ijtimaa'", en: 'meeting', pos: 'Noun', example: 'اتّفقوا يعملوا اجتماع صغير.' },
+          { id: 'v18', ar: 'بَعضُن', translit: "ba'Don", en: 'each other / one another', pos: 'Pronoun', example: 'ليخبروا بعضن شو عم يصير.' },
+          { id: 'v19', ar: 'أَسهَل', translit: 'ashal', en: 'easier', pos: 'Comparative Adj.', example: 'صار الشغل مع بعضن أسهل كتير.' }
+        ],
+        verbs: [
+          {
+            id: 'verb-1',
+            rootAr: 'اشتغل',
+            translit: 'ishtaghal',
+            meaning: 'to work',
+            past: {
+              ana: { ar: 'اشتغلت', tr: 'ishtaghalt' },
+              inta: { ar: 'اشتغلت', tr: 'ishtaghalt' },
+              inti: { ar: 'اشتغلتي', tr: 'ishtaghalti' },
+              huwwe: { ar: 'اشتغل', tr: 'ishtaghal' },
+              hiyye: { ar: 'اشتغلت', tr: 'ishtaghalit' },
+              niHna: { ar: 'اشتغلنا', tr: 'ishtaghalna' },
+              into: { ar: 'اشتغلتوا', tr: 'ishtaghalto' },
+              hinne: { ar: 'اشتغلوا', tr: 'ishtaghalo' }
+            },
+            presentBi: {
+              ana: { ar: 'بشتغل', tr: 'bishtighil' },
+              inta: { ar: 'بتشتغل', tr: 'btishtighil' },
+              inti: { ar: 'بتشتغلي', tr: 'btishtighli' },
+              huwwe: { ar: 'بيشتغل', tr: 'byishtighil' },
+              hiyye: { ar: 'بتشتغل', tr: 'btishtighil' },
+              niHna: { ar: 'منشتغل', tr: 'mnishtighil' },
+              into: { ar: 'بتشتغلوا', tr: 'btishtighlo' },
+              hinne: { ar: 'بيشتغلوا', tr: 'byishtighlo' }
+            }
+          },
+          {
+            id: 'verb-2',
+            rootAr: 'حبّ',
+            translit: 'Habb',
+            meaning: 'to love / like',
+            past: {
+              ana: { ar: 'حبّيت', tr: 'Habbayt' },
+              inta: { ar: 'حبّيت', tr: 'Habbayt' },
+              inti: { ar: 'حبّيتي', tr: 'Habbayti' },
+              huwwe: { ar: 'حبّ', tr: 'Habb' },
+              hiyye: { ar: 'حبّت', tr: 'Habbit' },
+              niHna: { ar: 'حبّينا', tr: 'Habbayna' },
+              into: { ar: 'حبّيتوا', tr: 'Habbayto' },
+              hinne: { ar: 'حبّوا', tr: 'Habbo' }
+            },
+            presentBi: {
+              ana: { ar: 'بحبّ', tr: 'bHibb' },
+              inta: { ar: 'بتحبّ', tr: 'bitHibb' },
+              inti: { ar: 'بتحبّي', tr: 'bitHibbi' },
+              huwwe: { ar: 'بيحبّ', tr: 'byiHibb' },
+              hiyye: { ar: 'بتحبّ', tr: 'bitHibb' },
+              niHna: { ar: 'منحبّ', tr: 'minHibb' },
+              into: { ar: 'بتحبّوا', tr: 'bitHibbo' },
+              hinne: { ar: 'بيحبّوا', tr: 'byiHibbo' }
+            }
+          },
+          {
+            id: 'verb-3',
+            rootAr: 'صار',
+            translit: 'saar',
+            meaning: 'to become / happen',
+            past: {
+              ana: { ar: 'صرت', tr: 'sirt' },
+              inta: { ar: 'صرت', tr: 'sirt' },
+              inti: { ar: 'صرتي', tr: 'sirti' },
+              huwwe: { ar: 'صار', tr: 'saar' },
+              hiyye: { ar: 'صارت', tr: 'saarit' },
+              niHna: { ar: 'صرنا', tr: 'sirna' },
+              into: { ar: 'صرتوا', tr: 'sirto' },
+              hinne: { ar: 'صاروا', tr: 'saaro' }
+            },
+            presentBi: {
+              ana: { ar: 'بصير', tr: 'bSeer' },
+              inta: { ar: 'بتصير', tr: 'bitSeer' },
+              inti: { ar: 'بتصيري', tr: 'bitSeeri' },
+              huwwe: { ar: 'بيصير', tr: 'byiSeer' },
+              hiyye: { ar: 'بتصير', tr: 'bitSeer' },
+              niHna: { ar: 'منصير', tr: 'minSeer' },
+              into: { ar: 'بتصيروا', tr: 'bitSeero' },
+              hinne: { ar: 'بيصيروا', tr: 'byiSeero' }
+            }
+          },
+          {
+            id: 'verb-4',
+            rootAr: 'حسّ',
+            translit: 'Hass',
+            meaning: 'to feel',
+            past: {
+              ana: { ar: 'حسّيت', tr: 'Hassayt' },
+              inta: { ar: 'حسّيت', tr: 'Hassayt' },
+              inti: { ar: 'حسّيتي', tr: 'Hassayti' },
+              huwwe: { ar: 'حسّ', tr: 'Hass' },
+              hiyye: { ar: 'حسّت', tr: 'Hassit' },
+              niHna: { ar: 'حسّينا', tr: 'Hassayna' },
+              into: { ar: 'حسّيتوا', tr: 'Hassayto' },
+              hinne: { ar: 'حسّوا', tr: 'Hasso' }
+            },
+            presentBi: {
+              ana: { ar: 'بحسّ', tr: 'bHiss' },
+              inta: { ar: 'بتحسّ', tr: 'bitHiss' },
+              inti: { ar: 'بتحسّي', tr: 'bitHissi' },
+              huwwe: { ar: 'بيحسّ', tr: 'byiHiss' },
+              hiyye: { ar: 'بتحسّ', tr: 'bitHiss' },
+              niHna: { ar: 'منحسّ', tr: 'minHiss' },
+              into: { ar: 'بتحسّوا', tr: 'bitHisso' },
+              hinne: { ar: 'بيحسّوا', tr: 'byiHisso' }
+            }
+          },
+          {
+            id: 'verb-5',
+            rootAr: 'تواصل',
+            translit: 'twaasal',
+            meaning: 'to communicate',
+            past: {
+              ana: { ar: 'تواصلت', tr: 'twaasalt' },
+              inta: { ar: 'تواصلت', tr: 'twaasalt' },
+              inti: { ar: 'تواصلتي', tr: 'twaasalti' },
+              huwwe: { ar: 'تواصل', tr: 'twaasal' },
+              hiyye: { ar: 'تواصلت', tr: 'twaasalit' },
+              niHna: { ar: 'تواصلنا', tr: 'twaasalna' },
+              into: { ar: 'تواصلتوا', tr: 'twaasalto' },
+              hinne: { ar: 'تواصلوا', tr: 'twaasalo' }
+            },
+            presentBi: {
+              ana: { ar: 'بتواصل', tr: 'bitwaasal' },
+              inta: { ar: 'بتتواصل', tr: 'btitwaasal' },
+              inti: { ar: 'بتتواصلي', tr: 'btitwaasali' },
+              huwwe: { ar: 'بيتواصل', tr: 'byitwaasal' },
+              hiyye: { ar: 'بتتواصل', tr: 'btitwaasal' },
+              niHna: { ar: 'منتواصل', tr: 'mnitwaasal' },
+              into: { ar: 'بتتواصلوا', tr: 'btitwaasalo' },
+              hinne: { ar: 'بيتواصلوا', tr: 'byitwaasalo' }
+            }
+          },
+          {
+            id: 'verb-6',
+            rootAr: 'أخد',
+            translit: 'akhad',
+            meaning: 'to take',
+            past: {
+              ana: { ar: 'أخدت', tr: 'akhadt' },
+              inta: { ar: 'أخدت', tr: 'akhadt' },
+              inti: { ar: 'أخدتي', tr: 'akhadti' },
+              huwwe: { ar: 'أخد', tr: 'akhad' },
+              hiyye: { ar: 'أخدت', tr: 'akhadit' },
+              niHna: { ar: 'أخدنا', tr: 'akhadna' },
+              into: { ar: 'أخدتوا', tr: 'akhadto' },
+              hinne: { ar: 'أخدوا', tr: 'akhado' }
+            },
+            presentBi: {
+              ana: { ar: 'باخد', tr: 'baakhod' },
+              inta: { ar: 'بتاخد', tr: 'btaakhod' },
+              inti: { ar: 'بتاخدي', tr: 'btaakhdi' },
+              huwwe: { ar: 'بياخد', tr: 'byaakhod' },
+              hiyye: { ar: 'بتاخد', tr: 'btaakhod' },
+              niHna: { ar: 'مناخد', tr: 'mnaakhod' },
+              into: { ar: 'بتاخدوا', tr: 'btaakhdo' },
+              hinne: { ar: 'بياخدوا', tr: 'byaakhdo' }
+            }
+          },
+          {
+            id: 'verb-7',
+            rootAr: 'سأل',
+            translit: "sa'al",
+            meaning: 'to ask',
+            past: {
+              ana: { ar: 'سألت', tr: "sa'alt" },
+              inta: { ar: 'سألت', tr: "sa'alt" },
+              inti: { ar: 'سألتي', tr: "sa'alti" },
+              huwwe: { ar: 'سأل', tr: "sa'al" },
+              hiyye: { ar: 'سألت', tr: "sa'alit" },
+              niHna: { ar: 'سألنا', tr: "sa'alna" },
+              into: { ar: 'سألتوا', tr: "sa'alto" },
+              hinne: { ar: 'سألوا', tr: "sa'alo" }
+            },
+            presentBi: {
+              ana: { ar: 'بسأل', tr: "bis'al" },
+              inta: { ar: 'بتسأل', tr: "btis'al" },
+              inti: { ar: 'بتسألي', tr: "btis'ali" },
+              huwwe: { ar: 'بيسأل', tr: "byis'al" },
+              hiyye: { ar: 'بتسأل', tr: "btis'al" },
+              niHna: { ar: 'منسأل', tr: "mnis'al" },
+              into: { ar: 'بتسألوا', tr: "btis'alo" },
+              hinne: { ar: 'بيسألوا', tr: "byis'alo" }
+            }
+          },
+          {
+            id: 'verb-8',
+            rootAr: 'غيّر',
+            translit: 'ghayyar',
+            meaning: 'to change',
+            past: {
+              ana: { ar: 'غيّرت', tr: 'ghayyart' },
+              inta: { ar: 'غيّرت', tr: 'ghayyart' },
+              inti: { ar: 'غيّرتي', tr: 'ghayyarti' },
+              huwwe: { ar: 'غيّر', tr: 'ghayyar' },
+              hiyye: { ar: 'غيّرت', tr: 'ghayyarit' },
+              niHna: { ar: 'غيّرنا', tr: 'ghayyarna' },
+              into: { ar: 'غيّرتوا', tr: 'ghayyarto' },
+              hinne: { ar: 'غيّروا', tr: 'ghayyaro' }
+            },
+            presentBi: {
+              ana: { ar: 'بغيّر', tr: 'bghayyir' },
+              inta: { ar: 'بتغيّر', tr: 'bitghayyir' },
+              inti: { ar: 'بتغيّري', tr: 'bitghayyri' },
+              huwwe: { ar: 'بيغيّر', tr: 'byighayyir' },
+              hiyye: { ar: 'بتغيّر', tr: 'bitghayyir' },
+              niHna: { ar: 'منغيّر', tr: 'minghayyir' },
+              into: { ar: 'بتغيّروا', tr: 'bitghayyro' },
+              hinne: { ar: 'بيغيّروا', tr: 'byighayyro' }
+            }
+          },
+          {
+            id: 'verb-9',
+            rootAr: 'خبّر',
+            translit: 'khabbar',
+            meaning: 'to tell / inform',
+            past: {
+              ana: { ar: 'خبّرت', tr: 'khabbart' },
+              inta: { ar: 'خبّرت', tr: 'khabbart' },
+              inti: { ar: 'خبّرتي', tr: 'khabbarti' },
+              huwwe: { ar: 'خبّر', tr: 'khabbar' },
+              hiyye: { ar: 'خبّرت', tr: 'khabbarit' },
+              niHna: { ar: 'خبّرنا', tr: 'khabbarna' },
+              into: { ar: 'خبّرتوا', tr: 'khabbarto' },
+              hinne: { ar: 'خبّروا', tr: 'khabbaro' }
+            },
+            presentBi: {
+              ana: { ar: 'بخبّر', tr: 'bkhabbir' },
+              inta: { ar: 'بتخبّر', tr: 'bitkhabbir' },
+              inti: { ar: 'بتخبّري', tr: 'bitkhabbri' },
+              huwwe: { ar: 'بيخبّر', tr: 'byikhabbir' },
+              hiyye: { ar: 'بتخبّر', tr: 'bitkhabbir' },
+              niHna: { ar: 'منخبّر', tr: 'minkhabbir' },
+              into: { ar: 'بتخبّروا', tr: 'bitkhabbro' },
+              hinne: { ar: 'بيخبّروا', tr: 'byikhabbro' }
+            }
+          },
+          {
+            id: 'verb-10',
+            rootAr: 'عرف',
+            translit: '3irif',
+            meaning: 'to know / find out',
+            past: {
+              ana: { ar: 'عرفت', tr: '3rift' },
+              inta: { ar: 'عرفت', tr: '3rift' },
+              inti: { ar: 'عرفتي', tr: '3rifti' },
+              huwwe: { ar: 'عرف', tr: '3irif' },
+              hiyye: { ar: 'عرفت', tr: '3irfit' },
+              niHna: { ar: 'عرفنا', tr: '3rifna' },
+              into: { ar: 'عرفتوا', tr: '3rifto' },
+              hinne: { ar: 'عرفوا', tr: '3irfo' }
+            },
+            presentBi: {
+              ana: { ar: 'بعرف', tr: 'ba3rif' },
+              inta: { ar: 'بتعرف', tr: 'bta3rif' },
+              inti: { ar: 'بتعرفي', tr: 'bta3rfi' },
+              huwwe: { ar: 'بيعرف', tr: 'bya3rif' },
+              hiyye: { ar: 'بتعرف', tr: 'bta3rif' },
+              niHna: { ar: 'منعرف', tr: 'mna3rif' },
+              into: { ar: 'بتعرفوا', tr: 'bta3rfo' },
+              hinne: { ar: 'بيعرفوا', tr: 'bya3rfo' }
+            }
+          },
+          {
+            id: 'verb-11',
+            rootAr: 'زعل',
+            translit: 'zi3il',
+            meaning: 'to get upset / sad',
+            past: {
+              ana: { ar: 'زعلت', tr: 'z3ilt' },
+              inta: { ar: 'زعلت', tr: 'z3ilt' },
+              inti: { ar: 'زعلتي', tr: 'z3ilti' },
+              huwwe: { ar: 'زعل', tr: 'zi3il' },
+              hiyye: { ar: 'زعلت', tr: 'zi3lit' },
+              niHna: { ar: 'زعلنا', tr: 'z3ilna' },
+              into: { ar: 'زعلتوا', tr: 'z3ilto' },
+              hinne: { ar: 'زعلوا', tr: 'zi3lo' }
+            },
+            presentBi: {
+              ana: { ar: 'بزعل', tr: 'biz3al' },
+              inta: { ar: 'بتزعل', tr: 'btiz3al' },
+              inti: { ar: 'بتزعلي', tr: 'btiz3ali' },
+              huwwe: { ar: 'بيزعل', tr: 'byiz3al' },
+              hiyye: { ar: 'بتزعل', tr: 'btiz3al' },
+              niHna: { ar: 'منزعل', tr: 'mniz3al' },
+              into: { ar: 'بتزعلوا', tr: 'btiz3alo' },
+              hinne: { ar: 'بيزعلوا', tr: 'byiz3alo' }
+            }
+          },
+          {
+            id: 'verb-12',
+            rootAr: 'قال',
+            translit: "'aal",
+            meaning: 'to say',
+            past: {
+              ana: { ar: 'قلت', tr: "'ilt" },
+              inta: { ar: 'قلت', tr: "'ilt" },
+              inti: { ar: 'قلتي', tr: "'ilti" },
+              huwwe: { ar: 'قال', tr: "'aal" },
+              hiyye: { ar: 'قالت', tr: "'aalit" },
+              niHna: { ar: 'قلنا', tr: "'ilna" },
+              into: { ar: 'قلتوا', tr: "'ilto" },
+              hinne: { ar: 'قالوا', tr: "'aalo" }
+            },
+            presentBi: {
+              ana: { ar: 'بقول', tr: "b'ool" },
+              inta: { ar: 'بتقول', tr: "bit'ool" },
+              inti: { ar: 'بتقولي', tr: "bit'ooli" },
+              huwwe: { ar: 'بيقول', tr: "byi'ool" },
+              hiyye: { ar: 'بتقول', tr: "bit'ool" },
+              niHna: { ar: 'منقول', tr: "min'ool" },
+              into: { ar: 'بتقولوا', tr: "bit'oolo" },
+              hinne: { ar: 'بيقولوا', tr: "byi'oolo" }
+            }
+          },
+          {
+            id: 'verb-13',
+            rootAr: 'قرّر',
+            translit: 'qarrar',
+            meaning: 'to decide',
+            past: {
+              ana: { ar: 'قرّرت', tr: 'qarrart' },
+              inta: { ar: 'قرّرت', tr: 'qarrart' },
+              inti: { ar: 'قرّرتي', tr: 'qarrarti' },
+              huwwe: { ar: 'قرّر', tr: 'qarrar' },
+              hiyye: { ar: 'قرّرت', tr: 'qarrarit' },
+              niHna: { ar: 'قرّرنا', tr: 'qarrarna' },
+              into: { ar: 'قرّرتوا', tr: 'qarrarto' },
+              hinne: { ar: 'قرّروا', tr: 'qarraro' }
+            },
+            presentBi: {
+              ana: { ar: 'بقرّر', tr: 'bqarrir' },
+              inta: { ar: 'بتقرّر', tr: 'bitqarrir' },
+              inti: { ar: 'بتقرّري', tr: 'bitqarrri' },
+              huwwe: { ar: 'بيقرّر', tr: 'byiqarrir' },
+              hiyye: { ar: 'بتقرّر', tr: 'bitqarrir' },
+              niHna: { ar: 'منقرّر', tr: 'minqarrir' },
+              into: { ar: 'بتقرّروا', tr: 'bitqarrro' },
+              hinne: { ar: 'بيقرّروا', tr: 'byiqarrro' }
+            }
+          },
+          {
+            id: 'verb-14',
+            rootAr: 'حكى',
+            translit: 'Haka',
+            meaning: 'to speak / talk',
+            past: {
+              ana: { ar: 'حكيت', tr: 'Hakayt' },
+              inta: { ar: 'حكيت', tr: 'Hakayt' },
+              inti: { ar: 'حكيتي', tr: 'Hakayti' },
+              huwwe: { ar: 'حكى', tr: 'Haka' },
+              hiyye: { ar: 'حكت', tr: 'Hakit' },
+              niHna: { ar: 'حكينا', tr: 'Hakayna' },
+              into: { ar: 'حكيتوا', tr: 'Hakayto' },
+              hinne: { ar: 'حكوا', tr: 'Hako' }
+            },
+            presentBi: {
+              ana: { ar: 'بحكي', tr: 'biHki' },
+              inta: { ar: 'بتحكي', tr: 'btiHki' },
+              inti: { ar: 'بتحكي', tr: 'btiHki' },
+              huwwe: { ar: 'بيحكي', tr: 'byiHki' },
+              hiyye: { ar: 'بتحكي', tr: 'btiHki' },
+              niHna: { ar: 'منحكي', tr: 'mniHki' },
+              into: { ar: 'بتحكوا', tr: 'btiHko' },
+              hinne: { ar: 'بيحكوا', tr: 'byiHko' }
+            }
+          },
+          {
+            id: 'verb-15',
+            rootAr: 'اعتذر',
+            translit: 'i3tazar',
+            meaning: 'to apologize',
+            past: {
+              ana: { ar: 'اعتذرت', tr: 'i3tazart' },
+              inta: { ar: 'اعتذرت', tr: 'i3tazart' },
+              inti: { ar: 'اعتذرتي', tr: 'i3tazarti' },
+              huwwe: { ar: 'اعتذر', tr: 'i3tazar' },
+              hiyye: { ar: 'اعتذرت', tr: 'i3tazarit' },
+              niHna: { ar: 'اعتذرنا', tr: 'i3tazarna' },
+              into: { ar: 'اعتذرتوا', tr: 'i3tazarto' },
+              hinne: { ar: 'اعتذروا', tr: 'i3tazaro' }
+            },
+            presentBi: {
+              ana: { ar: 'بعتذر', tr: 'bi3tizir' },
+              inta: { ar: 'بتعتذر', tr: 'bti3tizir' },
+              inti: { ar: 'بتعتذري', tr: 'bti3tizri' },
+              huwwe: { ar: 'بيعتذر', tr: 'byi3tizir' },
+              hiyye: { ar: 'بتعتذر', tr: 'bti3tizir' },
+              niHna: { ar: 'منعتذر', tr: 'mni3tizir' },
+              into: { ar: 'بتعتذروا', tr: 'bti3tizro' },
+              hinne: { ar: 'بيعتذروا', tr: 'byi3tizro' }
+            }
+          },
+          {
+            id: 'verb-16',
+            rootAr: 'شرح',
+            translit: 'sharaH',
+            meaning: 'to explain',
+            past: {
+              ana: { ar: 'شرحت', tr: 'sharaHt' },
+              inta: { ar: 'شرحت', tr: 'sharaHt' },
+              inti: { ar: 'شرحتي', tr: 'sharaHti' },
+              huwwe: { ar: 'شرح', tr: 'sharaH' },
+              hiyye: { ar: 'شرحت', tr: 'sharaHit' },
+              niHna: { ar: 'شرحنا', tr: 'sharaHna' },
+              into: { ar: 'شرحتوا', tr: 'sharaHto' },
+              hinne: { ar: 'شرحوا', tr: 'sharaHo' }
+            },
+            presentBi: {
+              ana: { ar: 'بشرح', tr: 'bishraH' },
+              inta: { ar: 'بتشرح', tr: 'btishraH' },
+              inti: { ar: 'بتشرحي', tr: 'btishraHi' },
+              huwwe: { ar: 'بيشرح', tr: 'byishraH' },
+              hiyye: { ar: 'بتشرح', tr: 'btishraH' },
+              niHna: { ar: 'منشرح', tr: 'mnishraH' },
+              into: { ar: 'بتشرحوا', tr: 'btishraHo' },
+              hinne: { ar: 'بيشرحوا', tr: 'byishraHo' }
+            }
+          },
+          {
+            id: 'verb-17',
+            rootAr: 'فكّر',
+            translit: 'fakkar',
+            meaning: 'to think',
+            past: {
+              ana: { ar: 'فكّرت', tr: 'fakkart' },
+              inta: { ar: 'فكّرت', tr: 'fakkart' },
+              inti: { ar: 'فكّرتي', tr: 'fakkarti' },
+              huwwe: { ar: 'فكّر', tr: 'fakkar' },
+              hiyye: { ar: 'فكّرت', tr: 'fakkarit' },
+              niHna: { ar: 'فكّرنا', tr: 'fakkarna' },
+              into: { ar: 'فكّرتوا', tr: 'fakkarto' },
+              hinne: { ar: 'فكّروا', tr: 'fakkaro' }
+            },
+            presentBi: {
+              ana: { ar: 'بفكّر', tr: 'bfakkir' },
+              inta: { ar: 'بتفكّر', tr: 'bitfakkir' },
+              inti: { ar: 'بتفكّري', tr: 'bitfakkri' },
+              huwwe: { ar: 'بيفكّر', tr: 'byifakkir' },
+              hiyye: { ar: 'بتفكّر', tr: 'bitfakkir' },
+              niHna: { ar: 'منفكّر', tr: 'minfakkir' },
+              into: { ar: 'بتفكّروا', tr: 'bitfakkro' },
+              hinne: { ar: 'بيفكّروا', tr: 'byifakkro' }
+            }
+          },
+          {
+            id: 'verb-18',
+            rootAr: 'عمل',
+            translit: '3imil',
+            meaning: 'to do / make',
+            past: {
+              ana: { ar: 'عملت', tr: '3milt' },
+              inta: { ar: 'عملت', tr: '3milt' },
+              inti: { ar: 'عملتي', tr: '3milti' },
+              huwwe: { ar: 'عمل', tr: '3imil' },
+              hiyye: { ar: 'عملت', tr: '3imlit' },
+              niHna: { ar: 'عملنا', tr: '3milna' },
+              into: { ar: 'عملتوا', tr: '3milto' },
+              hinne: { ar: 'عملوا', tr: '3imlo' }
+            },
+            presentBi: {
+              ana: { ar: 'بعمل', tr: 'ba3mil' },
+              inta: { ar: 'بتعمل', tr: 'bta3mil' },
+              inti: { ar: 'بتعملي', tr: 'bta3mli' },
+              huwwe: { ar: 'بيعمل', tr: 'bya3mil' },
+              hiyye: { ar: 'بتعمل', tr: 'bta3mil' },
+              niHna: { ar: 'منعمل', tr: 'mna3mil' },
+              into: { ar: 'بتعملوا', tr: 'bta3mlo' },
+              hinne: { ar: 'بيعملوا', tr: 'bya3mlo' }
+            }
+          },
+          {
+            id: 'verb-19',
+            rootAr: 'اتّفق',
+            translit: "ittafa'",
+            meaning: 'to agree',
+            past: {
+              ana: { ar: 'اتّفقت', tr: "ittafa't" },
+              inta: { ar: 'اتّفقت', tr: "ittafa't" },
+              inti: { ar: 'اتّفقتي', tr: "ittafa'ti" },
+              huwwe: { ar: 'اتّفق', tr: "ittafa'" },
+              hiyye: { ar: 'اتّفقت', tr: "ittafa'it" },
+              niHna: { ar: 'اتّفقنا', tr: "ittafa'na" },
+              into: { ar: 'اتّفقتوا', tr: "ittafa'to" },
+              hinne: { ar: 'اتّفقوا', tr: "ittafa'o" }
+            },
+            presentBi: {
+              ana: { ar: 'بتّفق', tr: 'bittifi’' },
+              inta: { ar: 'بتتّفق', tr: 'btittifi’' },
+              inti: { ar: 'بتتّفقي', tr: 'btittif’i' },
+              huwwe: { ar: 'بيتّفق', tr: 'byittifi’' },
+              hiyye: { ar: 'بتتّفق', tr: 'btittifi’' },
+              niHna: { ar: 'منتّفق', tr: 'mnittifi’' },
+              into: { ar: 'بتتّفقوا', tr: 'btittif’o' },
+              hinne: { ar: 'بيتّفقوا', tr: 'byittif’o' }
+            }
+          }
+        ],
+        games: {
+          fillBlanks: [
+            {
+              id: 'fb-1',
+              sentenceBefore: 'كريم بيشتغل بِمكتب مع',
+              sentenceAfter: 'صغير.',
+              answer: 'فَريق',
+              options: ['فَريق', 'مُدير', 'اجْتِماع', 'تَغيير'],
+              hint: 'Meaning: team (faree’)'
+            },
+            {
+              id: 'fb-2',
+              sentenceBefore: 'سامر غيّر جزء من المشروع',
+              sentenceAfter: 'يخبر كريم.',
+              answer: 'بَلا ما',
+              options: ['بَلا ما', 'دُغري', 'كِفايِة', 'أَسهَل'],
+              hint: 'Meaning: without (bala maa)'
+            },
+            {
+              id: 'fb-3',
+              sentenceBefore: 'قرّر كريم يحكي مع سامر',
+              sentenceAfter: 'بدل ما يقول للمدير.',
+              answer: 'دُغري',
+              options: ['دُغري', 'مِستَعجِل', 'قَديمة', 'كِفايِة'],
+              hint: 'Meaning: directly / straight away (dughri)'
+            },
+            {
+              id: 'fb-4',
+              sentenceBefore: 'سامر اعتذر وشرح إنّو كان',
+              sentenceAfter: 'وما فكّر بالمشكلة.',
+              answer: 'مِستَعجِل',
+              options: ['مِستَعجِل', 'أَسهَل', 'صغير', 'كبير'],
+              hint: 'Meaning: in a hurry (mista’jil)'
+            },
+            {
+              id: 'fb-5',
+              sentenceBefore: 'اتّفقوا يعملوا',
+              sentenceAfter: 'صغير كلّ صبح.',
+              answer: 'اجْتِماع',
+              options: ['اجْتِماع', 'مَشروع', 'مَكتَب', 'فَريق'],
+              hint: 'Meaning: meeting (ijtimaa’)'
+            }
+          ],
+          wordOrder: [
+            {
+              id: 'wo-1',
+              en: 'Karim works in an office with a small team.',
+              words: ['كريم', 'بيشتغل', 'بمكتب', 'مع', 'فريق', 'صغير']
+            },
+            {
+              id: 'wo-2',
+              en: 'Karim and Samer are working on the same project.',
+              words: ['كريم', 'وسامر', 'عم', 'يشتغلوا', 'على', 'نفس', 'المشروع']
+            },
+            {
+              id: 'wo-3',
+              en: 'Samer changed part of the project without telling Karim.',
+              words: ['سامر', 'غيّر', 'جزء', 'من', 'المشروع', 'بلا', 'ما', 'يخبر', 'كريم']
+            },
+            {
+              id: 'wo-4',
+              en: 'They agreed to have a small meeting every morning.',
+              words: ['اتّفقوا', 'يعملوا', 'اجتماع', 'صغير', 'كلّ', 'صبح']
+            }
+          ],
+          verbDeclension: [
+            {
+              id: 'vd-1',
+              promptEn: 'Habitual Present (bi- form) — He (هوّي): "Karim _____ in an office."',
+              sentence: 'كريم _____ بمكتب مع فريق صغير.',
+              correct: 'بيشتغل',
+              options: ['بيشتغل', 'اشتغل', 'بتشتغل', 'نشتغل'],
+              explanation: 'With هوّي (he) in the habitual present tense, Lebanese Arabic uses the prefix بيـ (byi-): بيشتغل.'
+            },
+            {
+              id: 'vd-2',
+              promptEn: 'Past Tense — He (هوّي): "Last week, Samer _____ part of the project."',
+              sentence: 'الأسبوع الماضي، سامر _____ جزء من المشروع.',
+              correct: 'غيّر',
+              options: ['غيّر', 'بيغيّر', 'تغيّر', 'غيّروا'],
+              explanation: 'الأسبوع الماضي (Last week) signals the past tense for هوّي (Samer): غيّر (ghayyar).'
+            },
+            {
+              id: 'vd-3',
+              promptEn: 'Past Tense — They (هنّي): "They _____ to have a small meeting every morning."',
+              sentence: '_____ يعملوا اجتماع صغير كلّ صبح.',
+              correct: 'اتّفقوا',
+              options: ['اتّفقوا', 'بيتّفقوا', 'اتّفق', 'اتّفقنا'],
+              explanation: 'Past tense for هنّي (they) ends in ـوا (-o): اتّفقوا (ittafa’o).'
+            },
+            {
+              id: 'vd-4',
+              promptEn: 'Habitual Present (bi- form) — We (نحنا): "We _____ on the same project every day."',
+              sentence: 'نحنا _____ على نفس المشروع كلّ يوم.',
+              correct: 'منشتغل',
+              options: ['منشتغل', 'بيشتغلوا', 'اشتغلنا', 'بشتغل'],
+              explanation: 'In Lebanese Arabic, نحنا (we) in the "bi-" present takes the prefix منـ (mni-): منشتغل.'
+            },
+            {
+              id: 'vd-5',
+              promptEn: 'Past Tense — He (هوّي): "When Karim found out, he _____."',
+              sentence: 'لمّا كريم عرف، _____ كتير.',
+              correct: 'زعل',
+              options: ['زعل', 'بيزعل', 'زعلت', 'زعلوا'],
+              explanation: 'Past tense for هوّي (Karim) is زعل (zi’il - he got upset).'
+            }
+          ]
+        }
+      },
+      {
+        id: 'lesson-2',
+        number: 2,
+        level: 'Intermediate (B1) • Sample Template',
+        titleAr: 'قهوة الصبح ببيروت',
+        titleEn: 'Morning Coffee in Beirut',
+        description:
+          'A short bonus template lesson showing how subsequent stories build naturally on Lesson 1 grammar.',
+        audioLinks: {
+          Lebanese: '',
+          Jordanian: '',
+          Egyptian: '',
+          Emirati: ''
+        },
+        sentences: [
+          {
+            ar: 'كلّ يوم الصبح، ليلى بتروح عَ الكافيه القريب من بيتها.',
+            translit: 'Kill yom iS-SubH, Layla bitrooH 3al-kafeh l-’areeb min bayta.',
+            en: 'Every morning, Layla goes to the café near her house.'
+          },
+          {
+            ar: 'بتطلب قهوة وسط وبتقرا الأخبار عَ تلفونها قبل الشغل.',
+            translit: 'BtiTlob ’ahwe wasaT w bti’ra l-akhbaar 3a talifona ’abl ish-shighil.',
+            en: 'She orders a medium coffee and reads the news on her phone before work.'
+          },
+          {
+            ar: 'إمبارح شافت رفيقتها القديمة ريم، وقعدوا يحكوا سوا نص ساعة.',
+            translit: 'ImbaariH shaafit rafee’ta l-’adeeme Reem, w ’a3ado yiHko sawa nuSS saa3a.',
+            en: 'Yesterday she saw her old friend Reem, and they sat and talked together for half an hour.'
+          }
+        ],
+        vocabulary: [
+          { id: 'v2-1', ar: 'قَريب مِن', translit: "'areeb min", en: 'near / close to', pos: 'Preposition', example: 'الكافيه قريب من بيتها.' },
+          { id: 'v2-2', ar: 'قَهوة وَسَط', translit: "'ahwe wasaT", en: 'medium-sweet coffee', pos: 'Phrase', example: 'بتطلب قهوة وسط.' },
+          { id: 'v2-3', ar: 'إمبارِح', translit: 'imbaariH', en: 'yesterday', pos: 'Adverb', example: 'إمبارح شافت رفيقتها.' },
+          { id: 'v2-4', ar: 'سَوا', translit: 'sawa', en: 'together', pos: 'Adverb', example: 'قعدوا يحكوا سوا.' }
+        ],
+        verbs: [
+          {
+            id: 'v2-verb-1',
+            rootAr: 'راح',
+            translit: 'raaH',
+            meaning: 'to go',
+            past: {
+              ana: { ar: 'رحت', tr: 'riHt' },
+              inta: { ar: 'رحت', tr: 'riHt' },
+              inti: { ar: 'رحتي', tr: 'riHti' },
+              huwwe: { ar: 'راح', tr: 'raaH' },
+              hiyye: { ar: 'راحت', tr: 'raaHit' },
+              niHna: { ar: 'رحنا', tr: 'riHna' },
+              into: { ar: 'رحتوا', tr: 'riHto' },
+              hinne: { ar: 'راحوا', tr: 'raaHo' }
+            },
+            presentBi: {
+              ana: { ar: 'بروح', tr: 'brooH' },
+              inta: { ar: 'بتروح', tr: 'bitrooH' },
+              inti: { ar: 'بتروحي', tr: 'bitrooHi' },
+              huwwe: { ar: 'بيروح', tr: 'byirooH' },
+              hiyye: { ar: 'بتروح', tr: 'bitrooH' },
+              niHna: { ar: 'منروح', tr: 'minrooH' },
+              into: { ar: 'بتروحوا', tr: 'bitrooHo' },
+              hinne: { ar: 'بيروحوا', tr: 'byirooHo' }
+            }
+          },
+          {
+            id: 'v2-verb-2',
+            rootAr: 'شاف',
+            translit: 'shaaf',
+            meaning: 'to see',
+            past: {
+              ana: { ar: 'شفت', tr: 'shift' },
+              inta: { ar: 'شفت', tr: 'shift' },
+              inti: { ar: 'شفتي', tr: 'shifti' },
+              huwwe: { ar: 'شاف', tr: 'shaaf' },
+              hiyye: { ar: 'شافت', tr: 'shaafit' },
+              niHna: { ar: 'شفنا', tr: 'shifna' },
+              into: { ar: 'شفتوا', tr: 'shifto' },
+              hinne: { ar: 'شافوا', tr: 'shaafo' }
+            },
+            presentBi: {
+              ana: { ar: 'بشوف', tr: 'bshoof' },
+              inta: { ar: 'بتشوف', tr: 'bitshoof' },
+              inti: { ar: 'بتشوفي', tr: 'bitshoofi' },
+              huwwe: { ar: 'بيشوف', tr: 'byishoof' },
+              hiyye: { ar: 'بتشوف', tr: 'bitshoof' },
+              niHna: { ar: 'منشوف', tr: 'minshoof' },
+              into: { ar: 'بتشوفوا', tr: 'bitshoofo' },
+              hinne: { ar: 'بيشوفوا', tr: 'byishoofo' }
+            }
+          }
+        ],
+        games: {
+          fillBlanks: [
+            {
+              id: 'l2-fb1',
+              sentenceBefore: 'ليلى بتروح عَ الكافيه',
+              sentenceAfter: 'من بيتها.',
+              answer: 'القريب',
+              options: ['القريب', 'البعيد', 'الصغير', 'القديم'],
+              hint: 'Meaning: near (il-’areeb)'
+            }
+          ],
+          wordOrder: [
+            {
+              id: 'l2-wo1',
+              en: 'Yesterday she saw her old friend Reem.',
+              words: ['إمبارح', 'شافت', 'رفيقتها', 'القديمة', 'ريم']
+            }
+          ],
+          verbDeclension: [
+            {
+              id: 'l2-vd1',
+              promptEn: 'Present (bi- form) — She (هيّي): "Every morning Layla _____ to the café."',
+              sentence: 'كلّ يوم الصبح، ليلى _____ عَ الكافيه.',
+              correct: 'بتروح',
+              options: ['بتروح', 'راحت', 'بيروح', 'منروح'],
+              explanation: 'With هيّي (Layla) in the habitual present, we use بتروح (bitrooH).'
+            }
+          ]
+        }
+      }
+    ];
+
+    const PRONOUNS = [
+      { key: 'ana', ar: 'أنا', tr: 'ana', en: 'I' },
+      { key: 'inta', ar: 'إنتَ', tr: 'inta', en: 'You (m.)' },
+      { key: 'inti', ar: 'إنتِ', tr: 'inti', en: 'You (f.)' },
+      { key: 'huwwe', ar: 'هوّي', tr: 'huwwe', en: 'He' },
+      { key: 'hiyye', ar: 'هيّي', tr: 'hiyye', en: 'She' },
+      { key: 'niHna', ar: 'نحنا', tr: 'niHna', en: 'We' },
+      { key: 'into', ar: 'إنتو', tr: 'into', en: 'You (pl.)' },
+      { key: 'hinne', ar: 'هنّي', tr: 'hinne', en: 'They' }
+    ];
+
+    const DIALECTS = [
+      { id: 'Lebanese', label: 'Lebanese', arLabel: 'لبناني', code: 'ar-LB', badge: 'Primary Story Dialect' },
+      { id: 'Jordanian', label: 'Jordanian', arLabel: 'أردني', code: 'ar-JO', badge: 'Levantine Sister Dialect' },
+      { id: 'Egyptian', label: 'Egyptian', arLabel: 'مصري', code: 'ar-EG', badge: 'Cairene Comparison' },
+      { id: 'Emirati', label: 'Emirati', arLabel: 'إماراتي', code: 'ar-AE', badge: 'Gulf Comparison' }
+    ];
+
+    // ============================================================================
+    // MAIN APPLICATION COMPONENT
+    // ============================================================================
+    function App() {
+      const [lessons, setLessons] = useState(() => {
+        const savedCustom = safeLoadStorage(STORAGE_KEY, []);
+        return [...INITIAL_LESSONS, ...savedCustom];
+      });
+      const [activeLessonId, setActiveLessonId] = useState('lesson-1');
+      const [activeTab, setActiveTab] = useState('story'); // 'story' | 'vocab' | 'verbs' | 'games'
+
+      // Story Reader States
+      const [showTranslit, setShowTranslit] = useState(true);
+      const [showTranslation, setShowTranslation] = useState(false);
+      const [selectedDialect, setSelectedDialect] = useState('Lebanese');
+      const [showAudioConfig, setShowAudioConfig] = useState(false);
+      const [isPlaying, setIsPlaying] = useState(false);
+      const [activeSentenceIdx, setActiveSentenceIdx] = useState(null);
+      const audioRef = useRef(null);
+
+      // Add Story Modal State
+      const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+      // Learned Vocab Tracker
+      const [learnedVocabIds, setLearnedVocabIds] = useState(() =>
+        safeLoadStorage(VOCAB_STORAGE_KEY, {})
+      );
+
+      useEffect(() => {
+        safeSaveStorage(VOCAB_STORAGE_KEY, learnedVocabIds);
+      }, [learnedVocabIds]);
+
+      const activeLesson = useMemo(
+        () => lessons.find((l) => l.id === activeLessonId) || lessons[0],
+        [lessons, activeLessonId]
+      );
+
+      useEffect(() => {
+        stopPlayback();
+      }, [activeLessonId, selectedDialect]);
+
+      const stopPlayback = () => {
+        setIsPlaying(false);
+        setActiveSentenceIdx(null);
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+        }
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          try {
+            window.speechSynthesis.cancel();
+          } catch (e) {}
+        }
+      };
+
+      const handlePlayStory = () => {
+        if (isPlaying) {
+          stopPlayback();
+          return;
+        }
+
+        const customUrl = activeLesson.audioLinks?.[selectedDialect];
+        if (customUrl && customUrl.trim() !== '') {
+          if (audioRef.current) {
+            audioRef.current.src = customUrl;
+            audioRef.current
+              .play()
+              .then(() => {
+                setIsPlaying(true);
+              })
+              .catch(() => {
+                playWithSpeechSynthesis(0);
+              });
+          }
+        } else {
+          playWithSpeechSynthesis(0);
+        }
+      };
+
+      const playWithSpeechSynthesis = (startIndex = 0) => {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+          return;
+        }
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {}
+        setIsPlaying(true);
+
+        const dialectObj = DIALECTS.find((d) => d.id === selectedDialect);
+        const sentences = activeLesson.sentences;
+
+        const speakSentence = (idx) => {
+          if (idx >= sentences.length) {
+            setIsPlaying(false);
+            setActiveSentenceIdx(null);
+            return;
+          }
+          setActiveSentenceIdx(idx);
+          const utterance = new SpeechSynthesisUtterance(sentences[idx].ar);
+          utterance.lang = dialectObj ? dialectObj.code : 'ar-LB';
+          utterance.rate = 0.88;
+          utterance.onend = () => {
+            speakSentence(idx + 1);
+          };
+          utterance.onerror = () => {
+            setIsPlaying(false);
+            setActiveSentenceIdx(null);
+          };
+          window.speechSynthesis.speak(utterance);
+        };
+
+        speakSentence(startIndex);
+      };
+
+      const playSingleSentence = (idx) => {
+        stopPlayback();
+        playWithSpeechSynthesis(idx);
+      };
+
+      const updateDialectAudioLink = (dialectId, url) => {
+        setLessons((prev) => {
+          const updated = prev.map((lesson) =>
+            lesson.id === activeLesson.id
+              ? {
+                  ...lesson,
+                  audioLinks: {
+                    ...lesson.audioLinks,
+                    [dialectId]: url
+                  }
+                }
+              : lesson
+          );
+          const customOnly = updated.filter((l) => l.isCustom);
+          safeSaveStorage(STORAGE_KEY, customOnly);
+          return updated;
+        });
+      };
+
+      const handleLocalAudioUpload = (dialectId, file) => {
+        if (!file) return;
+        const objectUrl = URL.createObjectURL(file);
+        updateDialectAudioLink(dialectId, objectUrl);
+      };
+
+      const toggleLearnedVocab = (vocabId) => {
+        setLearnedVocabIds((prev) => ({
+          ...prev,
+          [vocabId]: !prev[vocabId]
+        }));
+      };
+
+      const handleCreateNewLesson = (newLessonData) => {
+        const newId = `lesson-custom-${Date.now()}`;
+        const created = {
+          ...newLessonData,
+          id: newId,
+          number: lessons.length + 1,
+          isCustom: true
+        };
+        setLessons((prev) => {
+          const next = [...prev, created];
+          safeSaveStorage(
+            STORAGE_KEY,
+            next.filter((l) => l.isCustom)
+          );
+          return next;
+        });
+        setActiveLessonId(newId);
+        setActiveTab('story');
+        setIsAddModalOpen(false);
+      };
+
+      const handleDeleteCustomLesson = (lessonId) => {
+        setLessons((prev) => {
+          const next = prev
+            .filter((l) => l.id !== lessonId)
+            .map((l, idx) => ({ ...l, number: idx + 1 }));
+          safeSaveStorage(
+            STORAGE_KEY,
+            next.filter((l) => l.isCustom)
+          );
+          return next;
+        });
+        setActiveLessonId('lesson-1');
+      };
+
+      return (
+        <div className="min-h-screen bg-[#FAF7F2] text-[#1E2421] font-latin">
+          {/* Hidden HTML5 Audio Element for Linked Dialect Audio */}
+          <audio
+            ref={audioRef}
+            onEnded={() => {
+              setIsPlaying(false);
+              setActiveSentenceIdx(null);
+            }}
+          />
+
+          {/* ==================================================================== */}
+          {/* TOP NAVIGATION HEADER                                                */}
+          {/* ==================================================================== */}
+          <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E6DFD3]">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+              {/* Brand Logo */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#1B4332] text-[#FAF7F2] flex items-center justify-center shadow-sm">
+                  <span className="font-arabic font-bold text-xl">حكي</span>
+                </div>
+                <div>
+                  <h1 className="font-latin font-bold text-lg sm:text-xl tracking-tight text-[#1B4332] leading-none">
+                    Haki Stories
+                  </h1>
+                  <p className="text-xs text-[#6B726E] mt-1 font-latin">
+                    Lebanese Arabic Through Progressive Stories
+                  </p>
+                </div>
+              </div>
+
+              {/* Lesson Selector & Add Story Button */}
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <div className="flex items-center bg-white border border-[#DFD8CC] rounded-xl p-1 shadow-xs overflow-x-auto max-w-full">
+                  {lessons.map((lesson) => (
+                    <button
+                      key={lesson.id}
+                      onClick={() => setActiveLessonId(lesson.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                        lesson.id === activeLesson.id
+                          ? 'bg-[#1B4332] text-white shadow-xs'
+                          : 'text-[#525B56] hover:bg-[#F2EFE9]'
+                      }`}
+                    >
+                      Lesson {lesson.number}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#C85A32] hover:bg-[#B24C27] text-white text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer"
+                >
+                  <Icons.Plus className="w-4 h-4" />
+                  <span>New Story</span>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* ==================================================================== */}
+          {/* LESSON HERO BANNER & 4-MODULE TEMPLATE TABS                          */}
+          {/* ==================================================================== */}
+          <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <div className="bg-white rounded-2xl border border-[#E6DFD3] p-5 sm:p-7 shadow-xs mb-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EFECE6] pb-5">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDF3F0] text-[#1B4332] text-xs font-bold">
+                      <Icons.Sparkles className="w-3.5 h-3.5" />
+                      <span>
+                        Lesson {activeLesson.number} • {activeLesson.level}
+                      </span>
+                    </div>
+                    {activeLesson.isCustom && (
+                      <button
+                        onClick={() => handleDeleteCustomLesson(activeLesson.id)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FDF3EF] text-[#C85A32] hover:bg-[#FADFD6] text-xs font-semibold cursor-pointer"
+                        title="Delete custom lesson"
+                      >
+                        <Icons.Trash2 className="w-3 h-3" />
+                        <span>Remove Custom</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-baseline gap-3">
+                    <h2 className="font-arabic text-2xl sm:text-3xl font-extrabold text-[#1E2421]" dir="rtl">
+                      {activeLesson.titleAr}
+                    </h2>
+                    <span className="text-[#8A918D]">•</span>
+                    <h3 className="font-latin text-lg sm:text-xl font-bold text-[#C85A32]">
+                      {activeLesson.titleEn}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-[#5C6460] mt-1.5 max-w-2xl font-latin">
+                    {activeLesson.description}
+                  </p>
+                </div>
+
+                {/* Quick Stats Pill */}
+                <div className="flex items-center gap-4 bg-[#FAF7F2] px-4 py-3 rounded-xl border border-[#EAE4D9] shrink-0">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-[#1B4332]">{activeLesson.sentences.length}</div>
+                    <div className="text-[11px] uppercase tracking-wider text-[#6B726E] font-semibold">Lines</div>
+                  </div>
+                  <div className="w-px h-8 bg-[#E2DCD0]" />
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-[#C85A32]">{activeLesson.vocabulary.length}</div>
+                    <div className="text-[11px] uppercase tracking-wider text-[#6B726E] font-semibold">Words</div>
+                  </div>
+                  <div className="w-px h-8 bg-[#E2DCD0]" />
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-[#1B4332]">{activeLesson.verbs.length}</div>
+                    <div className="text-[11px] uppercase tracking-wider text-[#6B726E] font-semibold">Verbs</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4-Step Lesson Template Navigation */}
+              <nav className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 pt-5">
+                {[
+                  { id: 'story', step: '01', label: 'Story & Dialects', icon: Icons.BookOpen },
+                  { id: 'vocab', step: '02', label: 'Vocabulary Deck', icon: Icons.Languages },
+                  { id: 'verbs', step: '03', label: 'Verb Conjugation', icon: Icons.GraduationCap },
+                  { id: 'games', step: '04', label: 'Practice Games (4)', icon: Icons.Gamepad2 }
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-[#1B4332] text-white border-[#1B4332] shadow-sm'
+                          : 'bg-[#FAF7F2] text-[#2F3733] border-[#E6DFD3] hover:border-[#1B4332]/40 hover:bg-white'
+                      }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                          isActive ? 'bg-white/15 text-white' : 'bg-[#E9ECEA] text-[#1B4332]'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div
+                          className={`text-[10px] font-bold uppercase tracking-wider ${
+                            isActive ? 'text-[#A3C9B8]' : 'text-[#7A827E]'
+                          }`}
+                        >
+                          Part {tab.step}
+                        </div>
+                        <div className="text-xs sm:text-sm font-bold truncate">{tab.label}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* ================================================================== */}
+            {/* MODULE 1: STORY READER & MULTI-DIALECT AUDIO                       */}
+            {/* ================================================================== */}
+            {activeTab === 'story' && (
+              <div className="space-y-6">
+                {/* Multi-Dialect Audio & Display Controls Bar */}
+                <div className="bg-white rounded-2xl border border-[#E6DFD3] p-4 sm:p-5 shadow-xs">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    {/* Dialect Selector + Play Control */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={handlePlayStory}
+                        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-xs transition-all cursor-pointer ${
+                          isPlaying
+                            ? 'bg-[#C85A32] text-white hover:bg-[#B24C27]'
+                            : 'bg-[#1B4332] text-white hover:bg-[#143326]'
+                        }`}
+                      >
+                        {isPlaying ? <Icons.Square className="w-4 h-4" /> : <Icons.Play className="w-4 h-4" />}
+                        <span>{isPlaying ? 'Stop Reading' : `Read Full Story (${selectedDialect})`}</span>
+                      </button>
+
+                      {/* 4 Dialects Pill Selector */}
+                      <div className="flex items-center bg-[#FAF7F2] p-1 rounded-xl border border-[#E5DFD5] flex-wrap">
+                        {DIALECTS.map((d) => {
+                          const hasLinkedFile = Boolean(activeLesson.audioLinks?.[d.id]);
+                          return (
+                            <button
+                              key={d.id}
+                              onClick={() => setSelectedDialect(d.id)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                                selectedDialect === d.id
+                                  ? 'bg-white text-[#1B4332] shadow-xs border border-[#DFD8CC]'
+                                  : 'text-[#5C6460] hover:text-[#1E2421]'
+                              }`}
+                            >
+                              <span>{d.label}</span>
+                              {hasLinkedFile && (
+                                <span
+                                  className="w-2 h-2 rounded-full bg-[#C85A32]"
+                                  title="Custom audio file linked"
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Configure Dialect Audio URLs Button */}
+                      <button
+                        onClick={() => setShowAudioConfig(!showAudioConfig)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                          showAudioConfig
+                            ? 'bg-[#FDF3EF] border-[#C85A32] text-[#C85A32]'
+                            : 'bg-white border-[#DFD8CC] text-[#4A524E] hover:bg-[#FAF7F2]'
+                        }`}
+                      >
+                        <Icons.LinkIcon className="w-3.5 h-3.5" />
+                        <span>Dialect Audio Links</span>
+                      </button>
+                    </div>
+
+                    {/* Pronunciation & English Toggles */}
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <button
+                        onClick={() => setShowTranslit(!showTranslit)}
+                        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                          showTranslit
+                            ? 'bg-[#EDF3F0] border-[#1B4332] text-[#1B4332]'
+                            : 'bg-white border-[#DFD8CC] text-[#5C6460]'
+                        }`}
+                      >
+                        {showTranslit ? <Icons.Eye className="w-4 h-4" /> : <Icons.EyeOff className="w-4 h-4" />}
+                        <span>Alphabet Pronunciation</span>
+                      </button>
+
+                      <button
+                        onClick={() => setShowTranslation(!showTranslation)}
+                        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                          showTranslation
+                            ? 'bg-[#FDF3EF] border-[#C85A32] text-[#C85A32]'
+                            : 'bg-white border-[#DFD8CC] text-[#5C6460]'
+                        }`}
+                      >
+                        <Icons.Languages className="w-4 h-4" />
+                        <span>English Meaning</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expandable Dialect Audio Link / Upload Drawer */}
+                  {showAudioConfig && (
+                    <div className="mt-4 pt-4 border-t border-[#EFECE6] bg-[#FAF7F2] rounded-xl p-4">
+                      <div className="mb-3">
+                        <h4 className="text-sm font-bold text-[#1E2421]">
+                          Attach Audio Files by Dialect
+                        </h4>
+                        <p className="text-xs text-[#6B726E]">
+                          Paste an MP3/WAV link or select a local audio file for each dialect. If left blank, the built-in Arabic voice reader is used automatically.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {DIALECTS.map((d) => (
+                          <div
+                            key={d.id}
+                            className="bg-white p-3 rounded-xl border border-[#E5DFD5] flex flex-col gap-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#1B4332]">
+                                {d.label} ({d.arLabel})
+                              </span>
+                              <span className="text-[11px] text-[#7A827E]">{d.badge}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={activeLesson.audioLinks?.[d.id] || ''}
+                                onChange={(e) => updateDialectAudioLink(d.id, e.target.value)}
+                                placeholder={`Paste ${d.label} audio URL (https://...)`}
+                                className="flex-1 text-xs px-3 py-2 rounded-lg border border-[#DFD8CC] focus:outline-none focus:border-[#1B4332]"
+                              />
+                              <label className="px-2.5 py-2 rounded-lg bg-[#EDF3F0] hover:bg-[#DCE8E2] text-[#1B4332] text-xs font-semibold cursor-pointer inline-flex items-center gap-1 shrink-0">
+                                <Icons.Upload className="w-3.5 h-3.5" />
+                                <span>File</span>
+                                <input
+                                  type="file"
+                                  accept="audio/*"
+                                  className="hidden"
+                                  onChange={(e) => handleLocalAudioUpload(d.id, e.target.files?.[0])}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Interactive Story Reader Card */}
+                <div className="bg-white rounded-2xl border border-[#E6DFD3] p-5 sm:p-8 shadow-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-6 pb-3 border-b border-[#F0ECE4]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#7A827E]">
+                      Story Text • Click any line to listen
+                    </span>
+                    <span className="text-xs text-[#6B726E]">
+                      Transliteration guide: <strong className="text-[#1B4332]">3</strong> = ع ,{' '}
+                      <strong className="text-[#1B4332]">H</strong> = ح ,{' '}
+                      <strong className="text-[#1B4332]">’</strong> = ق/ء
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {activeLesson.sentences.map((sentence, index) => {
+                      const isCurrent = activeSentenceIdx === index;
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => playSingleSentence(index)}
+                          className={`group p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer ${
+                            isCurrent
+                              ? 'bg-[#EDF3F0] border-[#1B4332] shadow-xs'
+                              : 'bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border-transparent hover:border-[#E2DCD0]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <button
+                              type="button"
+                              aria-label="Play line"
+                              className={`mt-1.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                                isCurrent
+                                  ? 'bg-[#1B4332] text-white'
+                                  : 'bg-white border border-[#DFD8CC] text-[#5C6460] group-hover:border-[#1B4332] group-hover:text-[#1B4332]'
+                              }`}
+                            >
+                              <Icons.Volume2 className="w-4 h-4" />
+                            </button>
+
+                            <div className="flex-1 text-right" dir="rtl">
+                              <p className="font-arabic text-xl sm:text-2xl font-bold leading-relaxed text-[#1E2421]">
+                                {sentence.ar}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Optional Transliteration & English Translation */}
+                          {(showTranslit || showTranslation) && (
+                            <div className="mt-3 pt-3 border-t border-[#E8E2D7] pl-12 space-y-1">
+                              {showTranslit && sentence.translit && (
+                                <p className="font-latin text-sm sm:text-base font-medium text-[#1B4332]">
+                                  {sentence.translit}
+                                </p>
+                              )}
+                              {showTranslation && sentence.en && (
+                                <p className="font-latin text-xs sm:text-sm text-[#6B726E] italic">
+                                  {sentence.en}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Next Module CTA */}
+                  <div className="mt-8 pt-5 border-t border-[#EFECE6] flex justify-end">
+                    <button
+                      onClick={() => setActiveTab('vocab')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white text-sm font-semibold transition-all cursor-pointer"
+                    >
+                      <span>Continue to Vocabulary Overview</span>
+                      <Icons.ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ================================================================== */}
+            {/* MODULE 2: VOCABULARY OVERVIEW                                      */}
+            {/* ================================================================== */}
+            {activeTab === 'vocab' && (
+              <VocabularyModule
+                vocabulary={activeLesson.vocabulary}
+                learnedVocabIds={learnedVocabIds}
+                onToggleLearned={toggleLearnedVocab}
+                onNextModule={() => setActiveTab('verbs')}
+              />
+            )}
+
+            {/* ================================================================== */}
+            {/* MODULE 3: VERB CONJUGATION (PRESENT "BI-" & PAST TENSE)            */}
+            {/* ================================================================== */}
+            {activeTab === 'verbs' && (
+              <VerbConjugationModule
+                verbs={activeLesson.verbs}
+                onNextModule={() => setActiveTab('games')}
+              />
+            )}
+
+            {/* ================================================================== */}
+            {/* MODULE 4: 4 INTERACTIVE PRACTICE GAMES                             */}
+            {/* ================================================================== */}
+            {activeTab === 'games' && <GamesHubModule lesson={activeLesson} />}
+          </main>
+
+          {/* ==================================================================== */}
+          {/* ADD NEW STORY MODAL (MANUAL ARABIC INPUT TEMPLATE)                   */}
+          {/* ==================================================================== */}
+          {isAddModalOpen && (
+            <AddStoryModal
+              onClose={() => setIsAddModalOpen(false)}
+              onSave={handleCreateNewLesson}
+            />
+          )}
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // MODULE 2 COMPONENT: VOCABULARY OVERVIEW
+    // ============================================================================
+    function VocabularyModule({ vocabulary, learnedVocabIds, onToggleLearned, onNextModule }) {
+      const [filter, setFilter] = useState('all'); // 'all' | 'learning' | 'mastered'
+      const [searchTerm, setSearchTerm] = useState('');
+
+      const masteredCount = vocabulary.filter((v) => learnedVocabIds[v.id]).length;
+
+      const filteredVocab = vocabulary.filter((item) => {
+        const isMastered = Boolean(learnedVocabIds[item.id]);
+        if (filter === 'mastered' && !isMastered) return false;
+        if (filter === 'learning' && isMastered) return false;
+        if (searchTerm.trim() !== '') {
+          const q = searchTerm.toLowerCase();
+          return (
+            item.ar.includes(searchTerm) ||
+            item.translit.toLowerCase().includes(q) ||
+            item.en.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      });
+
+      const speakWord = (arabicText) => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          try {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(arabicText);
+            u.lang = 'ar-LB';
+            u.rate = 0.85;
+            window.speechSynthesis.speak(u);
+          } catch (e) {}
+        }
+      };
+
+      return (
+        <div className="bg-white rounded-2xl border border-[#E6DFD3] p-5 sm:p-7 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[#EFECE6]">
+            <div>
+              <h3 className="text-xl font-bold text-[#1E2421]">Story Vocabulary Overview</h3>
+              <p className="text-sm text-[#6B726E] mt-0.5">
+                Mastered <strong className="text-[#1B4332]">{masteredCount}</strong> of{' '}
+                <strong>{vocabulary.length}</strong> key words and expressions from the story.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search Arabic or English..."
+                className="px-3.5 py-2 rounded-xl border border-[#DFD8CC] text-sm focus:outline-none focus:border-[#1B4332]"
+              />
+              <div className="flex items-center bg-[#FAF7F2] p-1 rounded-xl border border-[#E5DFD5]">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'learning', label: 'To Learn' },
+                  { id: 'mastered', label: 'Mastered' }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      filter === f.id
+                        ? 'bg-[#1B4332] text-white'
+                        : 'text-[#5C6460] hover:text-[#1E2421]'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Vocabulary Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {filteredVocab.map((word) => {
+              const isLearned = Boolean(learnedVocabIds[word.id]);
+              return (
+                <div
+                  key={word.id}
+                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                    isLearned
+                      ? 'bg-[#F3F8F5] border-[#B7D4C5]'
+                      : 'bg-[#FAF7F2] border-[#E6DFD3] hover:border-[#C85A32]/50'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="px-2.5 py-0.5 rounded-md bg-white border border-[#E5DFD5] text-[11px] font-semibold text-[#6B726E]">
+                        {word.pos}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => speakWord(word.ar)}
+                          className="p-1.5 rounded-lg bg-white border border-[#E5DFD5] text-[#1B4332] hover:bg-[#EDF3F0] cursor-pointer"
+                          title="Pronounce word"
+                        >
+                          <Icons.Volume2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => onToggleLearned(word.id)}
+                          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                            isLearned
+                              ? 'bg-[#1B4332] border-[#1B4332] text-white'
+                              : 'bg-white border-[#E5DFD5] text-[#8A918D] hover:text-[#1B4332]'
+                          }`}
+                          title={isLearned ? 'Marked as learned' : 'Mark as learned'}
+                        >
+                          <Icons.Check className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="text-right my-2" dir="rtl">
+                      <div className="font-arabic text-2xl font-extrabold text-[#1E2421]">
+                        {word.ar}
+                      </div>
+                    </div>
+
+                    <div className="text-sm font-bold text-[#1B4332]">{word.translit}</div>
+                    <div className="text-sm font-medium text-[#C85A32] mt-0.5">{word.en}</div>
+                  </div>
+
+                  {word.example && (
+                    <div className="mt-3 pt-2.5 border-t border-[#E6DFD3] text-right" dir="rtl">
+                      <p className="font-arabic text-xs text-[#5C6460]">{word.example}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 pt-5 border-t border-[#EFECE6] flex justify-end">
+            <button
+              onClick={onNextModule}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white text-sm font-semibold transition-all cursor-pointer"
+            >
+              <span>Practice Verb Conjugations</span>
+              <Icons.ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // MODULE 3 COMPONENT: VERB CONJUGATION ("BI-" PRESENT & PAST TENSE)
+    // ============================================================================
+    function VerbConjugationModule({ verbs, onNextModule }) {
+      const [mode, setMode] = useState('practice'); // 'practice' | 'table'
+      const [selectedVerbId, setSelectedVerbId] = useState(verbs[0]?.id || '');
+
+      const [quizIndex, setQuizIndex] = useState(0);
+      const [selectedOption, setSelectedOption] = useState(null);
+      const [score, setScore] = useState({ correct: 0, total: 0 });
+
+      useEffect(() => {
+        setSelectedVerbId(verbs[0]?.id || '');
+        setQuizIndex(0);
+        setSelectedOption(null);
+        setScore({ correct: 0, total: 0 });
+      }, [verbs]);
+
+      const practiceQuestions = useMemo(() => {
+        const items = [];
+        verbs.forEach((verb, vIdx) => {
+          const p1 = PRONOUNS[(vIdx * 2) % PRONOUNS.length];
+          const p2 = PRONOUNS[(vIdx * 3 + 3) % PRONOUNS.length];
+
+          // Question A: Present "bi-" form
+          const correctBi = verb.presentBi[p1.key];
+          const distractorsBi = PRONOUNS.filter((pr) => pr.key !== p1.key)
+            .slice(0, 2)
+            .map((pr) => verb.presentBi[pr.key].ar);
+          const pastDistractor = verb.past[p1.key].ar;
+          const optionsBi = Array.from(new Set([correctBi.ar, ...distractorsBi, pastDistractor])).slice(0, 4);
+
+          items.push({
+            verb,
+            tense: 'Present ("bi-" form)',
+            tenseKey: 'presentBi',
+            pronoun: p1,
+            correctAr: correctBi.ar,
+            correctTr: correctBi.tr,
+            options: optionsBi.sort()
+          });
+
+          // Question B: Past tense
+          const correctPast = verb.past[p2.key];
+          const distractorsPast = PRONOUNS.filter((pr) => pr.key !== p2.key)
+            .slice(0, 2)
+            .map((pr) => verb.past[pr.key].ar);
+          const biDistractor = verb.presentBi[p2.key].ar;
+          const optionsPast = Array.from(new Set([correctPast.ar, ...distractorsPast, biDistractor])).slice(0, 4);
+
+          items.push({
+            verb,
+            tense: 'Past Tense',
+            tenseKey: 'past',
+            pronoun: p2,
+            correctAr: correctPast.ar,
+            correctTr: correctPast.tr,
+            options: optionsPast.sort()
+          });
+        });
+        return items;
+      }, [verbs]);
+
+      const currentVerb = verbs.find((v) => v.id === selectedVerbId) || verbs[0];
+      const currentQuestion = practiceQuestions[quizIndex % practiceQuestions.length];
+
+      const handleAnswer = (opt) => {
+        if (selectedOption !== null) return;
+        setSelectedOption(opt);
+        const isRight = opt === currentQuestion.correctAr;
+        setScore((prev) => ({
+          correct: prev.correct + (isRight ? 1 : 0),
+          total: prev.total + 1
+        }));
+      };
+
+      const handleNextQuestion = () => {
+        setSelectedOption(null);
+        setQuizIndex((prev) => (prev + 1) % practiceQuestions.length);
+      };
+
+      if (!verbs || verbs.length === 0) {
+        return (
+          <div className="bg-white rounded-2xl border border-[#E6DFD3] p-8 text-center text-[#6B726E]">
+            No verbs configured for this lesson yet.
+          </div>
+        );
+      }
+
+      return (
+        <div className="bg-white rounded-2xl border border-[#E6DFD3] p-5 sm:p-7 shadow-xs">
+          {/* Header & Mode Switcher */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#EFECE6]">
+            <div>
+              <h3 className="text-xl font-bold text-[#1E2421]">
+                Story Verb Conjugation: Present ("bi-") & Past
+              </h3>
+              <p className="text-sm text-[#6B726E] mt-0.5">
+                In Lebanese Arabic, the <strong className="text-[#1B4332]">بـ (bi-)</strong> prefix expresses habitual or ongoing present actions.
+              </p>
+            </div>
+
+            <div className="flex items-center bg-[#FAF7F2] p-1 rounded-xl border border-[#E5DFD5] shrink-0">
+              <button
+                onClick={() => setMode('practice')}
+                className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  mode === 'practice'
+                    ? 'bg-[#1B4332] text-white shadow-xs'
+                    : 'text-[#5C6460] hover:text-[#1E2421]'
+                }`}
+              >
+                Interactive Drill
+              </button>
+              <button
+                onClick={() => setMode('table')}
+                className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  mode === 'table'
+                    ? 'bg-[#1B4332] text-white shadow-xs'
+                    : 'text-[#5C6460] hover:text-[#1E2421]'
+                }`}
+              >
+                Conjugation Tables ({verbs.length})
+              </button>
+            </div>
+          </div>
+
+          {/* MODE A: INTERACTIVE DRILL */}
+          {mode === 'practice' && currentQuestion && (
+            <div className="mt-6 max-w-2xl mx-auto">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#6B726E] mb-3">
+                <span>
+                  Prompt {(quizIndex % practiceQuestions.length) + 1} of {practiceQuestions.length}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-[#EDF3F0] text-[#1B4332]">
+                  Score: {score.correct} / {score.total}
+                </span>
+              </div>
+
+              <div className="bg-[#FAF7F2] rounded-2xl border border-[#E5DFD5] p-6 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#DFD8CC] text-xs font-bold text-[#C85A32] mb-4">
+                  <span>{currentQuestion.tense}</span>
+                </div>
+
+                <div className="mb-2 text-sm text-[#5C6460]">
+                  Verb: <strong className="font-arabic text-lg text-[#1E2421]">{currentQuestion.verb.rootAr}</strong>{' '}
+                  ({currentQuestion.verb.translit} — <em>{currentQuestion.verb.meaning}</em>)
+                </div>
+
+                <div className="my-5 p-4 rounded-xl bg-white border border-[#E6DFD3]">
+                  <div className="text-xs uppercase tracking-wider text-[#7A827E] font-bold mb-1">
+                    Conjugate for Pronoun
+                  </div>
+                  <div className="font-arabic text-3xl font-extrabold text-[#1B4332]">
+                    {currentQuestion.pronoun.ar}
+                  </div>
+                  <div className="text-sm font-semibold text-[#5C6460] mt-1">
+                    {currentQuestion.pronoun.tr} ({currentQuestion.pronoun.en})
+                  </div>
+                </div>
+
+                {/* 4 Multiple-Choice Conjugation Buttons */}
+                <div className="grid grid-cols-2 gap-3 mt-5" dir="rtl">
+                  {currentQuestion.options.map((opt) => {
+                    const isSelected = selectedOption === opt;
+                    const isCorrect = opt === currentQuestion.correctAr;
+                    let btnStyle = 'bg-white border-[#DFD8CC] text-[#1E2421] hover:border-[#1B4332]';
+                    if (selectedOption !== null) {
+                      if (isCorrect) {
+                        btnStyle = 'bg-[#1B4332] border-[#1B4332] text-white';
+                      } else if (isSelected) {
+                        btnStyle = 'bg-[#C85A32] border-[#C85A32] text-white';
+                      } else {
+                        btnStyle = 'bg-white/60 border-[#E6DFD3] text-[#8A918D]';
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => handleAnswer(opt)}
+                        className={`p-4 rounded-xl border-2 font-arabic text-xl font-bold transition-all cursor-pointer ${btnStyle}`}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedOption !== null && (
+                  <div className="mt-5 p-4 rounded-xl bg-white border border-[#E5DFD5] flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-left">
+                      <div className="text-sm font-bold text-[#1E2421]">
+                        {selectedOption === currentQuestion.correctAr ? '✅ Correct!' : '❌ Not quite!'}{' '}
+                        <span className="font-arabic text-lg text-[#1B4332] mx-1">
+                          {currentQuestion.pronoun.ar} {currentQuestion.correctAr}
+                        </span>
+                      </div>
+                      <div className="text-xs text-[#6B726E]">
+                        Pronunciation: <strong>{currentQuestion.pronoun.tr} {currentQuestion.correctTr}</strong>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleNextQuestion}
+                      className="px-4 py-2 rounded-xl bg-[#1B4332] text-white text-xs sm:text-sm font-semibold hover:bg-[#143326] cursor-pointer shrink-0"
+                    >
+                      Next Verb →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* MODE B: REFERENCE CONJUGATION TABLES */}
+          {mode === 'table' && currentVerb && (
+            <div className="mt-6">
+              {/* Verb Selector Pills */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {verbs.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => setSelectedVerbId(v.id)}
+                    className={`px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+                      v.id === currentVerb.id
+                        ? 'bg-[#1B4332] text-white border-[#1B4332]'
+                        : 'bg-[#FAF7F2] text-[#2F3733] border-[#E5DFD5] hover:border-[#1B4332]'
+                    }`}
+                  >
+                    <span className="font-arabic text-base">{v.rootAr}</span>
+                    <span className="opacity-80">({v.meaning})</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Conjugation Table */}
+              <div className="overflow-x-auto rounded-2xl border border-[#E6DFD3]">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#FAF7F2] border-b border-[#E6DFD3] text-xs uppercase tracking-wider text-[#6B726E]">
+                      <th className="p-4 font-bold">Pronoun</th>
+                      <th className="p-4 font-bold text-[#1B4332]">Present ("bi-" Form)</th>
+                      <th className="p-4 font-bold text-[#C85A32]">Past Tense</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EFECE6]">
+                    {PRONOUNS.map((p) => {
+                      const biForm = currentVerb.presentBi[p.key];
+                      const pastForm = currentVerb.past[p.key];
+                      return (
+                        <tr key={p.key} className="hover:bg-[#FAF7F2]/70">
+                          <td className="p-4">
+                            <div className="flex items-center gap-2.5">
+                              <span className="font-arabic text-lg font-bold text-[#1E2421] w-12">
+                                {p.ar}
+                              </span>
+                              <div>
+                                <div className="text-xs font-bold text-[#1E2421]">{p.tr}</div>
+                                <div className="text-[11px] text-[#7A827E]">{p.en}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="font-arabic text-xl font-bold text-[#1B4332]">
+                              {biForm?.ar}
+                            </div>
+                            <div className="text-xs text-[#5C6460]">{biForm?.tr}</div>
+                          </td>
+                          <td className="p-4">
+                            <div className="font-arabic text-xl font-bold text-[#C85A32]">
+                              {pastForm?.ar}
+                            </div>
+                            <div className="text-xs text-[#5C6460]">{pastForm?.tr}</div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-8 pt-5 border-t border-[#EFECE6] flex justify-end">
+            <button
+              onClick={onNextModule}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C85A32] hover:bg-[#B24C27] text-white text-sm font-semibold transition-all cursor-pointer"
+            >
+              <span>Play 4 Reinforcement Games</span>
+              <Icons.ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // MODULE 4 COMPONENT: 4 REINFORCEMENT GAMES HUB
+    // ============================================================================
+    function GamesHubModule({ lesson }) {
+      const [activeGame, setActiveGame] = useState('match'); // 'match' | 'blanks' | 'order' | 'declension'
+
+      return (
+        <div className="space-y-6">
+          {/* 4-Game Selector Tabs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              {
+                id: 'match',
+                title: '1. Word Match-Up',
+                desc: 'Pair Arabic words with English meanings'
+              },
+              {
+                id: 'blanks',
+                title: '2. Fill in the Blanks',
+                desc: 'Complete sentences from the story'
+              },
+              {
+                id: 'order',
+                title: '3. Sentence Builder',
+                desc: 'Arrange shuffled words in RTL order'
+              },
+              {
+                id: 'declension',
+                title: '4. Verb Declension Quiz',
+                desc: 'Pick the right tense & conjugation'
+              }
+            ].map((g) => (
+              <button
+                key={g.id}
+                onClick={() => setActiveGame(g.id)}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                  activeGame === g.id
+                    ? 'bg-[#C85A32] text-white border-[#C85A32] shadow-sm'
+                    : 'bg-white text-[#1E2421] border-[#E6DFD3] hover:border-[#C85A32]/50'
+                }`}
+              >
+                <div className="font-bold text-sm">{g.title}</div>
+                <div
+                  className={`text-xs mt-1 ${
+                    activeGame === g.id ? 'text-white/90' : 'text-[#6B726E]'
+                  }`}
+                >
+                  {g.desc}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Active Game Container */}
+          <div className="bg-white rounded-2xl border border-[#E6DFD3] p-5 sm:p-7 shadow-xs">
+            {activeGame === 'match' && <WordMatchGame vocabulary={lesson.vocabulary} />}
+            {activeGame === 'blanks' && <FillInBlanksGame items={lesson.games.fillBlanks} />}
+            {activeGame === 'order' && <WordOrderGame items={lesson.games.wordOrder} />}
+            {activeGame === 'declension' && <VerbDeclensionGame items={lesson.games.verbDeclension} />}
+          </div>
+        </div>
+      );
+    }
+
+    // ----------------------------------------------------------------------------
+    // GAME 1: MATCHING WORDS WITH THEIR MEANINGS
+    // ----------------------------------------------------------------------------
+    function WordMatchGame({ vocabulary }) {
+      const [roundSeed, setRoundSeed] = useState(0);
+      const [selectedArId, setSelectedArId] = useState(null);
+      const [selectedEnId, setSelectedEnId] = useState(null);
+      const [matchedIds, setMatchedIds] = useState([]);
+      const [wrongPair, setWrongPair] = useState(false);
+
+      const roundWords = useMemo(() => {
+        const copy = [...vocabulary];
+        const rotated = copy.slice(roundSeed % copy.length).concat(copy.slice(0, roundSeed % copy.length));
+        return rotated.slice(0, Math.min(6, rotated.length));
+      }, [vocabulary, roundSeed]);
+
+      const shuffledEnglish = useMemo(() => {
+        return [...roundWords].sort((a, b) => a.en.localeCompare(b.en));
+      }, [roundWords]);
+
+      useEffect(() => {
+        if (selectedArId && selectedEnId) {
+          if (selectedArId === selectedEnId) {
+            setMatchedIds((prev) => [...prev, selectedArId]);
+            setSelectedArId(null);
+            setSelectedEnId(null);
+          } else {
+            setWrongPair(true);
+            const timer = setTimeout(() => {
+              setSelectedArId(null);
+              setSelectedEnId(null);
+              setWrongPair(false);
+            }, 650);
+            return () => clearTimeout(timer);
+          }
+        }
+      }, [selectedArId, selectedEnId]);
+
+      const startNextRound = () => {
+        setMatchedIds([]);
+        setSelectedArId(null);
+        setSelectedEnId(null);
+        setRoundSeed((s) => s + 3);
+      };
+
+      const isRoundComplete = matchedIds.length === roundWords.length && roundWords.length > 0;
+
+      return (
+        <div>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h4 className="text-lg font-bold text-[#1E2421]">Game 1: Vocabulary Match-Up</h4>
+              <p className="text-xs sm:text-sm text-[#6B726E]">
+                Tap an Arabic word on the right, then tap its matching English meaning on the left.
+              </p>
+            </div>
+            <button
+              onClick={startNextRound}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-[#DFD8CC] text-xs font-semibold text-[#1E2421] hover:bg-[#F0ECE4] cursor-pointer"
+            >
+              <Icons.Shuffle className="w-3.5 h-3.5" />
+              <span>New Set</span>
+            </button>
+          </div>
+
+          {isRoundComplete ? (
+            <div className="p-8 rounded-2xl bg-[#EDF3F0] border border-[#B7D4C5] text-center">
+              <Icons.Award className="w-10 h-10 text-[#1B4332] mx-auto mb-2" />
+              <h5 className="text-lg font-bold text-[#1B4332]">برافو! (Bravo!) All Matched!</h5>
+              <p className="text-sm text-[#4A524E] mt-1">
+                You matched all {roundWords.length} Lebanese vocabulary pairs accurately.
+              </p>
+              <button
+                onClick={startNextRound}
+                className="mt-4 px-5 py-2.5 rounded-xl bg-[#1B4332] text-white text-sm font-semibold hover:bg-[#143326] cursor-pointer"
+              >
+                Play Another Round
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* English Meanings Column */}
+              <div className="space-y-2.5">
+                <div className="text-xs font-bold uppercase tracking-wider text-[#7A827E] mb-2">
+                  English Meaning
+                </div>
+                {shuffledEnglish.map((item) => {
+                  const isMatched = matchedIds.includes(item.id);
+                  const isSelected = selectedEnId === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      disabled={isMatched}
+                      onClick={() => setSelectedEnId(item.id)}
+                      className={`w-full p-3.5 rounded-xl border text-left text-sm font-semibold transition-all cursor-pointer ${
+                        isMatched
+                          ? 'bg-[#EDF3F0] border-[#B7D4C5] text-[#1B4332] opacity-60'
+                          : isSelected
+                          ? wrongPair
+                            ? 'bg-[#FDF3EF] border-[#C85A32] text-[#C85A32]'
+                            : 'bg-[#1B4332] border-[#1B4332] text-white'
+                          : 'bg-[#FAF7F2] border-[#E6DFD3] hover:border-[#1B4332] text-[#1E2421]'
+                      }`}
+                    >
+                      {item.en}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Lebanese Arabic Column */}
+              <div className="space-y-2.5">
+                <div className="text-xs font-bold uppercase tracking-wider text-[#7A827E] mb-2 text-right">
+                  Lebanese Arabic
+                </div>
+                {roundWords.map((item) => {
+                  const isMatched = matchedIds.includes(item.id);
+                  const isSelected = selectedArId === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      disabled={isMatched}
+                      onClick={() => setSelectedArId(item.id)}
+                      dir="rtl"
+                      className={`w-full p-3.5 rounded-xl border flex items-center justify-between transition-all cursor-pointer ${
+                        isMatched
+                          ? 'bg-[#EDF3F0] border-[#B7D4C5] text-[#1B4332] opacity-60'
+                          : isSelected
+                          ? wrongPair
+                            ? 'bg-[#FDF3EF] border-[#C85A32] text-[#C85A32]'
+                            : 'bg-[#1B4332] border-[#1B4332] text-white'
+                          : 'bg-[#FAF7F2] border-[#E6DFD3] hover:border-[#1B4332] text-[#1E2421]'
+                      }`}
+                    >
+                      <span className="font-arabic text-xl font-bold">{item.ar}</span>
+                      <span className="text-xs opacity-75 font-latin" dir="ltr">
+                        {item.translit}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ----------------------------------------------------------------------------
+    // GAME 2: FILL IN THE BLANKS
+    // ----------------------------------------------------------------------------
+    function FillInBlanksGame({ items }) {
+      const [idx, setIdx] = useState(0);
+      const [chosen, setChosen] = useState(null);
+
+      const current = items[idx % items.length];
+
+      const handleSelect = (opt) => {
+        setChosen(opt);
+      };
+
+      const nextItem = () => {
+        setChosen(null);
+        setIdx((i) => (i + 1) % items.length);
+      };
+
+      return (
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="text-lg font-bold text-[#1E2421]">Game 2: Fill in the Blanks</h4>
+              <p className="text-xs sm:text-sm text-[#6B726E]">
+                Choose the missing Lebanese word to complete the sentence from the story.
+              </p>
+            </div>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#E5DFD5]">
+              {(idx % items.length) + 1} / {items.length}
+            </span>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-[#FAF7F2] border border-[#E5DFD5] text-center">
+            <div className="text-xs font-semibold text-[#C85A32] mb-3">{current.hint}</div>
+
+            <div
+              className="font-arabic text-2xl sm:text-3xl font-bold leading-loose text-[#1E2421] my-4"
+              dir="rtl"
+            >
+              <span>{current.sentenceBefore} </span>
+              <span className="inline-block min-w-[110px] px-3 py-0.5 mx-1 rounded-xl border-b-2 border-dashed border-[#1B4332] bg-white text-[#1B4332]">
+                {chosen || '______'}
+              </span>
+              <span> {current.sentenceAfter}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-6" dir="rtl">
+              {current.options.map((opt) => {
+                const isCorrect = opt === current.answer;
+                const isPicked = chosen === opt;
+                let style = 'bg-white border-[#DFD8CC] hover:border-[#1B4332] text-[#1E2421]';
+                if (chosen) {
+                  if (isCorrect) style = 'bg-[#1B4332] border-[#1B4332] text-white';
+                  else if (isPicked) style = 'bg-[#C85A32] border-[#C85A32] text-white';
+                }
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => handleSelect(opt)}
+                    className={`p-3.5 rounded-xl border-2 font-arabic text-xl font-bold transition-all cursor-pointer ${style}`}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+
+            {chosen && (
+              <div className="mt-5 flex items-center justify-between bg-white p-3.5 rounded-xl border border-[#E5DFD5]">
+                <span className="text-sm font-bold text-[#1E2421]">
+                  {chosen === current.answer ? '✅ ممتاز! (Mumtaaz!)' : `❌ Correct word: ${current.answer}`}
+                </span>
+                <button
+                  onClick={nextItem}
+                  className="px-4 py-2 rounded-xl bg-[#1B4332] text-white text-xs font-semibold cursor-pointer"
+                >
+                  Next Sentence →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ----------------------------------------------------------------------------
+    // GAME 3: SORTING THE RIGHT WORD ORDER OF SENTENCES
+    // ----------------------------------------------------------------------------
+    function WordOrderGame({ items }) {
+      const [idx, setIdx] = useState(0);
+      const [placedWords, setPlacedWords] = useState([]);
+      const [status, setStatus] = useState(null); // 'correct' | 'wrong' | null
+
+      const current = items[idx % items.length];
+
+      const pool = useMemo(() => {
+        const tagged = current.words.map((word, i) => ({ id: `${idx}-${i}`, word }));
+        return [...tagged].sort((a, b) => a.word.localeCompare(b.word));
+      }, [current, idx]);
+
+      useEffect(() => {
+        setPlacedWords([]);
+        setStatus(null);
+      }, [idx, current]);
+
+      const availablePool = pool.filter((p) => !placedWords.some((pw) => pw.id === p.id));
+
+      const addWord = (wordObj) => {
+        if (status === 'correct') return;
+        setStatus(null);
+        setPlacedWords((prev) => [...prev, wordObj]);
+      };
+
+      const removeWord = (wordObj) => {
+        if (status === 'correct') return;
+        setStatus(null);
+        setPlacedWords((prev) => prev.filter((w) => w.id !== wordObj.id));
+      };
+
+      const checkOrder = () => {
+        const attempt = placedWords.map((w) => w.word).join(' ');
+        const target = current.words.join(' ');
+        if (attempt === target) {
+          setStatus('correct');
+        } else {
+          setStatus('wrong');
+        }
+      };
+
+      return (
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="text-lg font-bold text-[#1E2421]">Game 3: Sentence Word Order</h4>
+              <p className="text-xs sm:text-sm text-[#6B726E]">
+                Tap the shuffled Arabic words below to build the sentence from right to left.
+              </p>
+            </div>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#E5DFD5]">
+              {(idx % items.length) + 1} / {items.length}
+            </span>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-[#FAF7F2] border border-[#E5DFD5]">
+            <div className="text-xs font-bold uppercase tracking-wider text-[#7A827E] mb-1">
+              Target Meaning
+            </div>
+            <p className="text-sm sm:text-base font-semibold text-[#1E2421] mb-4">
+              “{current.en}”
+            </p>
+
+            {/* RTL Sentence Construction Tray */}
+            <div
+              dir="rtl"
+              className={`min-h-[76px] p-4 rounded-xl bg-white border-2 flex flex-wrap items-center gap-2 transition-colors ${
+                status === 'correct'
+                  ? 'border-[#1B4332] bg-[#EDF3F0]/40'
+                  : status === 'wrong'
+                  ? 'border-[#C85A32]'
+                  : 'border-dashed border-[#CFC7B8]'
+              }`}
+            >
+              {placedWords.length === 0 && (
+                <span className="text-xs text-[#8A918D] font-latin" dir="ltr">
+                  Click words below to place them here in right-to-left order...
+                </span>
+              )}
+              {placedWords.map((w) => (
+                <button
+                  key={w.id}
+                  onClick={() => removeWord(w)}
+                  className="px-3.5 py-2 rounded-xl bg-[#1B4332] text-white font-arabic text-lg font-bold shadow-xs hover:bg-[#143326] cursor-pointer"
+                >
+                  {w.word}
+                </button>
+              ))}
+            </div>
+
+            {/* Shuffled Word Bank */}
+            <div dir="rtl" className="mt-5 flex flex-wrap gap-2.5 justify-center">
+              {availablePool.map((w) => (
+                <button
+                  key={w.id}
+                  onClick={() => addWord(w)}
+                  className="px-4 py-2 rounded-xl bg-white border border-[#DFD8CC] hover:border-[#1B4332] font-arabic text-lg font-bold text-[#1E2421] shadow-2xs cursor-pointer"
+                >
+                  {w.word}
+                </button>
+              ))}
+            </div>
+
+            {/* Controls & Feedback */}
+            <div className="mt-6 pt-4 border-t border-[#E5DFD5] flex flex-wrap items-center justify-between gap-3">
+              <button
+                onClick={() => {
+                  setPlacedWords([]);
+                  setStatus(null);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#DFD8CC] text-xs font-semibold text-[#5C6460] hover:text-[#1E2421] cursor-pointer"
+              >
+                <Icons.RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
+              </button>
+
+              {status === 'correct' ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-[#1B4332]">✅ Perfect Word Order!</span>
+                  <button
+                    onClick={() => setIdx((i) => (i + 1) % items.length)}
+                    className="px-4 py-2 rounded-xl bg-[#1B4332] text-white text-xs font-semibold cursor-pointer"
+                  >
+                    Next Sentence →
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  {status === 'wrong' && (
+                    <span className="text-xs font-bold text-[#C85A32]">
+                      Not quite right — try adjusting the order!
+                    </span>
+                  )}
+                  <button
+                    disabled={placedWords.length !== current.words.length}
+                    onClick={checkOrder}
+                    className="px-5 py-2 rounded-xl bg-[#C85A32] disabled:opacity-40 text-white text-xs sm:text-sm font-semibold cursor-pointer"
+                  >
+                    Check Order
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ----------------------------------------------------------------------------
+    // GAME 4: SELECTING THE RIGHT VERB DECLENSION (MULTIPLE CHOICE)
+    // ----------------------------------------------------------------------------
+    function VerbDeclensionGame({ items }) {
+      const [idx, setIdx] = useState(0);
+      const [picked, setPicked] = useState(null);
+
+      const current = items[idx % items.length];
+
+      return (
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="text-lg font-bold text-[#1E2421]">
+                Game 4: Verb Declension & Tense Multiple Choice
+              </h4>
+              <p className="text-xs sm:text-sm text-[#6B726E]">
+                Select the verb form that matches the subject pronoun and tense in context.
+              </p>
+            </div>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#E5DFD5]">
+              {(idx % items.length) + 1} / {items.length}
+            </span>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-[#FAF7F2] border border-[#E5DFD5]">
+            <div className="text-xs font-bold text-[#1B4332] mb-2">{current.promptEn}</div>
+
+            <div
+              dir="rtl"
+              className="p-4 rounded-xl bg-white border border-[#E6DFD3] font-arabic text-2xl font-bold text-[#1E2421] text-center my-4"
+            >
+              {current.sentence}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-5" dir="rtl">
+              {current.options.map((opt) => {
+                const isCorrect = opt === current.correct;
+                const isSelected = picked === opt;
+                let cls = 'bg-white border-[#DFD8CC] hover:border-[#1B4332] text-[#1E2421]';
+                if (picked) {
+                  if (isCorrect) cls = 'bg-[#1B4332] border-[#1B4332] text-white';
+                  else if (isSelected) cls = 'bg-[#C85A32] border-[#C85A32] text-white';
+                }
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setPicked(opt)}
+                    className={`p-3.5 rounded-xl border-2 font-arabic text-xl font-bold transition-all cursor-pointer ${cls}`}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+
+            {picked && (
+              <div className="mt-5 p-4 rounded-xl bg-white border border-[#E5DFD5] space-y-3">
+                <div className="text-sm font-bold text-[#1E2421]">
+                  {picked === current.correct ? '✅ Spot on!' : `❌ Correct form: ${current.correct}`}
+                </div>
+                <p className="text-xs text-[#5C6460] leading-relaxed">{current.explanation}</p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      setPicked(null);
+                      setIdx((i) => (i + 1) % items.length);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#1B4332] text-white text-xs font-semibold cursor-pointer"
+                  >
+                    Next Question →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // ADD NEW STORY MODAL (MANUAL ARABIC INPUT FOR PROGRESSIVE LESSONS)
+    // ============================================================================
+    function AddStoryModal({ onClose, onSave }) {
+      const [titleAr, setTitleAr] = useState('');
+      const [titleEn, setTitleEn] = useState('');
+      const [level, setLevel] = useState('Intermediate (B1)');
+      const [rawArabicStory, setRawArabicStory] = useState('');
+      const [rawTranslit, setRawTranslit] = useState('');
+      const [rawEnglish, setRawEnglish] = useState('');
+      const [vocabLines, setVocabLines] = useState('');
+      const [audioLinks, setAudioLinks] = useState({
+        Lebanese: '',
+        Jordanian: '',
+        Egyptian: '',
+        Emirati: ''
+      });
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!rawArabicStory.trim()) return;
+
+        const arLines = rawArabicStory
+          .split('\n')
+          .map((l) => l.trim())
+          .filter(Boolean);
+        const trLines = rawTranslit.split('\n').map((l) => l.trim());
+        const enLines = rawEnglish.split('\n').map((l) => l.trim());
+
+        const sentences = arLines.map((ar, i) => ({
+          ar,
+          translit: trLines[i] || '',
+          en: enLines[i] || ''
+        }));
+
+        const parsedVocab = vocabLines
+          .split('\n')
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line, i) => {
+            const parts = line.split('|').map((p) => p.trim());
+            return {
+              id: `custom-v-${Date.now()}-${i}`,
+              ar: parts[0] || line,
+              translit: parts[1] || '',
+              en: parts[2] || 'Story vocabulary',
+              pos: 'Word',
+              example: ''
+            };
+          });
+
+        const finalVocab =
+          parsedVocab.length > 0
+            ? parsedVocab
+            : arLines[0]
+                .split(' ')
+                .slice(0, 6)
+                .map((w, i) => ({
+                  id: `auto-v-${Date.now()}-${i}`,
+                  ar: w.replace(/[.,«»]/g, ''),
+                  translit: 'From story',
+                  en: `Word ${i + 1}`,
+                  pos: 'Story Word',
+                  example: arLines[0]
+                }));
+
+        const generatedWordOrder = sentences.slice(0, 3).map((s, i) => ({
+          id: `custom-wo-${Date.now()}-${i}`,
+          en: s.en || `Reconstruct sentence ${i + 1} from the story`,
+          words: s.ar.replace(/[.,«»]/g, '').split(/\s+/).filter(Boolean)
+        }));
+
+        const generatedBlanks = sentences.slice(0, 3).map((s, i) => {
+          const tokens = s.ar.split(/\s+/).filter(Boolean);
+          const targetIdx = Math.min(1, tokens.length - 1);
+          const answer = tokens[targetIdx];
+          return {
+            id: `custom-fb-${Date.now()}-${i}`,
+            sentenceBefore: tokens.slice(0, targetIdx).join(' '),
+            sentenceAfter: tokens.slice(targetIdx + 1).join(' '),
+            answer,
+            options: Array.from(new Set([answer, ...tokens.slice(0, 4)])).slice(0, 4),
+            hint: s.translit || 'Complete the sentence from the story'
+          };
+        });
+
+        onSave({
+          titleAr: titleAr.trim() || 'قصة جديدة',
+          titleEn: titleEn.trim() || 'Custom Lebanese Story',
+          level,
+          description: 'Custom story lesson created with manual Arabic input.',
+          audioLinks,
+          sentences,
+          vocabulary: finalVocab,
+          verbs: INITIAL_LESSONS[0].verbs.slice(0, 5),
+          games: {
+            fillBlanks: generatedBlanks,
+            wordOrder: generatedWordOrder,
+            verbDeclension: INITIAL_LESSONS[0].games.verbDeclension
+          }
+        });
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-[#E6DFD3] max-w-2xl w-full p-6 shadow-xl my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[#EFECE6]">
+              <div>
+                <h3 className="text-lg font-bold text-[#1E2421]">Create New Story Lesson</h3>
+                <p className="text-xs text-[#6B726E]">
+                  Enter a new Arabic story (one sentence per line) to generate a complete lesson template.
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg text-[#6B726E] hover:bg-[#FAF7F2] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#4A524E] mb-1">Arabic Title</label>
+                  <input
+                    type="text"
+                    dir="rtl"
+                    value={titleAr}
+                    onChange={(e) => setTitleAr(e.target.value)}
+                    placeholder="مثال: رحلة عَ الجبل"
+                    className="w-full px-3 py-2 rounded-xl border border-[#DFD8CC] font-arabic text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#4A524E] mb-1">English Title</label>
+                  <input
+                    type="text"
+                    value={titleEn}
+                    onChange={(e) => setTitleEn(e.target.value)}
+                    placeholder="e.g. Trip to the Mountains"
+                    className="w-full px-3 py-2 rounded-xl border border-[#DFD8CC] text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#4A524E] mb-1">Difficulty Level</label>
+                  <select
+                    value={level}
+                    onChange={(e) => setLevel(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-[#DFD8CC] text-sm bg-white"
+                  >
+                    <option>Beginner (A1)</option>
+                    <option>Elementary (A2)</option>
+                    <option>Intermediate (B1)</option>
+                    <option>Upper Intermediate (B2)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1B4332] mb-1">
+                  Arabic Story Text (Required — put each sentence on a new line)
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  dir="rtl"
+                  value={rawArabicStory}
+                  onChange={(e) => setRawArabicStory(e.target.value)}
+                  placeholder="اكتب القصة باللهجة اللبنانية هون..."
+                  className="w-full p-3 rounded-xl border border-[#DFD8CC] font-arabic text-base focus:outline-none focus:border-[#1B4332]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#4A524E] mb-1">
+                    Alphabet Pronunciation (Optional, line-by-line)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={rawTranslit}
+                    onChange={(e) => setRawTranslit(e.target.value)}
+                    placeholder="Line 1 pronunciation...&#10;Line 2 pronunciation..."
+                    className="w-full p-3 rounded-xl border border-[#DFD8CC] text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#4A524E] mb-1">
+                    English Translation (Optional, line-by-line)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={rawEnglish}
+                    onChange={(e) => setRawEnglish(e.target.value)}
+                    placeholder="Line 1 translation...&#10;Line 2 translation..."
+                    className="w-full p-3 rounded-xl border border-[#DFD8CC] text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#4A524E] mb-1">
+                  Vocabulary List (Optional — format: Arabic | transliteration | English)
+                </label>
+                <textarea
+                  rows={2}
+                  value={vocabLines}
+                  onChange={(e) => setVocabLines(e.target.value)}
+                  placeholder="جَبَل | jabal | mountain&#10;طَريق | taree' | road"
+                  className="w-full p-2.5 rounded-xl border border-[#DFD8CC] text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#4A524E] mb-1.5">
+                  Dialect Audio Links (Optional URLs)
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {DIALECTS.map((d) => (
+                    <input
+                      key={d.id}
+                      type="text"
+                      value={audioLinks[d.id]}
+                      onChange={(e) =>
+                        setAudioLinks((prev) => ({ ...prev, [d.id]: e.target.value }))
+                      }
+                      placeholder={`${d.label} MP3 URL`}
+                      className="px-3 py-1.5 rounded-lg border border-[#DFD8CC] text-xs"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#EFECE6]">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-xl border border-[#DFD8CC] text-xs sm:text-sm font-semibold text-[#5C6460] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white text-xs sm:text-sm font-semibold cursor-pointer"
+                >
+                  Generate Lesson
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // Mount the application
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
