@@ -1,0 +1,3013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Levantine Verb Practice</title>
+<style>
+    :root {
+        --primary: #007bff;
+        --bg: #f4f7f6;
+        --card-bg: #ffffff;
+        --text: #333;
+        --pronunciation: #777;
+    }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+    
+    /* Header & Navigation */
+    header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 2px solid #ddd; margin-bottom: 15px;}
+    h1 { font-size: 1.2rem; margin: 0; }
+    .toggle-container { display: flex; align-items: center; font-size: 0.9rem; }
+    .toggle-container input { margin-right: 5px; }
+    
+    nav { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+    nav button { flex: 1; padding: 10px; border: none; background: #ddd; border-radius: 5px; cursor: pointer; white-space: nowrap; font-weight: bold; }
+    nav button.active { background: var(--primary); color: white; }
+
+    /* Main Container */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Flashcard Styles */
+    .flashcard { background: var(--card-bg); border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: center; cursor: pointer; transition: 0.3s; }
+    .flashcard:active { transform: scale(0.98); }
+    .arabic-text { font-size: 2.5rem; font-weight: bold; margin: 10px 0; }
+
+    /* Verb ID Placement */
+    .card-id { position: absolute; top: 12px; left: 15px; font-size: 0.95rem; font-weight: bold; color: #aaa; }
+  
+    /* Pronunciation Class - Controlled by JS */
+    .pron { font-size: 1.0rem; color: var(--pronunciation); display: none; font-style: italic; margin-top: -5px; margin-bottom: 10px;}
+    body.show-pronunciation .pron { display: block; }
+    body.show-pronunciation span.pron { display: inline-block; margin-left: 5px;}
+
+    /* Conjugation Grid */
+    .conj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 15px; }
+    .conj-col { background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+    .conj-item { margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+    .conj-item:last-child { border-bottom: none; }
+    .person-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+
+     /* Controls */
+    .controls { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px; justify-content: center; }
+    .controls select, .controls button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.9rem; }
+    .btn-action { background: var(--primary); color: white; border: none; width: 100%; margin-top: 15px; font-weight: bold; }
+
+    /* Practice Section */
+    .question-box { background: var(--card-bg); padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    .question-text { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; }
+    .answer-box { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin: 15px 0; display: none; }
+    .answer-box.visible { display: block; }
+    
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Levantine Verbs</h1>
+    <div class="toggle-container">
+        <input type="checkbox" id="pronToggle" onchange="togglePronunciation()">
+        <label for="pronToggle">Pronunciation</label>
+    </div>
+</header>
+
+<nav>
+    <button id="nav-review" class="active" onclick="switchTab('review')">1. Review</button>
+    <button id="nav-conjugation" onclick="switchTab('conjugation')">2. Conjugate</button>
+    <button id="nav-suffixes" onclick="switchTab('suffixes')">3. Suffixes</button>
+</nav>
+
+<!-- SECTION 1: REVIEW -->
+<div id="review" class="section active">
+    <div class="controls">
+        <select id="tenseSelect" onchange="updateReviewCard()">
+            <option value="perfect">Perfect (Past)</option>
+            <option value="imperfect">Imperfect (Present/Subj)</option>
+            <option value="bi_imperfect">Bi-Imperfect (Continuous)</option>
+            <option value="imperative">Imperative</option>
+            <option value="participle">Active Participle</option>
+        </select>
+    </div>
+
+    <div class="flashcard" onclick="flipReviewCard()">
+        <div id="review-front">
+            <div class="arabic-text" id="rev-ar">كان</div>
+            <div class="pron" id="rev-pr">kān</div>
+            <div style="font-size: 1.2rem; margin-top: 10px;" id="rev-en">to be</div>
+        </div>
+        <div id="review-back" style="display: none;">
+            <div id="rev-tense-label" style="font-weight:bold; margin-bottom:10px;"></div>
+            <div class="conj-grid" id="rev-grid">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-action" onclick="prevVerb()">Previous Verb</button>
+        <button class="btn-action" onclick="nextVerb()">Next Verb</button>
+    </div>
+</div>
+
+<!-- SECTION 2: CONJUGATION -->
+<div id="conjugation" class="section">
+    <div class="controls">
+        <select id="pracTenseSelect" onchange="loadNewQuestion()">
+            <option value="mixed">All Tenses (Mixed)</option>
+            <option value="perfect">Perfect</option>
+            <option value="imperfect">Imperfect</option>
+            <option value="bi_imperfect">Bi-Imperfect</option>
+            <option value="imperative">Imperative</option>
+        </select>
+    </div>
+    
+    <div class="question-box">
+        <div class="person-label" id="prac-tense-hint"></div>
+        <div class="question-text" id="prac-q">I came</div>
+        <div class="pron" id="prac-q-pr" style="margin-bottom: 15px;"></div> 
+        
+        <div class="answer-box" id="prac-a">
+            <span id="prac-a-ar" style="display: block;">إجيت</span>
+            <div class="pron" id="prac-a-pr">ijit</div>
+        </div>
+        <button class="btn-action" id="prac-btn" onclick="handlePracticeClick()">Show Answer</button>
+    </div>
+</div>
+
+<!-- SECTION 3: SUFFIXES -->
+<div id="suffixes" class="section">
+    <div class="question-box">
+        <div class="person-label">Guess the translation</div>
+        <div class="question-text" id="suff-q">He saw me</div>
+        <div class="pron" id="suff-q-pr" style="margin-bottom: 15px;"></div>
+        
+        <div class="answer-box" id="suff-a">
+            <span id="suff-a-ar" style="display: block;">شافني</span>
+            <div class="pron" id="suff-a-pr">shafni</div>
+        </div>
+        <button class="btn-action" id="suff-btn" onclick="handleSuffixClick()">Show Answer</button>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE ---
+    const verbs = [
+  {
+    "english": "to be",
+    "arabic": "كان",
+    "pronunciation": "kān",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "كنت", "pr": "kinit"}, "You (m)": {"ar": "كنت", "pr": "kinit"}, "You (f)": {"ar": "كنتي", "pr": "kinti"}, "He": {"ar": "كان", "pr": "kān"}, "She": {"ar": "كانت", "pr": "kānit"},
+        "We": {"ar": "كنا", "pr": "kinna"}, "You (pl)": {"ar": "كنتو", "pr": "kintu"}, "They": {"ar": "كانو", "pr": "kānu"}
+      },
+      "imperfect": {
+        "I": {"ar": "كون", "pr": "kūn"}, "You (m)": {"ar": "تكون", "pr": "tkūn"}, "You (f)": {"ar": "تكوني", "pr": "tkūnī"}, "He": {"ar": "يكون", "pr": "ykūn"}, "She": {"ar": "تكون", "pr": "tkūn"},
+        "We": {"ar": "نكون", "pr": "nkūn"}, "You (pl)": {"ar": "تكونو", "pr": "tkūnu"}, "They": {"ar": "يكونو", "pr": "ykūnu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بكون", "pr": "bkūn"}, "You (m)": {"ar": "بتكون", "pr": "btkūn"}, "You (f)": {"ar": "بتكوني", "pr": "btkūnī"}, "He": {"ar": "بيكون", "pr": "bykūn"}, "She": {"ar": "بتكون", "pr": "btkūn"},
+        "We": {"ar": "بنكون", "pr": "bnkūn"}, "You (pl)": {"ar": "بتكونو", "pr": "btkūnu"}, "They": {"ar": "بيكونو", "pr": "bykūnu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "كون", "pr": "kūn"}, "You (f)": {"ar": "كوني", "pr": "kūnī"}, "You (pl)": {"ar": "كونو", "pr": "kūnu"}
+      },
+      "participle": {
+        "Male": {"ar": "كاين", "pr": "kāyin"}, "Female": {"ar": "كاينة", "pr": "kāyne"}, "Plural": {"ar": "كاينين", "pr": "kāynīn"}
+      }
+    }
+  },
+  {
+    "english": "to want",
+    "arabic": "بَدّ",
+    "pronunciation": "badd",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "كان بدي", "pr": "kān baddī"}, "You (m)": {"ar": "كان بدك", "pr": "kān baddak"}, "You (f)": {"ar": "كان بدك", "pr": "kān baddik"}, "He": {"ar": "كان بده", "pr": "kān baddo"}, "She": {"ar": "كان بدها", "pr": "kān baddah"},
+        "We": {"ar": "كان بدنا", "pr": "kān baddna"}, "You (pl)": {"ar": "كان بدكن", "pr": "kān baddkun"}, "They": {"ar": "كان بدهن", "pr": "kān baddhon"}
+      },
+      "imperfect": {
+        "I": {"ar": "بدي", "pr": "baddī"}, "You (m)": {"ar": "بدك", "pr": "baddak"}, "You (f)": {"ar": "بدك", "pr": "baddik"}, "He": {"ar": "بده", "pr": "baddo"}, "She": {"ar": "بدها", "pr": "baddah"},
+        "We": {"ar": "بدنا", "pr": "baddna"}, "You (pl)": {"ar": "بدكن", "pr": "baddkun"}, "They": {"ar": "بدهن", "pr": "baddhon"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بدي", "pr": "baddī"}, "You (m)": {"ar": "بدك", "pr": "baddak"}, "You (f)": {"ar": "بدك", "pr": "baddik"}, "He": {"ar": "بده", "pr": "baddo"}, "She": {"ar": "بدها", "pr": "baddah"},
+        "We": {"ar": "بدنا", "pr": "baddna"}, "You (pl)": {"ar": "بدكن", "pr": "baddkun"}, "They": {"ar": "بدهن", "pr": "baddhon"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "N/A", "pr": "N/A"}, "You (f)": {"ar": "N/A", "pr": "N/A"}, "You (pl)": {"ar": "N/A", "pr": "N/A"}
+      },
+      "participle": {
+        "Male": {"ar": "N/A", "pr": "N/A"}, "Female": {"ar": "N/A", "pr": "N/A"}, "Plural": {"ar": "N/A", "pr": "N/A"}
+      }
+    }
+  },
+  {
+    "english": "to do / to make",
+    "arabic": "عمل",
+    "pronunciation": "3imil",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "عملت", "pr": "3milt"}, "You (m)": {"ar": "عملت", "pr": "3milt"}, "You (f)": {"ar": "عملتي", "pr": "3milti"}, "He": {"ar": "عمل", "pr": "3imil"}, "She": {"ar": "عملت", "pr": "3imlit"},
+        "We": {"ar": "عملنا", "pr": "3milna"}, "You (pl)": {"ar": "عملتو", "pr": "3miltu"}, "They": {"ar": "عملو", "pr": "3imlu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اعمل", "pr": "a3mil"}, "You (m)": {"ar": "تعمل", "pr": "ta3mil"}, "You (f)": {"ar": "تعملي", "pr": "ta3mlī"}, "He": {"ar": "يعمل", "pr": "ya3mil"}, "She": {"ar": "تعمل", "pr": "ta3mil"},
+        "We": {"ar": "نعمل", "pr": "na3mil"}, "You (pl)": {"ar": "تعملو", "pr": "ta3mlu"}, "They": {"ar": "يعملو", "pr": "ya3mlu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بعمل", "pr": "ba3mil"}, "You (m)": {"ar": "بتعمل", "pr": "bta3mil"}, "You (f)": {"ar": "بتعملي", "pr": "bta3mlī"}, "He": {"ar": "بيعمل", "pr": "bya3mil"}, "She": {"ar": "بتعمل", "pr": "bta3mil"},
+        "We": {"ar": "بنعمل", "pr": "bna3mil"}, "You (pl)": {"ar": "بتعملو", "pr": "bta3mlu"}, "They": {"ar": "بيعملو", "pr": "bya3mlu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اعمل", "pr": "3mūl"}, "You (f)": {"ar": "اعملي", "pr": "3mlī"}, "You (pl)": {"ar": "اعملو", "pr": "3mlu"}
+      },
+      "participle": {
+        "Male": {"ar": "عامل", "pr": "3āmil"}, "Female": {"ar": "عاملة", "pr": "3āmle"}, "Plural": {"ar": "عاملين", "pr": "3āmlīn"}
+      }
+    }
+  },
+  {
+    "english": "to go",
+    "arabic": "راح",
+    "pronunciation": "rā7",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "رحت", "pr": "ri7it"}, "You (m)": {"ar": "رحت", "pr": "ri7it"}, "You (f)": {"ar": "رحتي", "pr": "ri7ti"}, "He": {"ar": "راح", "pr": "rā7"}, "She": {"ar": "راحت", "pr": "rā7it"},
+        "We": {"ar": "رحنا", "pr": "ri7na"}, "You (pl)": {"ar": "رحتو", "pr": "ri7tu"}, "They": {"ar": "راحو", "pr": "rā7u"}
+      },
+      "imperfect": {
+        "I": {"ar": "روح", "pr": "rū7"}, "You (m)": {"ar": "تروح", "pr": "trū7"}, "You (f)": {"ar": "تروحي", "pr": "trū7ī"}, "He": {"ar": "يروح", "pr": "yrū7"}, "She": {"ar": "تروح", "pr": "trū7"},
+        "We": {"ar": "نروح", "pr": "nrū7"}, "You (pl)": {"ar": "تروحو", "pr": "trū7u"}, "They": {"ar": "يروحو", "pr": "yrū7u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بروح", "pr": "brū7"}, "You (m)": {"ar": "بتروح", "pr": "btrū7"}, "You (f)": {"ar": "بتروحي", "pr": "btrū7ī"}, "He": {"ar": "بيروح", "pr": "byrū7"}, "She": {"ar": "بتروح", "pr": "btrū7"},
+        "We": {"ar": "بنروح", "pr": "bnrū7"}, "You (pl)": {"ar": "بتروحو", "pr": "btrū7u"}, "They": {"ar": "بيروحو", "pr": "byrū7u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "روح", "pr": "rū7"}, "You (f)": {"ar": "روحي", "pr": "rū7ī"}, "You (pl)": {"ar": "روحو", "pr": "rū7u"}
+      },
+      "participle": {
+        "Male": {"ar": "رايح", "pr": "rāyi7"}, "Female": {"ar": "رايحة", "pr": "rāy7a"}, "Plural": {"ar": "رايحين", "pr": "rāy7īn"}
+      }
+    }
+  },
+  {
+    "english": "to come",
+    "arabic": "أجا",
+    "pronunciation": "aja",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "جيت", "pr": "jīt"}, "You (m)": {"ar": "جيت", "pr": "jīt"}, "You (f)": {"ar": "جيتي", "pr": "jītī"}, "He": {"ar": "أجا", "pr": "aja"}, "She": {"ar": "إجت", "pr": "ijat"},
+        "We": {"ar": "جينا", "pr": "jīna"}, "You (pl)": {"ar": "جيتو", "pr": "jītu"}, "They": {"ar": "إجو", "pr": "iju"}
+      },
+      "imperfect": {
+        "I": {"ar": "إجي", "pr": "ījī"}, "You (m)": {"ar": "تيجي", "pr": "tījī"}, "You (f)": {"ar": "تيجي", "pr": "tījī"}, "He": {"ar": "يجي", "pr": "yījī"}, "She": {"ar": "تيجي", "pr": "tījī"},
+        "We": {"ar": "نيجي", "pr": "nījī"}, "You (pl)": {"ar": "تيجو", "pr": "tīju"}, "They": {"ar": "يجو", "pr": "yīju"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بيجي", "pr": "bījī"}, "You (m)": {"ar": "بتيجي", "pr": "btījī"}, "You (f)": {"ar": "بتيجي", "pr": "btījī"}, "He": {"ar": "بييجي", "pr": "byījī"}, "She": {"ar": "بتيجي", "pr": "btījī"},
+        "We": {"ar": "بنيجي", "pr": "bnījī"}, "You (pl)": {"ar": "بتيجو", "pr": "btīju"}, "They": {"ar": "بييجو", "pr": "byīju"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "تعا", "pr": "ta3a"}, "You (f)": {"ar": "تعالي", "pr": "ta3ālī"}, "You (pl)": {"ar": "تعالو", "pr": "ta3ālu"}
+      },
+      "participle": {
+        "Male": {"ar": "جاي", "pr": "jāy"}, "Female": {"ar": "جاية", "pr": "jāye"}, "Plural": {"ar": "جايين", "pr": "jāyīn"}
+      }
+    }
+  },
+  {
+    "english": "to say / to tell",
+    "arabic": "قال",
+    "pronunciation": "2āl",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "قلت", "pr": "2ilit"}, "You (m)": {"ar": "قلت", "pr": "2ilit"}, "You (f)": {"ar": "قلتي", "pr": "2ilti"}, "He": {"ar": "قال", "pr": "2āl"}, "She": {"ar": "قالت", "pr": "2ālit"},
+        "We": {"ar": "قلنا", "pr": "2ilna"}, "You (pl)": {"ar": "قلتو", "pr": "2iltu"}, "They": {"ar": "قالو", "pr": "2ālu"}
+      },
+      "imperfect": {
+        "I": {"ar": "قول", "pr": "2ūl"}, "You (m)": {"ar": "تقول", "pr": "t2ūl"}, "You (f)": {"ar": "تقولي", "pr": "t2ūlī"}, "He": {"ar": "يقول", "pr": "y2ūl"}, "She": {"ar": "تقول", "pr": "t2ūl"},
+        "We": {"ar": "نقول", "pr": "n2ūl"}, "You (pl)": {"ar": "تقولو", "pr": "t2ūlu"}, "They": {"ar": "يقولو", "pr": "y2ūlu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بقول", "pr": "b2ūl"}, "You (m)": {"ar": "بتقول", "pr": "bt2ūl"}, "You (f)": {"ar": "بتقولي", "pr": "bt2ūlī"}, "He": {"ar": "بيقول", "pr": "by2ūl"}, "She": {"ar": "بتقول", "pr": "bt2ūl"},
+        "We": {"ar": "بنقول", "pr": "bn2ūl"}, "You (pl)": {"ar": "بتقولو", "pr": "bt2ūlu"}, "They": {"ar": "بيقولو", "pr": "by2ūlu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "قول", "pr": "2ūl"}, "You (f)": {"ar": "قولي", "pr": "2ūlī"}, "You (pl)": {"ar": "قولو", "pr": "2ūlu"}
+      },
+      "participle": {
+        "Male": {"ar": "قايل", "pr": "2āyil"}, "Female": {"ar": "قايلة", "pr": "2āyle"}, "Plural": {"ar": "قايلين", "pr": "2āylīn"}
+      }
+    }
+  },
+  {
+    "english": "to see / to look",
+    "arabic": "شاف",
+    "pronunciation": "shāf",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "شفت", "pr": "shifit"}, "You (m)": {"ar": "شفت", "pr": "shifit"}, "You (f)": {"ar": "شفتي", "pr": "shifti"}, "He": {"ar": "شاف", "pr": "shāf"}, "She": {"ar": "شافت", "pr": "shāfit"},
+        "We": {"ar": "شفنا", "pr": "shifna"}, "You (pl)": {"ar": "شفتو", "pr": "shiftu"}, "They": {"ar": "شافو", "pr": "shāfu"}
+      },
+      "imperfect": {
+        "I": {"ar": "شوف", "pr": "shūf"}, "You (m)": {"ar": "تشوف", "pr": "tshūf"}, "You (f)": {"ar": "تشوفي", "pr": "tshūfī"}, "He": {"ar": "يشوف", "pr": "yshūf"}, "She": {"ar": "تشوف", "pr": "tshūf"},
+        "We": {"ar": "نشوف", "pr": "nshūf"}, "You (pl)": {"ar": "تشوفو", "pr": "tshūfu"}, "They": {"ar": "يشوفو", "pr": "yshūfu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بشوف", "pr": "bshūf"}, "You (m)": {"ar": "بتشوف", "pr": "btshūf"}, "You (f)": {"ar": "بتشوفي", "pr": "btshūfī"}, "He": {"ar": "بيشوف", "pr": "byshūf"}, "She": {"ar": "بتشوف", "pr": "btshūf"},
+        "We": {"ar": "بنشوف", "pr": "bnshūf"}, "You (pl)": {"ar": "بتشوفو", "pr": "btshūfu"}, "They": {"ar": "بيشوفو", "pr": "byshūfu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "شوف", "pr": "shūf"}, "You (f)": {"ar": "شوفي", "pr": "shūfī"}, "You (pl)": {"ar": "شوفو", "pr": "shūfu"}
+      },
+      "participle": {
+        "Male": {"ar": "شايف", "pr": "shāyif"}, "Female": {"ar": "شايفة", "pr": "shāyfe"}, "Plural": {"ar": "شايفين", "pr": "shāyfīn"}
+      }
+    }
+  },
+  {
+    "english": "to know",
+    "arabic": "عرف",
+    "pronunciation": "3irif",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "عرفت", "pr": "3irfit"}, "You (m)": {"ar": "عرفت", "pr": "3irfit"}, "You (f)": {"ar": "عرفتي", "pr": "3irfiti"}, "He": {"ar": "عرف", "pr": "3irif"}, "She": {"ar": "عرفت", "pr": "3irfit"},
+        "We": {"ar": "عرفنا", "pr": "3irfna"}, "You (pl)": {"ar": "عرفتو", "pr": "3irfitu"}, "They": {"ar": "عرفو", "pr": "3irfu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اعرف", "pr": "a3rif"}, "You (m)": {"ar": "تعرف", "pr": "ta3rif"}, "You (f)": {"ar": "تعرفي", "pr": "ta3rfī"}, "He": {"ar": "يعرف", "pr": "ya3rif"}, "She": {"ar": "تعرف", "pr": "ta3rif"},
+        "We": {"ar": "نعرف", "pr": "na3rif"}, "You (pl)": {"ar": "تعرفو", "pr": "ta3rfu"}, "They": {"ar": "يعرفو", "pr": "ya3rfu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بعرف", "pr": "ba3rif"}, "You (m)": {"ar": "بتعرف", "pr": "bta3rif"}, "You (f)": {"ar": "بتعرفي", "pr": "bta3rfī"}, "He": {"ar": "بيعرف", "pr": "bya3rif"}, "She": {"ar": "بتعرف", "pr": "bta3rif"},
+        "We": {"ar": "بنعرف", "pr": "bna3rif"}, "You (pl)": {"ar": "بتعرفو", "pr": "bta3rfu"}, "They": {"ar": "بيعرفو", "pr": "bya3rfu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اعرف", "pr": "3raf"}, "You (f)": {"ar": "اعرفي", "pr": "3rafī"}, "You (pl)": {"ar": "اعرفو", "pr": "3rafu"}
+      },
+      "participle": {
+        "Male": {"ar": "عارف", "pr": "3ārif"}, "Female": {"ar": "عارفة", "pr": "3ārfe"}, "Plural": {"ar": "عارفين", "pr": "3ārfīn"}
+      }
+    }
+  },
+  {
+    "english": "to be able to / can",
+    "arabic": "قدر",
+    "pronunciation": "2idir",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "قدرت", "pr": "2idrit"}, "You (m)": {"ar": "قدرت", "pr": "2idrit"}, "You (f)": {"ar": "قدرتي", "pr": "2idriti"}, "He": {"ar": "قدر", "pr": "2idir"}, "She": {"ar": "قدرت", "pr": "2idrit"},
+        "We": {"ar": "قدرنا", "pr": "2idrna"}, "You (pl)": {"ar": "قدرتو", "pr": "2idritu"}, "They": {"ar": "قدرو", "pr": "2idru"}
+      },
+      "imperfect": {
+        "I": {"ar": "اقدر", "pr": "a2dar"}, "You (m)": {"ar": "تقدر", "pr": "ta2dar"}, "You (f)": {"ar": "تقدري", "pr": "ta2drī"}, "He": {"ar": "يقدر", "pr": "ya2dar"}, "She": {"ar": "تقدر", "pr": "ta2dar"},
+        "We": {"ar": "نقدر", "pr": "na2dar"}, "You (pl)": {"ar": "تقدرو", "pr": "ta2dru"}, "They": {"ar": "يقدرو", "pr": "ya2dru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بقدر", "pr": "ba2dar"}, "You (m)": {"ar": "بتقدر", "pr": "bta2dar"}, "You (f)": {"ar": "بتقدري", "pr": "bta2drī"}, "He": {"ar": "بيقدر", "pr": "by2dar"}, "She": {"ar": "بتقدر", "pr": "bta2dar"},
+        "We": {"ar": "بنقدر", "pr": "bna2dar"}, "You (pl)": {"ar": "بتقدرو", "pr": "bta2dru"}, "They": {"ar": "بيقدرو", "pr": "by2dru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اقدر", "pr": "2dār"}, "You (f)": {"ar": "اقدري", "pr": "2dārī"}, "You (pl)": {"ar": "اقدرو", "pr": "2dāru"}
+      },
+      "participle": {
+        "Male": {"ar": "قادر", "pr": "2ādir"}, "Female": {"ar": "قادرة", "pr": "2ādre"}, "Plural": {"ar": "قادرين", "pr": "2ādrīn"}
+      }
+    }
+  },
+  {
+    "english": "to take",
+    "arabic": "أخد",
+    "pronunciation": "akhad",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "أخدت", "pr": "akhadt"}, "You (m)": {"ar": "أخدت", "pr": "akhadt"}, "You (f)": {"ar": "أخدتي", "pr": "akhadti"}, "He": {"ar": "أخد", "pr": "akhad"}, "She": {"ar": "أخدت", "pr": "akhdit"},
+        "We": {"ar": "أخدنا", "pr": "akhadna"}, "You (pl)": {"ar": "أخدتو", "pr": "akhadtu"}, "They": {"ar": "أخدو", "pr": "akhdu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اخد", "pr": "ākhud"}, "You (m)": {"ar": "تاخد", "pr": "tākhud"}, "You (f)": {"ar": "تاخدي", "pr": "tākhdī"}, "He": {"ar": "ياخد", "pr": "yākhud"}, "She": {"ar": "تاخد", "pr": "tākhud"},
+        "We": {"ar": "ناخد", "pr": "nākhud"}, "You (pl)": {"ar": "تاخدو", "pr": "tākhdu"}, "They": {"ar": "ياخدو", "pr": "yākhdu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "باخد", "pr": "bākhud"}, "You (m)": {"ar": "بتاخد", "pr": "btākhud"}, "You (f)": {"ar": "بتاخدي", "pr": "btākhdī"}, "He": {"ar": "بياخد", "pr": "byākhud"}, "She": {"ar": "btaheth", "pr": "btākhud"},
+        "We": {"ar": "بناخد", "pr": "bnākhud"}, "You (pl)": {"ar": "بتاخدو", "pr": "btākhdu"}, "They": {"ar": "بياخدو", "pr": "byākhdu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "خود", "pr": "khūd"}, "You (f)": {"ar": "خودي", "pr": "khūdī"}, "You (pl)": {"ar": "خودو", "pr": "khūdu"}
+      },
+      "participle": {
+        "Male": {"ar": "آخد", "pr": "ākhid"}, "Female": {"ar": "آخدة", "pr": "ākhde"}, "Plural": {"ar": "آخدين", "pr": "ākhdīn"}
+      }
+    }
+  },
+  {
+    "english": "to love / to like",
+    "arabic": "حب",
+    "pronunciation": "7abb",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "حبيت", "pr": "7abbayt"}, "You (m)": {"ar": "حبيت", "pr": "7abbayt"}, "You (f)": {"ar": "حبيتي", "pr": "7abbayti"}, "He": {"ar": "حب", "pr": "7abb"}, "She": {"ar": "حبت", "pr": "7abbet"},
+        "We": {"ar": "حبينا", "pr": "7abbayna"}, "You (pl)": {"ar": "حبيتو", "pr": "7abbaytu"}, "They": {"ar": "حبو", "pr": "7abbu"}
+      },
+      "imperfect": {
+        "I": {"ar": "حب", "pr": "7ibb"}, "You (m)": {"ar": "تحب", "pr": "t7ibb"}, "You (f)": {"ar": "تحبي", "pr": "t7ibbi"}, "He": {"ar": "يحب", "pr": "y7ibb"}, "She": {"ar": "تحب", "pr": "t7ibb"},
+        "We": {"ar": "نحب", "pr": "n7ibb"}, "You (pl)": {"ar": "تحبو", "pr": "t7ibbu"}, "They": {"ar": "يحبو", "pr": "y7ibbu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بحب", "pr": "b7ibb"}, "You (m)": {"ar": "بتحب", "pr": "bt7ibb"}, "You (f)": {"ar": "bتتحبي", "pr": "bt7ibbi"}, "He": {"ar": "بيحب", "pr": "by7ibb"}, "She": {"ar": "بتحب", "pr": "bt7ibb"},
+        "We": {"ar": "بنحب", "pr": "bn7ibb"}, "You (pl)": {"ar": "بتحبو", "pr": "bt7ibbu"}, "They": {"ar": "بيحبو", "pr": "by7ibbu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "حب", "pr": "7ibb"}, "You (f)": {"ar": "حبي", "pr": "7ibbi"}, "You (pl)": {"ar": "حبو", "pr": "7ibbu"}
+      },
+      "participle": {
+        "Male": {"ar": "حابب", "pr": "7ābib"}, "Female": {"ar": "حابة", "pr": "7ābbe"}, "Plural": {"ar": "حابين", "pr": "7ābbīn"}
+      }
+    }
+  },
+  {
+    "english": "to give",
+    "arabic": "عطى",
+    "pronunciation": "3aṭa",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "عطيت", "pr": "3aṭayt"}, "You (m)": {"ar": "عطيت", "pr": "3aṭayt"}, "You (f)": {"ar": "عطيتي", "pr": "3aṭayti"}, "He": {"ar": "عطى", "pr": "3aṭa"}, "She": {"ar": "عطت", "pr": "3aṭet"},
+        "We": {"ar": "عطينا", "pr": "3aṭayna"}, "You (pl)": {"ar": "عطيتو", "pr": "3aṭaytu"}, "They": {"ar": "عطو", "pr": "3aṭu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اعطي", "pr": "a3ṭī"}, "You (m)": {"ar": "تعطي", "pr": "t3ṭī"}, "You (f)": {"ar": "تعطي", "pr": "t3ṭī"}, "He": {"ar": "يعطي", "pr": "y3ṭī"}, "She": {"ar": "تعطي", "pr": "t3ṭī"},
+        "We": {"ar": "نعطي", "pr": "n3ṭī"}, "You (pl)": {"ar": "تعطو", "pr": "t3ṭu"}, "They": {"ar": "يعطو", "pr": "y3ṭu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بعطي", "pr": "ba3ṭī"}, "You (m)": {"ar": "بتعطي", "pr": "bt3ṭī"}, "You (f)": {"ar": "بتعطي", "pr": "bt3ṭī"}, "He": {"ar": "بيعطي", "pr": "by3ṭī"}, "She": {"ar": "بتعطي", "pr": "bt3ṭī"},
+        "We": {"ar": "بنعطي", "pr": "bn3ṭī"}, "You (pl)": {"ar": "بتعطو", "pr": "bt3ṭu"}, "They": {"ar": "بيعطو", "pr": "by3ṭu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اعطي", "pr": "3aṭī"}, "You (f)": {"ar": "اعطي", "pr": "3aṭī"}, "You (pl)": {"ar": "اعطو", "pr": "3aṭu"}
+      },
+      "participle": {
+        "Male": {"ar": "معطي", "pr": "m3aṭī"}, "Female": {"ar": "معطية", "pr": "m3aṭiye"}, "Plural": {"ar": "معطيين", "pr": "m3aṭiyīn"}
+      }
+    }
+  },
+  {
+    "english": "to speak / to talk",
+    "arabic": "حكى",
+    "pronunciation": "7aka",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "حكيت", "pr": "7akayt"}, "You (m)": {"ar": "حكيت", "pr": "7akayt"}, "You (f)": {"ar": "حكيتي", "pr": "7akayti"}, "He": {"ar": "حكى", "pr": "7aka"}, "She": {"ar": "حكت", "pr": "7aket"},
+        "We": {"ar": "حكينا", "pr": "7akayna"}, "You (pl)": {"ar": "حكيتو", "pr": "7akaytu"}, "They": {"ar": "حكو", "pr": "7aku"}
+      },
+      "imperfect": {
+        "I": {"ar": "احكي", "pr": "a7kī"}, "You (m)": {"ar": "تحكي", "pr": "t7kī"}, "You (f)": {"ar": "تحكي", "pr": "t7kī"}, "He": {"ar": "يحكي", "pr": "y7kī"}, "She": {"ar": "تحكي", "pr": "t7kī"},
+        "We": {"ar": "نحكي", "pr": "n7kī"}, "You (pl)": {"ar": "تحكو", "pr": "t7ku"}, "They": {"ar": "يحكو", "pr": "y7ku"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بحكي", "pr": "ba7kī"}, "You (m)": {"ar": "بتحكي", "pr": "bt7kī"}, "You (f)": {"ar": "بتحكي", "pr": "bt7kī"}, "He": {"ar": "بيحكي", "pr": "by7kī"}, "She": {"ar": "bتحكي", "pr": "bt7kī"},
+        "We": {"ar": "بنحكي", "pr": "bn7kī"}, "You (pl)": {"ar": "بتحكو", "pr": "bt7ku"}, "They": {"ar": "بيحكو", "pr": "by7ku"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "احكي", "pr": "7kī"}, "You (f)": {"ar": "احكي", "pr": "7kī"}, "You (pl)": {"ar": "احكو", "pr": "7ku"}
+      },
+      "participle": {
+        "Male": {"ar": "حاكي", "pr": "7ākī"}, "Female": {"ar": "حاكية", "pr": "7ākye"}, "Plural": {"ar": "حاكين", "pr": "7ākīn"}
+      }
+    }
+  },
+  {
+    "english": "to ask",
+    "arabic": "سأل",
+    "pronunciation": "sa2al",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "سألت", "pr": "sa2alit"}, "You (m)": {"ar": "سألت", "pr": "sa2alit"}, "You (f)": {"ar": "سألتي", "pr": "sa2alti"}, "He": {"ar": "سأل", "pr": "sa2al"}, "She": {"ar": "سألت", "pr": "sa2alit"},
+        "We": {"ar": "سألنا", "pr": "sa2alna"}, "You (pl)": {"ar": "سألتو", "pr": "sa2altu"}, "They": {"ar": "سألو", "pr": "sa2alu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اسأل", "pr": "as2al"}, "You (m)": {"ar": "تسأل", "pr": "tis2al"}, "You (f)": {"ar": "تسألي", "pr": "tis2alī"}, "He": {"ar": "يسأل", "pr": "yis2al"}, "She": {"ar": "تسأل", "pr": "tis2al"},
+        "We": {"ar": "نسأل", "pr": "nis2al"}, "You (pl)": {"ar": "تسألو", "pr": "tis2alu"}, "They": {"ar": "يسألو", "pr": "yis2alu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسأل", "pr": "bas2al"}, "You (m)": {"ar": "بتسأل", "pr": "btis2al"}, "You (f)": {"ar": "بتسألي", "pr": "btis2alī"}, "He": {"ar": "بيسأل", "pr": "byis2al"}, "She": {"ar": "بتسأل", "pr": "btis2al"},
+        "We": {"ar": "بنسأل", "pr": "bnis2al"}, "You (pl)": {"ar": "بتسألو", "pr": "btis2alu"}, "They": {"ar": "بيسألو", "pr": "byis2alu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اسأل", "pr": "sa2al"}, "You (f)": {"ar": "اسألي", "pr": "sa2alī"}, "You (pl)": {"ar": "اسألو", "pr": "sa2alu"}
+      },
+      "participle": {
+        "Male": {"ar": "سائل", "pr": "sā2il"}, "Female": {"ar": "سائلة", "pr": "sā2le"}, "Plural": {"ar": "سائلين", "pr": "sā2līn"}
+      }
+    }
+  },
+  {
+    "english": "to understand",
+    "arabic": "فهم",
+    "pronunciation": "fihim",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "فهمت", "pr": "fihmit"}, "You (m)": {"ar": "فهمت", "pr": "fihmit"}, "You (f)": {"ar": "فهمتي", "pr": "fihmiti"}, "He": {"ar": "فهم", "pr": "fihim"}, "She": {"ar": "فهمت", "pr": "fihmit"},
+        "We": {"ar": "فهمنا", "pr": "fihmna"}, "You (pl)": {"ar": "فهمتو", "pr": "fihmitu"}, "They": {"ar": "فهمو", "pr": "fihmu"}
+      },
+      "imperfect": {
+        "I": {"ar": "افهم", "pr": "afham"}, "You (m)": {"ar": "تفهم", "pr": "tifham"}, "You (f)": {"ar": "تفهمي", "pr": "tifhamī"}, "He": {"ar": "يفهم", "pr": "yifham"}, "She": {"ar": "تفهم", "pr": "tifham"},
+        "We": {"ar": "نفهم", "pr": "nifham"}, "You (pl)": {"ar": "تفهمو", "pr": "tifhamu"}, "They": {"ar": "يفهمو", "pr": "yifhamu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بفهم", "pr": "bafham"}, "You (m)": {"ar": "بتفهم", "pr": "btifham"}, "You (f)": {"ar": "بتفهمي", "pr": "btifhamī"}, "He": {"ar": "بيفهم", "pr": "byifham"}, "She": {"ar": "بتفهم", "pr": "btifham"},
+        "We": {"ar": "بنفهم", "pr": "bnifham"}, "You (pl)": {"ar": "بتفهمو", "pr": "btifhamu"}, "They": {"ar": "بيفهمو", "pr": "byifhamu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "افهم", "pr": "fham"}, "You (f)": {"ar": "افهمي", "pr": "fhamī"}, "You (pl)": {"ar": "افهمو", "pr": "fhamu"}
+      },
+      "participle": {
+        "Male": {"ar": "فاهم", "pr": "fāhim"}, "Female": {"ar": "فاهمة", "pr": "fāhme"}, "Plural": {"ar": "فاهمين", "pr": "fāhmīn"}
+      }
+    }
+  },
+  {
+    "english": "to hear / to listen",
+    "arabic": "سمع",
+    "pronunciation": "simi3",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "سمعت", "pr": "smi3it"}, "You (m)": {"ar": "سمعت", "pr": "smi3it"}, "You (f)": {"ar": "سمعتي", "pr": "smi3ti"}, "He": {"ar": "سمع", "pr": "simi3"}, "She": {"ar": "سمعت", "pr": "sim3it"},
+        "We": {"ar": "سمعنا", "pr": "smi3na"}, "You (pl)": {"ar": "سمعتو", "pr": "smi3tu"}, "They": {"ar": "سمعو", "pr": "sim3u"}
+      },
+      "imperfect": {
+        "I": {"ar": "اسمع", "pr": "asma3"}, "You (m)": {"ar": "تسمع", "pr": "tisma3"}, "You (f)": {"ar": "تسمعي", "pr": "tisma3ī"}, "He": {"ar": "يسمع", "pr": "yisma3"}, "She": {"ar": "تسمع", "pr": "tisma3"},
+        "We": {"ar": "نسمع", "pr": "nisma3"}, "You (pl)": {"ar": "تسمعو", "pr": "tisma3u"}, "They": {"ar": "يسمعو", "pr": "yisma3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسمع", "pr": "basma3"}, "You (m)": {"ar": "بتسمع", "pr": "btisma3"}, "You (f)": {"ar": "بتسمعي", "pr": "btisma3ī"}, "He": {"ar": "بيسمع", "pr": "byisma3"}, "She": {"ar": "بتسمع", "pr": "btisma3"},
+        "We": {"ar": "بنسمع", "pr": "bnisma3"}, "You (pl)": {"ar": "بتسمعو", "pr": "btisma3u"}, "They": {"ar": "بيسمعو", "pr": "byisma3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اسمع", "pr": "sma3"}, "You (f)": {"ar": "اسمعي", "pr": "sma3ī"}, "You (pl)": {"ar": "اسمعو", "pr": "sma3u"}
+      },
+      "participle": {
+        "Male": {"ar": "سامع", "pr": "sāmi3"}, "Female": {"ar": "سامعة", "pr": "sām3a"}, "Plural": {"ar": "سامعين", "pr": "sām3īn"}
+      }
+    }
+  },
+  {
+    "english": "to bring",
+    "arabic": "جاب",
+    "pronunciation": "jāb",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "جبت", "pr": "jibit"}, "You (m)": {"ar": "جبت", "pr": "jibit"}, "You (f)": {"ar": "جبتي", "pr": "jibti"}, "He": {"ar": "جاب", "pr": "jāb"}, "She": {"ar": "جابت", "pr": "jābit"},
+        "We": {"ar": "جبنا", "pr": "jibna"}, "You (pl)": {"ar": "جبتو", "pr": "jibtu"}, "They": {"ar": "جابو", "pr": "jābu"}
+      },
+      "imperfect": {
+        "I": {"ar": "جيب", "pr": "jīb"}, "You (m)": {"ar": "تجيب", "pr": "tjīb"}, "You (f)": {"ar": "تجيبي", "pr": "tjībī"}, "He": {"ar": "يجيب", "pr": "yjīb"}, "She": {"ar": "تجيب", "pr": "tjīb"},
+        "We": {"ar": "نجيب", "pr": "njīb"}, "You (pl)": {"ar": "تجيبو", "pr": "tjību"}, "They": {"ar": "يجيبو", "pr": "yjību"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بجيب", "pr": "bajīb"}, "You (m)": {"ar": "بتجيب", "pr": "btjīb"}, "You (f)": {"ar": "بتجيبي", "pr": "btjībī"}, "He": {"ar": "بيجيب", "pr": "byjīb"}, "She": {"ar": "بتجيب", "pr": "btjīb"},
+        "We": {"ar": "بنجيب", "pr": "bnjīb"}, "You (pl)": {"ar": "بتجيبو", "pr": "btjību"}, "They": {"ar": "بيجيبو", "pr": "byjību"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "جيب", "pr": "jīb"}, "You (f)": {"ar": "جيبي", "pr": "jībī"}, "You (pl)": {"ar": "جيبو", "pr": "jību"}
+      },
+      "participle": {
+        "Male": {"ar": "جايب", "pr": "jāyib"}, "Female": {"ar": "جايبة", "pr": "jāybe"}, "Plural": {"ar": "جايبين", "pr": "jāybīn"}
+      }
+    }
+  },
+  {
+    "english": "to go up / to go out",
+    "arabic": "طلع",
+    "pronunciation": "ṭala3",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "طلعت", "pr": "ṭli3it"}, "You (m)": {"ar": "طلعت", "pr": "ṭli3it"}, "You (f)": {"ar": "طلعتي", "pr": "ṭli3ti"}, "He": {"ar": "طلع", "pr": "ṭala3"}, "She": {"ar": "طلعت", "pr": "ṭal3it"},
+        "We": {"ar": "طلعنا", "pr": "ṭli3na"}, "You (pl)": {"ar": "طلعتو", "pr": "ṭli3tu"}, "They": {"ar": "طلعو", "pr": "ṭal3u"}
+      },
+      "imperfect": {
+        "I": {"ar": "اطلع", "pr": "aṭla3"}, "You (m)": {"ar": "تطلع", "pr": "tiṭla3"}, "You (f)": {"ar": "تطلعي", "pr": "tiṭl3ī"}, "He": {"ar": "يطلع", "pr": "yiṭla3"}, "She": {"ar": "تطلع", "pr": "tiṭla3"},
+        "We": {"ar": "نطلع", "pr": "niṭla3"}, "You (pl)": {"ar": "تطلعو", "pr": "tiṭl3u"}, "They": {"ar": "يطلعو", "pr": "yiṭl3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بطلع", "pr": "baṭla3"}, "You (m)": {"ar": "بتطلع", "pr": "btiṭla3"}, "You (f)": {"ar": "بتطلعي", "pr": "btiṭl3ī"}, "He": {"ar": "بيطلع", "pr": "byiṭla3"}, "She": {"ar": "بتطلع", "pr": "btiṭla3"},
+        "We": {"ar": "بنطلع", "pr": "bniṭla3"}, "You (pl)": {"ar": "بتطلعو", "pr": "btiṭl3u"}, "They": {"ar": "بيطلعو", "pr": "byiṭl3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اطلع", "pr": "ṭla3"}, "You (f)": {"ar": "اطلعي", "pr": "ṭla3ī"}, "You (pl)": {"ar": "اطلعو", "pr": "ṭla3u"}
+      },
+      "participle": {
+        "Male": {"ar": "طالع", "pr": "ṭāli3"}, "Female": {"ar": "طالعة", "pr": "ṭāl3a"}, "Plural": {"ar": "طالعين", "pr": "ṭāl3īn"}
+      }
+    }
+  },
+  {
+    "english": "to go down / to stay (hotel)",
+    "arabic": "نزل",
+    "pronunciation": "nizil",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "نزلت", "pr": "nzilit"}, "You (m)": {"ar": "نزلت", "pr": "nzilit"}, "You (f)": {"ar": "نزلتي", "pr": "nzilti"}, "He": {"ar": "نزل", "pr": "nizil"}, "She": {"ar": "نزلت", "pr": "nizlit"},
+        "We": {"ar": "نزلنا", "pr": "nzilna"}, "You (pl)": {"ar": "نزلتو", "pr": "nziltu"}, "They": {"ar": "نزلو", "pr": "nizlu"}
+      },
+      "imperfect": {
+        "I": {"ar": "انزل", "pr": "anzil"}, "You (m)": {"ar": "تنزل", "pr": "tinzil"}, "You (f)": {"ar": "تنزلي", "pr": "tinzlī"}, "He": {"ar": "ينزل", "pr": "yinzil"}, "She": {"ar": "تنزل", "pr": "tinzil"},
+        "We": {"ar": "ننزلو", "pr": "ninzil"}, "You (pl)": {"ar": "تنزلو", "pr": "tinzlu"}, "They": {"ar": "ينزلو", "pr": "yinzlu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بنزل", "pr": "banzil"}, "You (m)": {"ar": "بتنزل", "pr": "btinzil"}, "You (f)": {"ar": "بتنزلي", "pr": "btinzlī"}, "He": {"ar": "بينزل", "pr": "byinzil"}, "She": {"ar": "بتنزل", "pr": "btinzil"},
+        "We": {"ar": "بننزل", "pr": "bninzil"}, "You (pl)": {"ar": "بتنزلو", "pr": "btinzlu"}, "They": {"ar": "بينزلو", "pr": "byinzlu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "انزل", "pr": "nzīl"}, "You (f)": {"ar": "انزلي", "pr": "nzlī"}, "You (pl)": {"ar": "انزلو", "pr": "nzlu"}
+      },
+      "participle": {
+        "Male": {"ar": "نازل", "pr": "nāzil"}, "Female": {"ar": "نازلة", "pr": "nāzle"}, "Plural": {"ar": "نازلين", "pr": "nāzlīn"}
+      }
+    }
+  },
+  {
+    "english": "to return / to go back",
+    "arabic": "رجع",
+    "pronunciation": "riji3",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "رجعت", "pr": "rji3it"}, "You (m)": {"ar": "رجعت", "pr": "rji3it"}, "You (f)": {"ar": "رجعتي", "pr": "rji3ti"}, "He": {"ar": "رجع", "pr": "riji3"}, "She": {"ar": "رجعت", "pr": "rij3it"},
+        "We": {"ar": "رجعنا", "pr": "rji3na"}, "You (pl)": {"ar": "رجعتو", "pr": "rji3tu"}, "They": {"ar": "رجعو", "pr": "rij3u"}
+      },
+      "imperfect": {
+        "I": {"ar": "ارجع", "pr": "arja3"}, "You (m)": {"ar": "ترجع", "pr": "tirja3"}, "You (f)": {"ar": "ترجعي", "pr": "tirj3ī"}, "He": {"ar": "يرجع", "pr": "yirja3"}, "She": {"ar": "ترجع", "pr": "tirja3"},
+        "We": {"ar": "نرجع", "pr": "nirja3"}, "You (pl)": {"ar": "ترجعو", "pr": "tirj3u"}, "They": {"ar": "يرجعو", "pr": "rij3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "برجع", "pr": "barja3"}, "You (m)": {"ar": "بترجع", "pr": "btirja3"}, "You (f)": {"ar": "بترجعي", "pr": "btirj3ī"}, "He": {"ar": "بيرجع", "pr": "byirja3"}, "She": {"ar": "بترجع", "pr": "btirja3"},
+        "We": {"ar": "بنرجع", "pr": "bnirja3"}, "You (pl)": {"ar": "بترجعو", "pr": "btirj3u"}, "They": {"ar": "بيرجعو", "pr": "byirj3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ارجع", "pr": "rja3"}, "You (f)": {"ar": "ارجعي", "pr": "rja3ī"}, "You (pl)": {"ar": "ارجعو", "pr": "rja3u"}
+      },
+      "participle": {
+        "Male": {"ar": "راجع", "pr": "rāji3"}, "Female": {"ar": "راجعة", "pr": "rāj3a"}, "Plural": {"ar": "راجعين", "pr": "rāj3īn"}
+      }
+    }
+  },
+  {
+    "english": "to become / to happen",
+    "arabic": "صار",
+    "pronunciation": "ṣār",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "صرت", "pr": "ṣirit"}, "You (m)": {"ar": "صرت", "pr": "ṣirit"}, "You (f)": {"ar": "صرتي", "pr": "ṣirti"}, "He": {"ar": "صار", "pr": "ṣār"}, "She": {"ar": "صارت", "pr": "ṣārit"},
+        "We": {"ar": "صرنا", "pr": "ṣirna"}, "You (pl)": {"ar": "صرتو", "pr": "ṣirtu"}, "They": {"ar": "صارو", "pr": "ṣāru"}
+      },
+      "imperfect": {
+        "I": {"ar": "صير", "pr": "ṣīr"}, "You (m)": {"ar": "تصير", "pr": "tṣīr"}, "You (f)": {"ar": "تصيري", "pr": "tṣīrī"}, "He": {"ar": "يصير", "pr": "yṣīr"}, "She": {"ar": "تصير", "pr": "tṣīr"},
+        "We": {"ar": "نصير", "pr": "nṣīr"}, "You (pl)": {"ar": "تصيرو", "pr": "tṣīru"}, "They": {"ar": "يصيرو", "pr": "yṣīru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بصير", "pr": "bṣīr"}, "You (m)": {"ar": "بتصير", "pr": "btṣīr"}, "You (f)": {"ar": "بتصيري", "pr": "btṣīrī"}, "He": {"ar": "بيصير", "pr": "byṣīr"}, "She": {"ar": "بتصير", "pr": "btṣīr"},
+        "We": {"ar": "بنصير", "pr": "bnṣīr"}, "You (pl)": {"ar": "بتصيرو", "pr": "btṣīru"}, "They": {"ar": "بيصيرو", "pr": "byṣīru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "صير", "pr": "ṣīr"}, "You (f)": {"ar": "صيري", "pr": "ṣīrī"}, "You (pl)": {"ar": "صيرو", "pr": "ṣīru"}
+      },
+      "participle": {
+        "Male": {"ar": "صاير", "pr": "ṣāyir"}, "Female": {"ar": "صايرة", "pr": "ṣāyre"}, "Plural": {"ar": "صايرين", "pr": "ṣāyrīn"}
+      }
+    }
+  },
+  {
+    "english": "to finish / to end",
+    "arabic": "خلّص",
+    "pronunciation": "khallaṣ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "خلّصت", "pr": "khallaṣit"}, "You (m)": {"ar": "خلّصت", "pr": "khallaṣit"}, "You (f)": {"ar": "خلّصتي", "pr": "khallaṣti"}, "He": {"ar": "خلّص", "pr": "khallaṣ"}, "She": {"ar": "خلّصت", "pr": "khallaṣit"},
+        "We": {"ar": "خلّصنا", "pr": "khallaṣna"}, "You (pl)": {"ar": "خلّصتو", "pr": "khallaṣtu"}, "They": {"ar": "خلّصو", "pr": "khallaṣu"}
+      },
+      "imperfect": {
+        "I": {"ar": "خلّص", "pr": "khalliṣ"}, "You (m)": {"ar": "تخلّص", "pr": "tkhalliṣ"}, "You (f)": {"ar": "تخلّصي", "pr": "tkhallṣī"}, "He": {"ar": "يخلّص", "pr": "ykhalliṣ"}, "She": {"ar": "تخلّص", "pr": "tkhalliṣ"},
+        "We": {"ar": "نخلّص", "pr": "nkhalliṣ"}, "You (pl)": {"ar": "تخلّصو", "pr": "tkhallṣu"}, "They": {"ar": "يخلّصو", "pr": "ykhallṣu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بخلّص", "pr": "bkhalliṣ"}, "You (m)": {"ar": "بتخلّص", "pr": "btkhalliṣ"}, "You (f)": {"ar": "بتخلّصي", "pr": "btkhallṣī"}, "He": {"ar": "بيخلّص", "pr": "bykhalliṣ"}, "She": {"ar": "بتخلّص", "pr": "btkhalliṣ"},
+        "We": {"ar": "بنخلّص", "pr": "bnkhalliṣ"}, "You (pl)": {"ar": "بتخلّصو", "pr": "btkhallṣu"}, "They": {"ar": "بيخلّصو", "pr": "bykhallṣu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "خلّص", "pr": "khalliṣ"}, "You (f)": {"ar": "خلّصي", "pr": "khallṣī"}, "You (pl)": {"ar": "خلّصو", "pr": "khallṣu"}
+      },
+      "participle": {
+        "Male": {"ar": "مخلّص", "pr": "mkhalliṣ"}, "Female": {"ar": "مخلّصة", "pr": "mkhallṣa"}, "Plural": {"ar": "مخلّصين", "pr": "mkhallṣīn"}
+      }
+    }
+  },
+  {
+    "english": "to start / to begin",
+    "arabic": "بلّش",
+    "pronunciation": "ballash",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "بلّشت", "pr": "ballashit"}, "You (m)": {"ar": "بلّشت", "pr": "ballashit"}, "You (f)": {"ar": "بلّشتي", "pr": "ballashti"}, "He": {"ar": "بلّش", "pr": "ballash"}, "She": {"ar": "بلّشت", "pr": "ballashit"},
+        "We": {"ar": "بلّشنا", "pr": "ballashna"}, "You (pl)": {"ar": "بلّشتو", "pr": "ballashtu"}, "They": {"ar": "بلّشو", "pr": "ballashu"}
+      },
+      "imperfect": {
+        "I": {"ar": "بلّش", "pr": "ballish"}, "You (m)": {"ar": "تبلّش", "pr": "tballish"}, "You (f)": {"ar": "تبلّشي", "pr": "tballshī"}, "He": {"ar": "يبلّش", "pr": "yballish"}, "She": {"ar": "تبلّش", "pr": "tballish"},
+        "We": {"ar": "نبلّش", "pr": "nballish"}, "You (pl)": {"ar": "تبلّشو", "pr": "tballshu"}, "They": {"ar": "يبلّشو", "pr": "yballshu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "ببلّش", "pr": "bballish"}, "You (m)": {"ar": "بتبلّش", "pr": "btballish"}, "You (f)": {"ar": "بتبلّشي", "pr": "btballshī"}, "He": {"ar": "بيبلّش", "pr": "byballish"}, "She": {"ar": "bتبلّش", "pr": "btballish"},
+        "We": {"ar": "بنبلّش", "pr": "bnballish"}, "You (pl)": {"ar": "بتبلّشو", "pr": "btballshu"}, "They": {"ar": "بيبلّشو", "pr": "byballshu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "بلّش", "pr": "ballish"}, "You (f)": {"ar": "بلّشي", "pr": "ballshī"}, "You (pl)": {"ar": "بلّشو", "pr": "ballshu"}
+      },
+      "participle": {
+        "Male": {"ar": "مبلّش", "pr": "mballish"}, "Female": {"ar": "مبلّشة", "pr": "mballsha"}, "Plural": {"ar": "مبلّشين", "pr": "mballshīn"}
+      }
+    }
+  },
+  {
+    "english": "to sit / to stay",
+    "arabic": "قعد",
+    "pronunciation": "2a3ad",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "قعدت", "pr": "2a3adit"}, "You (m)": {"ar": "قعدت", "pr": "2a3adit"}, "You (f)": {"ar": "قعدتي", "pr": "2a3adti"}, "He": {"ar": "قعد", "pr": "2a3ad"}, "She": {"ar": "قعدت", "pr": "2a3adit"},
+        "We": {"ar": "قعدنا", "pr": "2a3adna"}, "You (pl)": {"ar": "قعدتو", "pr": "2a3adtu"}, "They": {"ar": "قعدو", "pr": "2a3adu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اقعد", "pr": "u23ud"}, "You (m)": {"ar": "تقعد", "pr": "tu23ud"}, "You (f)": {"ar": "تقعدي", "pr": "tu23dī"}, "He": {"ar": "يقعد", "pr": "yu23ud"}, "She": {"ar": "تقعد", "pr": "tu23ud"},
+        "We": {"ar": "نقعد", "pr": "nu23ud"}, "You (pl)": {"ar": "تقعدو", "pr": "tu23du"}, "They": {"ar": "يقعدو", "pr": "yu23du"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بقعد", "pr": "bu23ud"}, "You (m)": {"ar": "بتقعد", "pr": "btu23ud"}, "You (f)": {"ar": "بتقعدي", "pr": "btu23dī"}, "He": {"ar": "بيقعد", "pr": "byu23ud"}, "She": {"ar": "بتقعد", "pr": "btu23ud"},
+        "We": {"ar": "بنقعد", "pr": "bnu23ud"}, "You (pl)": {"ar": "بتقعدو", "pr": "btu23du"}, "They": {"ar": "بيقعدو", "pr": "byu23du"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اقعد", "pr": "u23ud"}, "You (f)": {"ar": "اقعدي", "pr": "u23dī"}, "You (pl)": {"ar": "اقعدو", "pr": "u23du"}
+      },
+      "participle": {
+        "Male": {"ar": "قاعد", "pr": "2ā3id"}, "Female": {"ar": "قاعدة", "pr": "2ā3de"}, "Plural": {"ar": "قاعدين", "pr": "2ā3dīn"}
+      }
+    }
+  },
+  {
+    "english": "to stay / to remain",
+    "arabic": "ضلّ",
+    "pronunciation": "ḍall",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "ضليت", "pr": "ḍallayt"}, "You (m)": {"ar": "ضليت", "pr": "ḍallayt"}, "You (f)": {"ar": "ضليتي", "pr": "ḍallayti"}, "He": {"ar": "ضلّ", "pr": "ḍall"}, "She": {"ar": "ضلت", "pr": "ḍallet"},
+        "We": {"ar": "ضلينا", "pr": "ḍallayna"}, "You (pl)": {"ar": "ضليتو", "pr": "ḍallaytu"}, "They": {"ar": "ضلو", "pr": "ḍallu"}
+      },
+      "imperfect": {
+        "I": {"ar": "ضل", "pr": "ḍall"}, "You (m)": {"ar": "تضل", "pr": "tḍall"}, "You (f)": {"ar": "تضلي", "pr": "tḍallī"}, "He": {"ar": "يضل", "pr": "yḍall"}, "She": {"ar": "تضل", "pr": "tḍall"},
+        "We": {"ar": "نضل", "pr": "nḍall"}, "You (pl)": {"ar": "تضلو", "pr": "tḍallu"}, "They": {"ar": "يضلو", "pr": "yḍallu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بضل", "pr": "bḍall"}, "You (m)": {"ar": "بتضل", "pr": "btḍall"}, "You (f)": {"ar": "بتضلي", "pr": "btḍallī"}, "He": {"ar": "بيضل", "pr": "byḍall"}, "She": {"ar": "بتضل", "pr": "btḍall"},
+        "We": {"ar": "بنضل", "pr": "bnḍall"}, "You (pl)": {"ar": "بتضلو", "pr": "btḍallu"}, "They": {"ar": "بيضلو", "pr": "byḍallu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ضل", "pr": "ḍall"}, "You (f)": {"ar": "ضلي", "pr": "ḍallī"}, "You (pl)": {"ar": "ضلو", "pr": "ḍallu"}
+      },
+      "participle": {
+        "Male": {"ar": "ضالل", "pr": "ḍāll"}, "Female": {"ar": "ضالة", "pr": "ḍālle"}, "Plural": {"ar": "ضالين", "pr": "ḍāllīn"}
+      }
+    }
+  },
+  {
+    "english": "to find / to meet",
+    "arabic": "لاقى",
+    "pronunciation": "lā2a",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "لاقيت", "pr": "lā2ayt"}, "You (m)": {"ar": "لاقيت", "pr": "lā2ayt"}, "You (f)": {"ar": "لاقيتي", "pr": "lā2ayti"}, "He": {"ar": "لاقى", "pr": "lā2a"}, "She": {"ar": "لاقت", "pr": "lā2it"},
+        "We": {"ar": "لاقينا", "pr": "lā2ayna"}, "You (pl)": {"ar": "لاقيتو", "pr": "lā2aytu"}, "They": {"ar": "لاقو", "pr": "lā2u"}
+      },
+      "imperfect": {
+        "I": {"ar": "لاقي", "pr": "lā2ī"}, "You (m)": {"ar": "تلاقي", "pr": "tlā2ī"}, "You (f)": {"ar": "تلاقي", "pr": "tlā2ī"}, "He": {"ar": "يلاقي", "pr": "ylā2ī"}, "She": {"ar": "تلاقي", "pr": "tlā2ī"},
+        "We": {"ar": "نلاقي", "pr": "nlā2ī"}, "You (pl)": {"ar": "تلاقو", "pr": "tlā2u"}, "They": {"ar": "يلاقو", "pr": "ylā2u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بلاقي", "pr": "blā2ī"}, "You (m)": {"ar": "بتلاقي", "pr": "btlā2ī"}, "You (f)": {"ar": "بتلاقي", "pr": "btlā2ī"}, "He": {"ar": "بيلاقي", "pr": "bylā2ī"}, "She": {"ar": "بتلاقي", "pr": "btlā2ī"},
+        "We": {"ar": "بنلاقي", "pr": "bnlā2ī"}, "You (pl)": {"ar": "بتلاقو", "pr": "btlā2u"}, "They": {"ar": "بيلاقو", "pr": "bylā2u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "لاقى", "pr": "lā2ī"}, "You (f)": {"ar": "لاقي", "pr": "lā2ī"}, "You (pl)": {"ar": "لاقو", "pr": "lā2u"}
+      },
+      "participle": {
+        "Male": {"ar": "ملاقي", "pr": "mlā2ī"}, "Female": {"ar": "ملاقية", "pr": "mlā2ye"}, "Plural": {"ar": "ملاقيين", "pr": "mlā2yīn"}
+      }
+    }
+  },
+  {
+    "english": "to walk / to go",
+    "arabic": "مشى",
+    "pronunciation": "masha",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "مشيت", "pr": "mashayt"}, "You (m)": {"ar": "مشيت", "pr": "mashayt"}, "You (f)": {"ar": "مشيتي", "pr": "mashayti"}, "He": {"ar": "مشى", "pr": "masha"}, "She": {"ar": "مشت", "pr": "mashet"},
+        "We": {"ar": "مشينا", "pr": "mashayna"}, "You (pl)": {"ar": "مشيتو", "pr": "mashaytu"}, "They": {"ar": "مشو", "pr": "mashu"}
+      },
+      "imperfect": {
+        "I": {"ar": "امشي", "pr": "amshī"}, "You (m)": {"ar": "تمشي", "pr": "timshī"}, "You (f)": {"ar": "تمشي", "pr": "timshī"}, "He": {"ar": "يمشي", "pr": "yimshī"}, "She": {"ar": "تمشي", "pr": "timshī"},
+        "We": {"ar": "نمشي", "pr": "nimshī"}, "You (pl)": {"ar": "تمشو", "pr": "timshu"}, "They": {"ar": "يمشو", "pr": "yimshu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بمشي", "pr": "bamshī"}, "You (m)": {"ar": "بتمشي", "pr": "btimshī"}, "You (f)": {"ar": "بتمشي", "pr": "btimshī"}, "He": {"ar": "بيمشي", "pr": "byimshī"}, "She": {"ar": "بتمشي", "pr": "btimshī"},
+        "We": {"ar": "بنمشي", "pr": "bnimshī"}, "You (pl)": {"ar": "بتمشو", "pr": "btimshu"}, "They": {"ar": "بيمشو", "pr": "byimshu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "امشي", "pr": "mshī"}, "You (f)": {"ar": "امشي", "pr": "mshī"}, "You (pl)": {"ar": "امشو", "pr": "mshu"}
+      },
+      "participle": {
+        "Male": {"ar": "ماشي", "pr": "māshī"}, "Female": {"ar": "ماشية", "pr": "māshye"}, "Plural": {"ar": "ماشيين", "pr": "māshyīn"}
+      }
+    }
+  },
+  {
+    "english": "to stop / to stand up",
+    "arabic": "وقّف",
+    "pronunciation": "waqqaf",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "وقّفت", "pr": "waqqafit"}, "You (m)": {"ar": "وقّفت", "pr": "waqqafit"}, "You (f)": {"ar": "وقّفتي", "pr": "waqqafti"}, "He": {"ar": "وقّف", "pr": "waqqaf"}, "She": {"ar": "وقّفت", "pr": "waqqafit"},
+        "We": {"ar": "وقّفنا", "pr": "waqqafna"}, "You (pl)": {"ar": "وقّفتو", "pr": "waqqaftu"}, "They": {"ar": "وقّفو", "pr": "waqqafu"}
+      },
+      "imperfect": {
+        "I": {"ar": "وقّف", "pr": "waqqif"}, "You (m)": {"ar": "توقّف", "pr": "twaqqif"}, "You (f)": {"ar": "توقّفي", "pr": "twaqqfī"}, "He": {"ar": "يوقّف", "pr": "ywaqqif"}, "She": {"ar": "توقّف", "pr": "twaqqif"},
+        "We": {"ar": "نوقّف", "pr": "nwaqqif"}, "You (pl)": {"ar": "توقّفو", "pr": "twaqqfu"}, "They": {"ar": "يوقّفو", "pr": "ywaqqfu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بوقّف", "pr": "bwaqqif"}, "You (m)": {"ar": "بتوقّف", "pr": "btwaqqif"}, "You (f)": {"ar": "بتوقّفي", "pr": "btwaqqfī"}, "He": {"ar": "بيوقّف", "pr": "bywaqqif"}, "She": {"ar": "بتوقّف", "pr": "btwaqqif"},
+        "We": {"ar": "بنوقّف", "pr": "bnwaqqif"}, "You (pl)": {"ar": "بتوقّفو", "pr": "btwaqqfu"}, "They": {"ar": "بيوقّفو", "pr": "bywaqqfu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "وقّف", "pr": "waqqif"}, "You (f)": {"ar": "وقّفي", "pr": "waqqfī"}, "You (pl)": {"ar": "وقّفو", "pr": "waqqfu"}
+      },
+      "participle": {
+        "Male": {"ar": "موقّف", "pr": "mwaqqif"}, "Female": {"ar": "موقّفة", "pr": "mwaqqfa"}, "Plural": {"ar": "موقّفين", "pr": "mwaqqfīn"}
+      }
+    }
+  },
+  {
+    "english": "to wait / to look at",
+    "arabic": "نطر",
+    "pronunciation": "naṭar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "نطرت", "pr": "naṭarit"}, "You (m)": {"ar": "نطرت", "pr": "naṭarit"}, "You (f)": {"ar": "نطرتي", "pr": "naṭarti"}, "He": {"ar": "نطر", "pr": "naṭar"}, "She": {"ar": "نطرت", "pr": "naṭarit"},
+        "We": {"ar": "نطرنا", "pr": "naṭarna"}, "You (pl)": {"ar": "نطرتو", "pr": "naṭartu"}, "They": {"ar": "نطرو", "pr": "naṭaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "انطر", "pr": "unṭur"}, "You (m)": {"ar": "تنطر", "pr": "tunṭur"}, "You (f)": {"ar": "تنطري", "pr": "tunṭrī"}, "He": {"ar": "ينطر", "pr": "yunṭur"}, "She": {"ar": "تنطر", "pr": "tunṭur"},
+        "We": {"ar": "ننطر", "pr": "nunṭur"}, "You (pl)": {"ar": "تنطرو", "pr": "tunṭru"}, "They": {"ar": "ينطرو", "pr": "yunṭru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بنطر", "pr": "bunṭur"}, "You (m)": {"ar": "بتنطر", "pr": "btunṭur"}, "You (f)": {"ar": "بتنطري", "pr": "btunṭrī"}, "He": {"ar": "بينطر", "pr": "byunṭur"}, "She": {"ar": "بتنطر", "pr": "btunṭur"},
+        "We": {"ar": "بننطر", "pr": "bnunṭur"}, "You (pl)": {"ar": "بتنطرو", "pr": "btunṭru"}, "They": {"ar": "بينطرو", "pr": "byunṭru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "انطر", "pr": "unṭur"}, "You (f)": {"ar": "انطري", "pr": "unṭrī"}, "You (pl)": {"ar": "انطرو", "pr": "unṭru"}
+      },
+      "participle": {
+        "Male": {"ar": "ناطِر", "pr": "nāṭir"}, "Female": {"ar": "ناطرة", "pr": "nāṭra"}, "Plural": {"ar": "ناطرين", "pr": "nāṭrīn"}
+      }
+    }
+  },
+  {
+    "english": "to put",
+    "arabic": "حطّ",
+    "pronunciation": "ḥaṭṭ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "حطّيت", "pr": "ḥaṭṭayt"}, "You (m)": {"ar": "حطّيت", "pr": "ḥaṭṭayt"}, "You (f)": {"ar": "حطّيتي", "pr": "ḥaṭṭayti"}, "He": {"ar": "حطّ", "pr": "ḥaṭṭ"}, "She": {"ar": "حطّت", "pr": "ḥaṭṭet"},
+        "We": {"ar": "حطّينا", "pr": "ḥaṭṭayna"}, "You (pl)": {"ar": "حطّيتو", "pr": "ḥaṭṭaytu"}, "They": {"ar": "حطّو", "pr": "ḥaṭṭu"}
+      },
+      "imperfect": {
+        "I": {"ar": "حط", "pr": "ḥuṭṭ"}, "You (m)": {"ar": "تحط", "pr": "tḥuṭṭ"}, "You (f)": {"ar": "تحطّي", "pr": "tḥuṭṭī"}, "He": {"ar": "يحط", "pr": "yḥuṭṭ"}, "She": {"ar": "تحط", "pr": "tḥuṭṭ"},
+        "We": {"ar": "نحط", "pr": "nḥuṭṭ"}, "You (pl)": {"ar": "تحطّو", "pr": "tḥuṭṭu"}, "They": {"ar": "يحطّو", "pr": "yḥuṭṭu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بحطّ", "pr": "bḥuṭṭ"}, "You (m)": {"ar": "بتحطّ", "pr": "btḥuṭṭ"}, "You (f)": {"ar": "بتحطّي", "pr": "btḥuṭṭī"}, "He": {"ar": "بيحطّ", "pr": "byḥuṭṭ"}, "She": {"ar": "bتحطّ", "pr": "btḥuṭṭ"},
+        "We": {"ar": "بنحطّ", "pr": "bnḥuṭṭ"}, "You (pl)": {"ar": "بتحطّو", "pr": "btḥuṭṭu"}, "They": {"ar": "بيحطّو", "pr": "byḥuṭṭu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "حطّ", "pr": "ḥuṭṭ"}, "You (f)": {"ar": "حطّي", "pr": "ḥuṭṭī"}, "You (pl)": {"ar": "حطّو", "pr": "ḥuṭṭu"}
+      },
+      "participle": {
+        "Male": {"ar": "حاطط", "pr": "ḥāṭiṭ"}, "Female": {"ar": "حاطة", "pr": "ḥāṭṭa"}, "Plural": {"ar": "حاطين", "pr": "ḥāṭṭīn"}
+      }
+    }
+  },
+  {
+    "english": "to work",
+    "arabic": "اشتغل",
+    "pronunciation": "shtaghal",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "اشتغلت", "pr": "shtaghalit"}, "You (m)": {"ar": "اشتغلت", "pr": "shtaghalit"}, "You (f)": {"ar": "اشتغلتي", "pr": "shtaghalti"}, "He": {"ar": "اشتغل", "pr": "shtaghal"}, "She": {"ar": "اشتغلت", "pr": "shtaghalit"},
+        "We": {"ar": "اشتغلنا", "pr": "shtaghalna"}, "You (pl)": {"ar": "اشتغلتو", "pr": "shtaghaltu"}, "They": {"ar": "اشتغلو", "pr": "shtaghalu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اشتغل", "pr": "ishtighil"}, "You (m)": {"ar": "تشتغل", "pr": "tishtighil"}, "You (f)": {"ar": "تشتغلي", "pr": "tishtighlī"}, "He": {"ar": "يشتغل", "pr": "yishtighil"}, "She": {"ar": "تشتغل", "pr": "tishtighil"},
+        "We": {"ar": "نشتغل", "pr": "nishtighil"}, "You (pl)": {"ar": "تشتغلو", "pr": "tishtighlu"}, "They": {"ar": "يشتغلو", "pr": "yishtighlu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بشتغل", "pr": "bishtighil"}, "You (m)": {"ar": "بتشتغل", "pr": "btishtighil"}, "You (f)": {"ar": "بتشتغلي", "pr": "btishtighlī"}, "He": {"ar": "بيشتغل", "pr": "byishtighil"}, "She": {"ar": "بتشتغل", "pr": "btishtighil"},
+        "We": {"ar": "بنشتغل", "pr": "bnishtighil"}, "You (pl)": {"ar": "بتشتغلو", "pr": "btishtighlu"}, "They": {"ar": "بيشتغلو", "pr": "byishtighlu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اشتغل", "pr": "shtighil"}, "You (f)": {"ar": "اشتغلي", "pr": "shtighlī"}, "You (pl)": {"ar": "اشتغلو", "pr": "shtighlu"}
+      },
+      "participle": {
+        "Male": {"ar": "مشتغل", "pr": "mishtighil"}, "Female": {"ar": "مشتغلة", "pr": "mishtighle"}, "Plural": {"ar": "مشتغلين", "pr": "mishtighlīn"}
+      }
+    }
+  },
+  {
+    "english": "to leave / to quit",
+    "arabic": "ترك",
+    "pronunciation": "tarak",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "تركت", "pr": "tarakit"}, "You (m)": {"ar": "تركت", "pr": "tarakit"}, "You (f)": {"ar": "تركتي", "pr": "tarakti"}, "He": {"ar": "ترك", "pr": "tarak"}, "She": {"ar": "تركت", "pr": "tarakit"},
+        "We": {"ar": "تركنا", "pr": "tarakna"}, "You (pl)": {"ar": "تركتو", "pr": "taraktu"}, "They": {"ar": "تركو", "pr": "taraku"}
+      },
+      "imperfect": {
+        "I": {"ar": "اترك", "pr": "utruk"}, "You (m)": {"ar": "تترك", "pr": "tutruk"}, "You (f)": {"ar": "تتركي", "pr": "tutrkī"}, "He": {"ar": "يترك", "pr": "yutruk"}, "She": {"ar": "تترك", "pr": "tutruk"},
+        "We": {"ar": "نترك", "pr": "nutruk"}, "You (pl)": {"ar": "تتركو", "pr": "tutrku"}, "They": {"ar": "يتركو", "pr": "yutrku"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بترك", "pr": "btruk"}, "You (m)": {"ar": "بتترك", "pr": "btutruk"}, "You (f)": {"ar": "بتتركي", "pr": "btutrkī"}, "He": {"ar": "بيترك", "pr": "byutruk"}, "She": {"ar": "بتترك", "pr": "btutruk"},
+        "We": {"ar": "بنترك", "pr": "bnutruk"}, "You (pl)": {"ar": "بتتركو", "pr": "btutrku"}, "They": {"ar": "بييتركو", "pr": "byutrku"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اترك", "pr": "utruk"}, "You (f)": {"ar": "اتركي", "pr": "utrkī"}, "You (pl)": {"ar": "اتركو", "pr": "utrku"}
+      },
+      "participle": {
+        "Male": {"ar": "تارك", "pr": "tārik"}, "Female": {"ar": "تاركة", "pr": "tārke"}, "Plural": {"ar": "تاركين", "pr": "tārkīn"}
+      }
+    }
+  },
+  {
+    "english": "to die",
+    "arabic": "مات",
+    "pronunciation": "māt",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "متّ", "pr": "mutt"}, "You (m)": {"ar": "متّ", "pr": "mutt"}, "You (f)": {"ar": "متّي", "pr": "mutti"}, "He": {"ar": "مات", "pr": "māt"}, "She": {"ar": "ماتت", "pr": "mātit"},
+        "We": {"ar": "متنا", "pr": "mutna"}, "You (pl)": {"ar": "متّو", "pr": "muttu"}, "They": {"ar": "ماتو", "pr": "mātu"}
+      },
+      "imperfect": {
+        "I": {"ar": "موت", "pr": "mūt"}, "You (m)": {"ar": "تموت", "pr": "tmūt"}, "You (f)": {"ar": "تموتي", "pr": "tmūtī"}, "He": {"ar": "يموت", "pr": "ymūt"}, "She": {"ar": "تموت", "pr": "tmūt"},
+        "We": {"ar": "نموت", "pr": "nmūt"}, "You (pl)": {"ar": "تموتو", "pr": "tmūtu"}, "They": {"ar": "يموتو", "pr": "ymūtu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بموت", "pr": "bmūt"}, "You (m)": {"ar": "بتموت", "pr": "btmūt"}, "You (f)": {"ar": "بتموتي", "pr": "btmūtī"}, "He": {"ar": "بيموت", "pr": "bymūt"}, "She": {"ar": "بتموت", "pr": "btmūt"},
+        "We": {"ar": "بنموت", "pr": "bnmūt"}, "You (pl)": {"ar": "بتموتو", "pr": "btmūtu"}, "They": {"ar": "بيموتو", "pr": "bymūtu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "موت", "pr": "mūt"}, "You (f)": {"ar": "موتي", "pr": "mūtī"}, "You (pl)": {"ar": "موتو", "pr": "mūtu"}
+      },
+      "participle": {
+        "Male": {"ar": "ميت", "pr": "mayyit"}, "Female": {"ar": "ميتة", "pr": "mayyite"}, "Plural": {"ar": "ميتين", "pr": "mayyitīn"}
+      }
+    }
+  },
+  {
+    "english": "to live",
+    "arabic": "عاش",
+    "pronunciation": "3āsh",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "عشت", "pr": "3isht"}, "You (m)": {"ar": "عشت", "pr": "3isht"}, "You (f)": {"ar": "عشتي", "pr": "3ishti"}, "He": {"ar": "عاش", "pr": "3āsh"}, "She": {"ar": "عاشت", "pr": "3āshit"},
+        "We": {"ar": "عشنا", "pr": "3ishna"}, "You (pl)": {"ar": "عشتو", "pr": "3ishtu"}, "They": {"ar": "عاشو", "pr": "3āshu"}
+      },
+      "imperfect": {
+        "I": {"ar": "عيش", "pr": "3īsh"}, "You (m)": {"ar": "تعيش", "pr": "t3īsh"}, "You (f)": {"ar": "تعيشي", "pr": "t3īshī"}, "He": {"ar": "يعيش", "pr": "y3īsh"}, "She": {"ar": "تعيش", "pr": "t3īsh"},
+        "We": {"ar": "نعيش", "pr": "n3īsh"}, "You (pl)": {"ar": "تعيشو", "pr": "t3īshu"}, "They": {"ar": "يعيشو", "pr": "y3īshu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بعيش", "pr": "b3īsh"}, "You (m)": {"ar": "بتعيش", "pr": "bt3īsh"}, "You (f)": {"ar": "بتعيشي", "pr": "bt3īshī"}, "He": {"ar": "بيعيش", "pr": "by3īsh"}, "She": {"ar": "بتعيش", "pr": "bt3īsh"},
+        "We": {"ar": "بنعيش", "pr": "bn3īsh"}, "You (pl)": {"ar": "بتعيشو", "pr": "bt3īshu"}, "They": {"ar": "بيعيشو", "pr": "by3īshu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "عيش", "pr": "3īsh"}, "You (f)": {"ar": "عيشي", "pr": "3īshī"}, "You (pl)": {"ar": "عيشو", "pr": "3īshu"}
+      },
+      "participle": {
+        "Male": {"ar": "عايش", "pr": "3āyish"}, "Female": {"ar": "عايشة", "pr": "3āyshe"}, "Plural": {"ar": "عايشين", "pr": "3āyshīn"}
+      }
+    }
+  },
+  {
+    "english": "to live / to reside",
+    "arabic": "سكن",
+    "pronunciation": "sakan",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "سكنت", "pr": "sakanit"}, "You (m)": {"ar": "سكنت", "pr": "sakanit"}, "You (f)": {"ar": "سكنتي", "pr": "sakanti"}, "He": {"ar": "سكن", "pr": "sakan"}, "She": {"ar": "سكنت", "pr": "sakanit"},
+        "We": {"ar": "سكنّا", "pr": "sakanna"}, "You (pl)": {"ar": "سكنتو", "pr": "sakantu"}, "They": {"ar": "سكنو", "pr": "sakanu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اسكن", "pr": "uskun"}, "You (m)": {"ar": "تسكن", "pr": "tuskun"}, "You (f)": {"ar": "تسكني", "pr": "tusknī"}, "He": {"ar": "يسكن", "pr": "yuskun"}, "She": {"ar": "تسكن", "pr": "tuskun"},
+        "We": {"ar": "نسكن", "pr": "nuskun"}, "You (pl)": {"ar": "تسكنو", "pr": "tusknu"}, "They": {"ar": "يسكنو", "pr": "yusknu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسكن", "pr": "buskun"}, "You (m)": {"ar": "بتسكن", "pr": "btuskun"}, "You (f)": {"ar": "بتسكني", "pr": "btusknī"}, "He": {"ar": "بيسكن", "pr": "byūskun"}, "She": {"ar": "بتسكن", "pr": "btuskun"},
+        "We": {"ar": "بنسكن", "pr": "bnuskun"}, "You (pl)": {"ar": "بتسكنو", "pr": "btusknu"}, "They": {"ar": "بيسكنو", "pr": "byusknu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اسكن", "pr": "uskun"}, "You (f)": {"ar": "اسكني", "pr": "usknī"}, "You (pl)": {"ar": "اسكنو", "pr": "usknu"}
+      },
+      "participle": {
+        "Male": {"ar": "ساكن", "pr": "sākin"}, "Female": {"ar": "ساكنة", "pr": "sākne"}, "Plural": {"ar": "ساكنين", "pr": "sāknīn"}
+      }
+    }
+  },
+  {
+    "english": "to eat",
+    "arabic": "أكل",
+    "pronunciation": "akal",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "أكلت", "pr": "akalt"}, "You (m)": {"ar": "أكلت", "pr": "akalt"}, "You (f)": {"ar": "أكلتي", "pr": "akalti"}, "He": {"ar": "أكل", "pr": "akal"}, "She": {"ar": "أكلت", "pr": "aklit"},
+        "We": {"ar": "أكلنا", "pr": "akalna"}, "You (pl)": {"ar": "أكلتو", "pr": "akaltu"}, "They": {"ar": "أكلو", "pr": "akalu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اكل", "pr": "ākul"}, "You (m)": {"ar": "تاكل", "pr": "tākul"}, "You (f)": {"ar": "تاكلي", "pr": "tāklī"}, "He": {"ar": "ياكل", "pr": "yākul"}, "She": {"ar": "تاكل", "pr": "tākul"},
+        "We": {"ar": "ناكل", "pr": "nākul"}, "You (pl)": {"ar": "تاكلو", "pr": "tāklu"}, "They": {"ar": "ياكلو", "pr": "yāklu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "باكل", "pr": "bākul"}, "You (m)": {"ar": "بتاكل", "pr": "btākul"}, "You (f)": {"ar": "بتاكلي", "pr": "btāklī"}, "He": {"ar": "بياكل", "pr": "byākul"}, "She": {"ar": "بتاكل", "pr": "btākul"},
+        "We": {"ar": "بناكل", "pr": "bnākul"}, "You (pl)": {"ar": "بتاكلو", "pr": "btāklu"}, "They": {"ar": "بياكلو", "pr": "byāklu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "كول", "pr": "kōl"}, "You (f)": {"ar": "كولي", "pr": "kōlī"}, "You (pl)": {"ar": "كولو", "pr": "kōlu"}
+      },
+      "participle": {
+        "Male": {"ar": "آكل", "pr": "ākil"}, "Female": {"ar": "آكلة", "pr": "ākle"}, "Plural": {"ar": "آكلين", "pr": "āklīn"}
+      }
+    }
+  },
+  {
+    "english": "to drink",
+    "arabic": "شرب",
+    "pronunciation": "shirib",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "شربت", "pr": "shribit"}, "You (m)": {"ar": "شربت", "pr": "shribit"}, "You (f)": {"ar": "شربتي", "pr": "shribti"}, "He": {"ar": "شرب", "pr": "shirib"}, "She": {"ar": "شربت", "pr": "shirbit"},
+        "We": {"ar": "شربنا", "pr": "shribna"}, "You (pl)": {"ar": "شربتو", "pr": "shribtu"}, "They": {"ar": "شربو", "pr": "shirbu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اشرب", "pr": "ishrab"}, "You (m)": {"ar": "تشرب", "pr": "tishrab"}, "You (f)": {"ar": "تشربي", "pr": "tishrabī"}, "He": {"ar": "يشرب", "pr": "yishrab"}, "She": {"ar": "تشرب", "pr": "tishrab"},
+        "We": {"ar": "نشرب", "pr": "nishrab"}, "You (pl)": {"ar": "تشربو", "pr": "tishrabu"}, "They": {"ar": "يشربو", "pr": "yishrabu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بشرب", "pr": "bishrab"}, "You (m)": {"ar": "بتشرب", "pr": "btishrab"}, "You (f)": {"ar": "بتشربي", "pr": "btishrabī"}, "He": {"ar": "بيشرب", "pr": "byishrab"}, "She": {"ar": "بتشرب", "pr": "btishrab"},
+        "We": {"ar": "بنشرب", "pr": "bnishrab"}, "You (pl)": {"ar": "بتشربو", "pr": "btishrabu"}, "They": {"ar": "بيشربو", "pr": "byishrabu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اشرب", "pr": "ishrab"}, "You (f)": {"ar": "اشربي", "pr": "ishrabī"}, "You (pl)": {"ar": "اشربو", "pr": "ishrabu"}
+      },
+      "participle": {
+        "Male": {"ar": "شارب", "pr": "shārib"}, "Female": {"ar": "شاربة", "pr": "shārbe"}, "Plural": {"ar": "شاربين", "pr": "shārbīn"}
+      }
+    }
+  },
+  {
+    "english": "to sleep",
+    "arabic": "نام",
+    "pronunciation": "nām",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "نمت", "pr": "nimt"}, "You (m)": {"ar": "نمت", "pr": "nimt"}, "You (f)": {"ar": "نمتي", "pr": "nimti"}, "He": {"ar": "نام", "pr": "nām"}, "She": {"ar": "نامت", "pr": "nāmit"},
+        "We": {"ar": "نمنا", "pr": "nimna"}, "You (pl)": {"ar": "نمتو", "pr": "nimtu"}, "They": {"ar": "نامو", "pr": "nāmu"}
+      },
+      "imperfect": {
+        "I": {"ar": "نام", "pr": "nām"}, "You (m)": {"ar": "تنام", "pr": "tnām"}, "You (f)": {"ar": "تنامي", "pr": "tnāmī"}, "He": {"ar": "ينام", "pr": "ynām"}, "She": {"ar": "تنام", "pr": "tnām"},
+        "We": {"ar": "ننام", "pr": "nnām"}, "You (pl)": {"ar": "تنامو", "pr": "tnāmu"}, "They": {"ar": "ينامو", "pr": "ynāmu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بنام", "pr": "bnām"}, "You (m)": {"ar": "بتنام", "pr": "btnām"}, "You (f)": {"ar": "بتنامي", "pr": "btnāmī"}, "He": {"ar": "بينام", "pr": "bynām"}, "She": {"ar": "بتنام", "pr": "btnām"},
+        "We": {"ar": "ببنام", "pr": "bnnām"}, "You (pl)": {"ar": "بتنامو", "pr": "btnāmu"}, "They": {"ar": "بينامو", "pr": "bynāmu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "نام", "pr": "nām"}, "You (f)": {"ar": "نامي", "pr": "nāmī"}, "You (pl)": {"ar": "نامو", "pr": "nāmu"}
+      },
+      "participle": {
+        "Male": {"ar": "نايم", "pr": "nāyim"}, "Female": {"ar": "نايمة", "pr": "nāyme"}, "Plural": {"ar": "نايمين", "pr": "nāymīn"}
+      }
+    }
+  },
+  {
+    "english": "to wake up / to notice",
+    "arabic": "وعي",
+    "pronunciation": "wi3i",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "وعيت", "pr": "w3īt"}, "You (m)": {"ar": "وعيت", "pr": "w3īt"}, "You (f)": {"ar": "وعيتي", "pr": "w3īti"}, "He": {"ar": "وعي", "pr": "wi3i"}, "She": {"ar": "وعيت", "pr": "w3it"},
+        "We": {"ar": "وعينا", "pr": "w3īna"}, "You (pl)": {"ar": "وعيتو", "pr": "w3ītu"}, "They": {"ar": "وعيو", "pr": "wi3yu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اوعى", "pr": "ū3a"}, "You (m)": {"ar": "توعى", "pr": "tū3a"}, "You (f)": {"ar": "توعي", "pr": "tū3ī"}, "He": {"ar": "يوعى", "pr": "yū3a"}, "She": {"ar": "توعى", "pr": "tū3a"},
+        "We": {"ar": "نوعى", "pr": "nū3a"}, "You (pl)": {"ar": "توعو", "pr": "tū3u"}, "They": {"ar": "يوعو", "pr": "yū3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بوعى", "pr": "bū3a"}, "You (m)": {"ar": "بتوعى", "pr": "btū3a"}, "You (f)": {"ar": "بتوعي", "pr": "btū3ī"}, "He": {"ar": "بيوعى", "pr": "byū3a"}, "She": {"ar": "بتوعى", "pr": "btū3a"},
+        "We": {"ar": "بنوعى", "pr": "bnū3a"}, "You (pl)": {"ar": "بتوعو", "pr": "btū3u"}, "They": {"ar": "بيوعو", "pr": "byū3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اوعى", "pr": "ū3a"}, "You (f)": {"ar": "اوعي", "pr": "ū3ī"}, "You (pl)": {"ar": "اوعو", "pr": "ū3u"}
+      },
+      "participle": {
+        "Male": {"ar": "واعي", "pr": "wā3ī"}, "Female": {"ar": "واعية", "pr": "wā3ye"}, "Plural": {"ar": "واعيين", "pr": "wā3yīn"}
+      }
+    }
+  },
+  {
+    "english": "to open",
+    "arabic": "فتح",
+    "pronunciation": "fataḥ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "فتحت", "pr": "fataḥit"}, "You (m)": {"ar": "فتحت", "pr": "fataḥit"}, "You (f)": {"ar": "فتحتي", "pr": "fataḥti"}, "He": {"ar": "فتح", "pr": "fataḥ"}, "She": {"ar": "فتحت", "pr": "fataḥit"},
+        "We": {"ar": "فتحنا", "pr": "fataḥna"}, "You (pl)": {"ar": "فتحتو", "pr": "fataḥtu"}, "They": {"ar": "فتحو", "pr": "fataḥu"}
+      },
+      "imperfect": {
+        "I": {"ar": "افتح", "pr": "iftaḥ"}, "You (m)": {"ar": "تفتح", "pr": "tiftaḥ"}, "You (f)": {"ar": "تفتحي", "pr": "tiftaḥī"}, "He": {"ar": "يفتح", "pr": "yiftaḥ"}, "She": {"ar": "تفتح", "pr": "tiftaḥ"},
+        "We": {"ar": "نفتح", "pr": "niftaḥ"}, "You (pl)": {"ar": "تفتحو", "pr": "tiftaḥu"}, "They": {"ar": "يفتحو", "pr": "yiftaḥu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بفتح", "pr": "biftaḥ"}, "You (m)": {"ar": "بتفتح", "pr": "btiftaḥ"}, "You (f)": {"ar": "بتفتحي", "pr": "btiftaḥī"}, "He": {"ar": "بيفتح", "pr": "byiftaḥ"}, "She": {"ar": "بتفتح", "pr": "btiftaḥ"},
+        "We": {"ar": "بنفتح", "pr": "bniftaḥ"}, "You (pl)": {"ar": "بتفتحو", "pr": "btiftaḥu"}, "They": {"ar": "بيفتحو", "pr": "byiftaḥu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "افتح", "pr": "iftaḥ"}, "You (f)": {"ar": "افتحي", "pr": "iftaḥī"}, "You (pl)": {"ar": "افتحو", "pr": "iftaḥu"}
+      },
+      "participle": {
+        "Male": {"ar": "فاتح", "pr": "fātiḥ"}, "Female": {"ar": "فاتحة", "pr": "fātḥa"}, "Plural": {"ar": "فاتحين", "pr": "fātḥīn"}
+      }
+    }
+  },
+  {
+    "english": "to close / to lock",
+    "arabic": "سكّر",
+    "pronunciation": "sakkar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "سكّرت", "pr": "sakkarit"}, "You (m)": {"ar": "سكّرت", "pr": "sakkarit"}, "You (f)": {"ar": "سكّرتي", "pr": "sakkarti"}, "He": {"ar": "سكّر", "pr": "sakkar"}, "She": {"ar": "سكّرت", "pr": "sakkarit"},
+        "We": {"ar": "سكّرنا", "pr": "sakkarna"}, "You (pl)": {"ar": "سكّرتو", "pr": "sakkartu"}, "They": {"ar": "سكّرو", "pr": "sakkaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "سكّر", "pr": "sakkir"}, "You (m)": {"ar": "تسكّر", "pr": "tsakkir"}, "You (f)": {"ar": "تسكّري", "pr": "tsakkrī"}, "He": {"ar": "يسكّر", "pr": "ysakkir"}, "She": {"ar": "تسكّر", "pr": "tsakkir"},
+        "We": {"ar": "نسكّر", "pr": "nsakkir"}, "You (pl)": {"ar": "تسكّرو", "pr": "tsakkru"}, "They": {"ar": "يسكّرو", "pr": "ysakkru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسكّر", "pr": "bsakkir"}, "You (m)": {"ar": "بتسكّر", "pr": "btsakkir"}, "You (f)": {"ar": "بتسكّري", "pr": "btsakkrī"}, "He": {"ar": "بيسكّر", "pr": "bysakkir"}, "She": {"ar": "بتسكّر", "pr": "btsakkir"},
+        "We": {"ar": "بنسكّر", "pr": "bnsakkir"}, "You (pl)": {"ar": "بتسكّرو", "pr": "btsakkru"}, "They": {"ar": "بيسكّرو", "pr": "bysakkru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "سكّر", "pr": "sakkir"}, "You (f)": {"ar": "سكّري", "pr": "tsakkrī"}, "You (pl)": {"ar": "سكّرو", "pr": "tsakkru"}
+      },
+      "participle": {
+        "Male": {"ar": "مسكّر", "pr": "msakkir"}, "Female": {"ar": "مسكّرة", "pr": "msakkra"}, "Plural": {"ar": "مسكّرين", "pr": "msakkrīn"}
+      }
+    }
+  },
+  {
+    "english": "to buy",
+    "arabic": "اشترى",
+    "pronunciation": "shtara",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "اشتريت", "pr": "shtarayt"}, "You (m)": {"ar": "اشتريت", "pr": "shtarayt"}, "You (f)": {"ar": "اشتريتي", "pr": "shtarayti"}, "He": {"ar": "اشترى", "pr": "shtara"}, "She": {"ar": "اشترت", "pr": "shtaret"},
+        "We": {"ar": "اشترينا", "pr": "shtarayna"}, "You (pl)": {"ar": "اشتريتو", "pr": "shtaraytu"}, "They": {"ar": "اشترو", "pr": "shtaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "اشتري", "pr": "ashtirī"}, "You (m)": {"ar": "تشتري", "pr": "tishtirī"}, "You (f)": {"ar": "تشتري", "pr": "tishtirī"}, "He": {"ar": "يشتري", "pr": "yishtirī"}, "She": {"ar": "تشتري", "pr": "tishtirī"},
+        "We": {"ar": "نشتري", "pr": "nishtirī"}, "You (pl)": {"ar": "تشترو", "pr": "tishtiru"}, "They": {"ar": "يشترو", "pr": "yishtiru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بشتْري", "pr": "bishtirī"}, "You (m)": {"ar": "بتشتري", "pr": "btishtirī"}, "You (f)": {"ar": "بتشتري", "pr": "btishtirī"}, "He": {"ar": "بيشتري", "pr": "byishtirī"}, "She": {"ar": "بتشتري", "pr": "btishtirī"},
+        "We": {"ar": "بنشتري", "pr": "bnishtirī"}, "You (pl)": {"ar": "بتشترو", "pr": "btishtiru"}, "They": {"ar": "بيشترو", "pr": "byishtiru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اشتري", "pr": "shtirī"}, "You (f)": {"ar": "اشتري", "pr": "shtirī"}, "You (pl)": {"ar": "اشترو", "pr": "shtiru"}
+      },
+      "participle": {
+        "Male": {"ar": "مشتري", "pr": "mishtirī"}, "Female": {"ar": "مشترية", "pr": "mishtirye"}, "Plural": {"ar": "مشتريين", "pr": "mishtiryīn"}
+      }
+    }
+  },
+  {
+    "english": "to sell",
+    "arabic": "باع",
+    "pronunciation": "bā3",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "بعت", "pr": "bi3t"}, "You (m)": {"ar": "بعت", "pr": "bi3t"}, "You (f)": {"ar": "بعتي", "pr": "bi3ti"}, "He": {"ar": "باع", "pr": "bā3"}, "She": {"ar": "باعت", "pr": "bā3it"},
+        "We": {"ar": "بعنا", "pr": "bi3na"}, "You (pl)": {"ar": "بعتو", "pr": "bi3tu"}, "They": {"ar": "باعو", "pr": "bā3u"}
+      },
+      "imperfect": {
+        "I": {"ar": "بيع", "pr": "bī3"}, "You (m)": {"ar": "تبيع", "pr": "tbī3"}, "You (f)": {"ar": "تبيعي", "pr": "tbī3ī"}, "He": {"ar": "يبيع", "pr": "ybī3"}, "She": {"ar": "تبيع", "pr": "tbī3"},
+        "We": {"ar": "نبيع", "pr": "nbī3"}, "You (pl)": {"ar": "تبيعو", "pr": "tbī3u"}, "They": {"ar": "يبيعو", "pr": "ybī3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "ببيع", "pr": "bbī3"}, "You (m)": {"ar": "بتبيع", "pr": "btbī3"}, "You (f)": {"ar": "بتبيعي", "pr": "btbī3ī"}, "He": {"ar": "بيبيع", "pr": "bybī3"}, "She": {"ar": "بتبيع", "pr": "btbī3"},
+        "We": {"ar": "بنبيع", "pr": "bnbī3"}, "You (pl)": {"ar": "بتبيعو", "pr": "btbī3u"}, "They": {"ar": "بيبيعو", "pr": "bybī3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "بيع", "pr": "bī3"}, "You (f)": {"ar": "بيعي", "pr": "bī3ī"}, "You (pl)": {"ar": "بيعو", "pr": "bī3u"}
+      },
+      "participle": {
+        "Male": {"ar": "بايع", "pr": "bāyish"}, "Female": {"ar": "بايعة", "pr": "bāy3a"}, "Plural": {"ar": "بايعين", "pr": "bāy3īn"}
+      }
+    }
+  },
+  {
+    "english": "to pay / to push",
+    "arabic": "دفع",
+    "pronunciation": "dafa3",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "دفعت", "pr": "dafa3it"}, "You (m)": {"ar": "دفعت", "pr": "dafa3it"}, "You (f)": {"ar": "دفعتي", "pr": "dafa3ti"}, "He": {"ar": "دفع", "pr": "dafa3"}, "She": {"ar": "دفعت", "pr": "dafa3it"},
+        "We": {"ar": "دفعنا", "pr": "dafa3na"}, "You (pl)": {"ar": "دفعتو", "pr": "dafa3tu"}, "They": {"ar": "دفعو", "pr": "dafa3u"}
+      },
+      "imperfect": {
+        "I": {"ar": "ادفع", "pr": "idfa3"}, "You (m)": {"ar": "تدفع", "pr": "tidfa3"}, "You (f)": {"ar": "تدفعي", "pr": "tidfa3ī"}, "He": {"ar": "يدفع", "pr": "yidfa3"}, "She": {"ar": "تدفع", "pr": "tidfa3"},
+        "We": {"ar": "ندفع", "pr": "nidfa3"}, "You (pl)": {"ar": "تدفعو", "pr": "tidfa3u"}, "They": {"ar": "يدفعو", "pr": "yidfa3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بدْفَع", "pr": "bidfa3"}, "You (m)": {"ar": "بتدفع", "pr": "btdfa3"}, "You (f)": {"ar": "بتدفعي", "pr": "btdfa3ī"}, "He": {"ar": "بيدفع", "pr": "byidfa3"}, "She": {"ar": "بتدفع", "pr": "btdfa3"},
+        "We": {"ar": "بندفع", "pr": "bndfa3"}, "You (pl)": {"ar": "بتدفعو", "pr": "btdfa3u"}, "They": {"ar": "بيدفعو", "pr": "byidfa3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ادفع", "pr": "idfa3"}, "You (f)": {"ar": "ادفعي", "pr": "idfa3ī"}, "You (pl)": {"ar": "ادفعو", "pr": "idfa3u"}
+      },
+      "participle": {
+        "Male": {"ar": "دافع", "pr": "dāfi3"}, "Female": {"ar": "دافعة", "pr": "dāf3a"}, "Plural": {"ar": "دافعين", "pr": "dāf3īn"}
+      }
+    }
+  },
+  {
+    "english": "to write",
+    "arabic": "كتب",
+    "pronunciation": "katab",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "كتبت", "pr": "katabit"}, "You (m)": {"ar": "كتبت", "pr": "katabit"}, "You (f)": {"ar": "كتبتي", "pr": "katabti"}, "He": {"ar": "كتب", "pr": "katab"}, "She": {"ar": "كتبت", "pr": "katabit"},
+        "We": {"ar": "كتبنا", "pr": "katabna"}, "You (pl)": {"ar": "كتبتو", "pr": "katabtu"}, "They": {"ar": "كتبو", "pr": "katabu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اكتب", "pr": "üktub"}, "You (m)": {"ar": "تكتب", "pr": "tūktub"}, "You (f)": {"ar": "تكتبي", "pr": "tūktbī"}, "He": {"ar": "يكتب", "pr": "yūktub"}, "She": {"ar": "تكتب", "pr": "tūktub"},
+        "We": {"ar": "نكتب", "pr": "nūktub"}, "You (pl)": {"ar": "تكتبو", "pr": "tūktbu"}, "They": {"ar": "يكتبو", "pr": "yūktbu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بكتُب", "pr": "būktub"}, "You (m)": {"ar": "بتكتب", "pr": "btūktub"}, "You (f)": {"ar": "بتكتبي", "pr": "btūktbī"}, "He": {"ar": "بيكتب", "pr": "byūktub"}, "She": {"ar": "بتكتب", "pr": "btūktub"},
+        "We": {"ar": "بنكتب", "pr": "bnūktub"}, "You (pl)": {"ar": "بتكتبو", "pr": "btūktbu"}, "They": {"ar": "بيكتبو", "pr": "byūktbu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اكتب", "pr": "üktub"}, "You (f)": {"ar": "اكتبي", "pr": "üktbī"}, "You (pl)": {"ar": "اكتبو", "pr": "üktbu"}
+      },
+      "participle": {
+        "Male": {"ar": "كاتب", "pr": "kātib"}, "Female": {"ar": "كاتبة", "pr": "kātbe"}, "Plural": {"ar": "كاتبين", "pr": "kātbīn"}
+      }
+    }
+  },
+  {
+    "english": "to read",
+    "arabic": "قرأ",
+    "pronunciation": "2ara",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "قريت", "pr": "2arayt"}, "You (m)": {"ar": "قريت", "pr": "2arayt"}, "You (f)": {"ar": "قريتي", "pr": "2arayti"}, "He": {"ar": "قرأ", "pr": "2ara"}, "She": {"ar": "قرأت", "pr": "2aret"},
+        "We": {"ar": "قرينا", "pr": "2arayna"}, "You (pl)": {"ar": "قريتو", "pr": "2araytu"}, "They": {"ar": "قرو", "pr": "2aru"}
+      },
+      "imperfect": {
+        "I": {"ar": "اقرا", "pr": "i2ra"}, "You (m)": {"ar": "تقرا", "pr": "ti2ra"}, "You (f)": {"ar": "تقري", "pr": "ti2rī"}, "He": {"ar": "يقرا", "pr": "yi2ra"}, "She": {"ar": "تقرا", "pr": "ti2ra"},
+        "We": {"ar": "نقرا", "pr": "ni2ra"}, "You (pl)": {"ar": "تقرو", "pr": "ti2ru"}, "They": {"ar": "يقرو", "pr": "yi2ru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بقرا", "pr": "bi2ra"}, "You (m)": {"ar": "بتقرا", "pr": "bti2ra"}, "You (f)": {"ar": "بتقري", "pr": "bti2rī"}, "He": {"ar": "بيقra", "pr": "byi2ra"}, "She": {"ar": "بتقرا", "pr": "bti2ra"},
+        "We": {"ar": "بنقرا", "pr": "bni2ra"}, "You (pl)": {"ar": "بتقرو", "pr": "bti2ru"}, "They": {"ar": "بيقرو", "pr": "byi2ru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اقرا", "pr": "i2ra"}, "You (f)": {"ar": "اقري", "pr": "i2rī"}, "You (pl)": {"ar": "اقرو", "pr": "i2ru"}
+      },
+      "participle": {
+        "Male": {"ar": "قاري", "pr": "2ārī"}, "Female": {"ar": "قارية", "pr": "2ārye"}, "Plural": {"ar": "قاريين", "pr": "2āryīn"}
+      }
+    }
+  },
+  {
+    "english": "to study",
+    "arabic": "درس",
+    "pronunciation": "daras",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "درست", "pr": "darasit"}, "You (m)": {"ar": "درست", "pr": "darasit"}, "You (f)": {"ar": "درستي", "pr": "darasti"}, "He": {"ar": "درس", "pr": "daras"}, "She": {"ar": "درست", "pr": "darasit"},
+        "We": {"ar": "درسنا", "pr": "darasna"}, "You (pl)": {"ar": "درستو", "pr": "darastu"}, "They": {"ar": "درسو", "pr": "darasu"}
+      },
+      "imperfect": {
+        "I": {"ar": "ادرس", "pr": "udrus"}, "You (m)": {"ar": "تدرس", "pr": "tudrus"}, "You (f)": {"ar": "تدرسي", "pr": "tudrsī"}, "He": {"ar": "يدرس", "pr": "yudrus"}, "She": {"ar": "تدرس", "pr": "tudrus"},
+        "We": {"ar": "ندرس", "pr": "nudrus"}, "You (pl)": {"ar": "تدرسو", "pr": "tudrsu"}, "They": {"ar": "يدرسو", "pr": "yudrsu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بدرُس", "pr": "budrus"}, "You (m)": {"ar": "بتدرس", "pr": "btudrus"}, "You (f)": {"ar": "بتدرسي", "pr": "btudrsī"}, "He": {"ar": "بيدرس", "pr": "byudrus"}, "She": {"ar": "بتدرس", "pr": "btudrus"},
+        "We": {"ar": "بندرس", "pr": "bnudrus"}, "You (pl)": {"ar": "بتدرسو", "pr": "btudrsu"}, "They": {"ar": "بيدرسو", "pr": "byudrsu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ادرس", "pr": "udrus"}, "You (f)": {"ar": "ادرسي", "pr": "udrsī"}, "You (pl)": {"ar": "ادرسو", "pr": "udrsu"}
+      },
+      "participle": {
+        "Male": {"ar": "دارس", "pr": "dāris"}, "Female": {"ar": "دارسة", "pr": "dārse"}, "Plural": {"ar": "دارسين", "pr": "dārsīn"}
+      }
+    }
+  },
+  {
+    "english": "to play",
+    "arabic": "لعب",
+    "pronunciation": "li3ib",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "لعبت", "pr": "l3ibit"}, "You (m)": {"ar": "لعبت", "pr": "l3ibit"}, "You (f)": {"ar": "لعبتي", "pr": "l3ibti"}, "He": {"ar": "لعب", "pr": "li3ib"}, "She": {"ar": "لعبت", "pr": "li3bit"},
+        "We": {"ar": "لعبنا", "pr": "l3ibna"}, "You (pl)": {"ar": "لعبتو", "pr": "l3ibtu"}, "They": {"ar": "لعبو", "pr": "li3bu"}
+      },
+      "imperfect": {
+        "I": {"ar": "العب", "pr": "il3ab"}, "You (m)": {"ar": "تلعب", "pr": "til3ab"}, "You (f)": {"ar": "تلعبي", "pr": "til3abī"}, "He": {"ar": "يلعب", "pr": "yil3ab"}, "She": {"ar": "تلعب", "pr": "til3ab"},
+        "We": {"ar": "نلعب", "pr": "nil3ab"}, "You (pl)": {"ar": "تلعبو", "pr": "til3abu"}, "They": {"ar": "يلعبو", "pr": "yil3abu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بلعب", "pr": "bil3ab"}, "You (m)": {"ar": "بتلعب", "pr": "btil3ab"}, "You (f)": {"ar": "بتلعبي", "pr": "btil3abī"}, "He": {"ar": "بيلعب", "pr": "byil3ab"}, "She": {"ar": "بتلعب", "pr": "btil3ab"},
+        "We": {"ar": "بنلعب", "pr": "bnil3ab"}, "You (pl)": {"ar": "بتلعبو", "pr": "btil3abu"}, "They": {"ar": "بيلعبو", "pr": "byil3abu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "العب", "pr": "il3ab"}, "You (f)": {"ar": "العبي", "pr": "il3abī"}, "You (pl)": {"ar": "العبو", "pr": "il3abu"}
+      },
+      "participle": {
+        "Male": {"ar": "لاعب", "pr": "lā3ib"}, "Female": {"ar": "لاعبة", "pr": "lā3be"}, "Plural": {"ar": "لاعبين", "pr": "lā3bīn"}
+      }
+    }
+  },
+  {
+    "english": "to cook",
+    "arabic": "طبخ",
+    "pronunciation": "tabakh",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "طبخت", "pr": "tabakhit"}, "You (m)": {"ar": "طبخت", "pr": "tabakhit"}, "You (f)": {"ar": "طبختي", "pr": "tabakhti"}, "He": {"ar": "طبخ", "pr": "tabakh"}, "She": {"ar": "طبخت", "pr": "tabakhit"},
+        "We": {"ar": "طبخنا", "pr": "tabakhna"}, "You (pl)": {"ar": "طبختو", "pr": "tabakhtu"}, "They": {"ar": "طبخو", "pr": "tabakhu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اطبخ", "pr": "utbukh"}, "You (m)": {"ar": "تطبخ", "pr": "tutbukh"}, "You (f)": {"ar": "تطبخي", "pr": "tutbkhī"}, "He": {"ar": "يطبخ", "pr": "yutbukh"}, "She": {"ar": "تطبخ", "pr": "tutbukh"},
+        "We": {"ar": "نطبخ", "pr": "nutbukh"}, "You (pl)": {"ar": "تطبخو", "pr": "tutbkhu"}, "They": {"ar": "يطبخوا", "pr": "yutbkhu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بطْبُخ", "pr": "butbukh"}, "You (m)": {"ar": "بتطبخ", "pr": "btutbukh"}, "You (f)": {"ar": "بتطبخي", "pr": "btutbkhī"}, "He": {"ar": "بيطبخ", "pr": "byutbukh"}, "She": {"ar": "بتطبخ", "pr": "btutbukh"},
+        "We": {"ar": "بنطبخ", "pr": "bnutbukh"}, "You (pl)": {"ar": "بتطبخو", "pr": "btutbkhu"}, "They": {"ar": "بيطبخو", "pr": "byutbkhu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اطبخ", "pr": "utbukh"}, "You (f)": {"ar": "اطبخي", "pr": "utbkhī"}, "You (pl)": {"ar": "اطبخوا", "pr": "utbkhu"}
+      },
+      "participle": {
+        "Male": {"ar": "طابخ", "pr": "ṭābikh"}, "Female": {"ar": "طابخة", "pr": "ṭābkha"}, "Plural": {"ar": "طابخين", "pr": "ṭābkcontainedīn"}
+      }
+    }
+  },
+  {
+    "english": "to travel",
+    "arabic": "سافر",
+    "pronunciation": "sāfar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "سافرت", "pr": "sāfarit"}, "You (m)": {"ar": "سافرت", "pr": "sāfarit"}, "You (f)": {"ar": "سافرتي", "pr": "sāfarti"}, "He": {"ar": "سافر", "pr": "sāfar"}, "She": {"ar": "سافرت", "pr": "sāfarit"},
+        "We": {"ar": "سافرنا", "pr": "sāfarna"}, "You (pl)": {"ar": "سافرتو", "pr": "sāfartu"}, "They": {"ar": "سافرو", "pr": "sāfaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "سافر", "pr": "sāfir"}, "You (m)": {"ar": "تسافر", "pr": "tsāfir"}, "You (f)": {"ar": "تسافري", "pr": "tsāfrī"}, "He": {"ar": "يسافر", "pr": "ysāfir"}, "She": {"ar": "تسافر", "pr": "tsāfir"},
+        "We": {"ar": "نسافر", "pr": "nsāfir"}, "You (pl)": {"ar": "تسافرو", "pr": "tsāfru"}, "They": {"ar": "يسافرو", "pr": "ysāfru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسَافِر", "pr": "bsāfir"}, "You (m)": {"ar": "بتسافر", "pr": "btsāfir"}, "You (f)": {"ar": "بتسافري", "pr": "btsāfrī"}, "He": {"ar": "بيسافر", "pr": "bysāfir"}, "She": {"ar": "بتسافر", "pr": "btsāfir"},
+        "We": {"ar": "بنسافر", "pr": "bnsāfir"}, "You (pl)": {"ar": "بتسافرو", "pr": "btsāfru"}, "They": {"ar": "بيسافرو", "pr": "bysāfru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "سافر", "pr": "sāfir"}, "You (f)": {"ar": "سافري", "pr": "sāfrī"}, "You (pl)": {"ar": "سافرو", "pr": "sāfru"}
+      },
+      "participle": {
+        "Male": {"ar": "مسافر", "pr": "msāfir"}, "Female": {"ar": "مسافرة", "pr": "msāfra"}, "Plural": {"ar": "مسافرين", "pr": "msāfrīn"}
+      }
+    }
+  },
+  {
+    "english": "to arrive",
+    "arabic": "وصل",
+    "pronunciation": "waṣal",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "وصلت", "pr": "waṣalit"}, "You (m)": {"ar": "وصلت", "pr": "waṣalit"}, "You (f)": {"ar": "وصلتي", "pr": "waṣalti"}, "He": {"ar": "وصل", "pr": "waṣal"}, "She": {"ar": "وصلت", "pr": "waṣalit"},
+        "We": {"ar": "وصلنا", "pr": "waṣalna"}, "You (pl)": {"ar": "وصلتو", "pr": "waṣaltu"}, "They": {"ar": "وصلو", "pr": "waṣalu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اوصل", "pr": "ūṣal"}, "You (m)": {"ar": "توصل", "pr": "tūṣal"}, "You (f)": {"ar": "توصلي", "pr": "tūṣlī"}, "He": {"ar": "يوصل", "pr": "yūṣal"}, "She": {"ar": "توصل", "pr": "tūṣal"},
+        "We": {"ar": "نوصل", "pr": "nūṣal"}, "You (pl)": {"ar": "توصلو", "pr": "tūṣlu"}, "They": {"ar": "يوصلو", "pr": "yūṣlu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بوْصَل", "pr": "būṣal"}, "You (m)": {"ar": "بتوصل", "pr": "btūṣal"}, "You (f)": {"ar": "بتوصلي", "pr": "btūṣlī"}, "He": {"ar": "بيوصل", "pr": "byūṣal"}, "She": {"ar": "بتوصل", "pr": "btūṣal"},
+        "We": {"ar": "بنوصل", "pr": "bnūṣal"}, "You (pl)": {"ar": "بتوصلو", "pr": "btūṣlu"}, "They": {"ar": "بيوصلو", "pr": "byūṣlu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اوصل", "pr": "ūṣal"}, "You (f)": {"ar": "اوصلي", "pr": "ūṣlī"}, "You (pl)": {"ar": "اوصلو", "pr": "ūṣlu"}
+      },
+      "participle": {
+        "Male": {"ar": "واصل", "pr": "wāṣil"}, "Female": {"ar": "واصلة", "pr": "wāṣle"}, "Plural": {"ar": "واصلين", "pr": "wāṣlīn"}
+      }
+    }
+  },
+  {
+    "english": "to wear / to put on clothes",
+    "arabic": "لبس",
+    "pronunciation": "libis",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "لبست", "pr": "lbi3it"}, "You (m)": {"ar": "لبست", "pr": "lbi3it"}, "You (f)": {"ar": "لبستي", "pr": "lbisti"}, "He": {"ar": "لبس", "pr": "libis"}, "She": {"ar": "لبست", "pr": "libsit"},
+        "We": {"ar": "لبسنا", "pr": "lbisna"}, "You (pl)": {"ar": "لبستو", "pr": "lbistu"}, "They": {"ar": "لبسو", "pr": "libsu"}
+      },
+      "imperfect": {
+        "I": {"ar": "البس", "pr": "ilbas"}, "You (m)": {"ar": "تلبس", "pr": "tilbas"}, "You (f)": {"ar": "تلبسي", "pr": "tilbasī"}, "He": {"ar": "يلبس", "pr": "yilbas"}, "She": {"ar": "تلبس", "pr": "tilbas"},
+        "We": {"ar": "نلبس", "pr": "nilbas"}, "You (pl)": {"ar": "تلبسو", "pr": "tilbasu"}, "They": {"ar": "يلبسو", "pr": "yilbasu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بلبِس", "pr": "bilbas"}, "You (m)": {"ar": "بتلبس", "pr": "btilbas"}, "You (f)": {"ar": "بتلبسي", "pr": "btilbasī"}, "He": {"ar": "بيلبس", "pr": "byilbas"}, "She": {"ar": "بتلبس", "pr": "btilbas"},
+        "We": {"ar": "بنلبس", "pr": "bnilbas"}, "You (pl)": {"ar": "بتلبسو", "pr": "btilbasu"}, "They": {"ar": "بيلبسو", "pr": "byilbasu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "البس", "pr": "ilbas"}, "You (f)": {"ar": "البسي", "pr": "ilbasī"}, "You (pl)": {"ar": "البسو", "pr": "ilbasu"}
+      },
+      "participle": {
+        "Male": {"ar": "لابس", "pr": "lābis"}, "Female": {"ar": "لابسة", "pr": "lābse"}, "Plural": {"ar": "لابسين", "pr": "lābsīn"}
+      }
+    }
+  },
+  {
+    "english": "to undress / to take off clothes",
+    "arabic": "شلح",
+    "pronunciation": "shalaḥ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "شلحت", "pr": "shalaḥit"}, "You (m)": {"ar": "شلحت", "pr": "shalaḥit"}, "You (f)": {"ar": "شلحتي", "pr": "shalaḥti"}, "He": {"ar": "شلح", "pr": "shalaḥ"}, "She": {"ar": "شلحت", "pr": "shalaḥit"},
+        "We": {"ar": "شلحنا", "pr": "shalaḥna"}, "You (pl)": {"ar": "شلحتو", "pr": "shalaḥtu"}, "They": {"ar": "شلحو", "pr": "shalaḥu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اشلح", "pr": "ishlaḥ"}, "You (m)": {"ar": "تشلح", "pr": "tishlaḥ"}, "You (f)": {"ar": "تشلحي", "pr": "tishlaḥī"}, "He": {"ar": "يشلح", "pr": "yishlaḥ"}, "She": {"ar": "تشلح", "pr": "tishlaḥ"},
+        "We": {"ar": "نشلح", "pr": "nishlaḥ"}, "You (pl)": {"ar": "تشلحو", "pr": "tishlaḥu"}, "They": {"ar": "يشلحو", "pr": "yishlaḥu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بشلَح", "pr": "bishlaḥ"}, "You (m)": {"ar": "بتشلح", "pr": "btishlaḥ"}, "You (f)": {"ar": "بتشلحي", "pr": "btishlaḥī"}, "He": {"ar": "بيشلح", "pr": "byishlaḥ"}, "She": {"ar": "بتشلح", "pr": "btishlaḥ"},
+        "We": {"ar": "بنشلح", "pr": "bnishlaḥ"}, "You (pl)": {"ar": "بتشلحو", "pr": "btishlaḥu"}, "They": {"ar": "بيشلحو", "pr": "byishlaḥu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اشلح", "pr": "ishlaḥ"}, "You (f)": {"ar": "اشلحي", "pr": "ishlaḥī"}, "You (pl)": {"ar": "اشلحو", "pr": "ishlaḥu"}
+      },
+      "participle": {
+        "Male": {"ar": "شالح", "pr": "shāliḥ"}, "Female": {"ar": "شالحة", "pr": "shālḥa"}, "Plural": {"ar": "شالحين", "pr": "shālḥīn"}
+      }
+    }
+  },
+  {
+    "english": "to wash",
+    "arabic": "غسل",
+    "pronunciation": "ghasal",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "غسلت", "pr": "ghasalit"}, "You (m)": {"ar": "غسلت", "pr": "ghasalit"}, "You (f)": {"ar": "غسلتي", "pr": "ghasalti"}, "He": {"ar": "غسل", "pr": "ghasal"}, "She": {"ar": "غسلت", "pr": "ghasalit"},
+        "We": {"ar": "غسلنا", "pr": "ghasalna"}, "You (pl)": {"ar": "غسلتو", "pr": "ghasaltu"}, "They": {"ar": "غسلو", "pr": "ghasalu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اغسل", "pr": "aghsil"}, "You (m)": {"ar": "تغسل", "pr": "tighsil"}, "You (f)": {"ar": "تغسلي", "pr": "tighslī"}, "He": {"ar": "يغسل", "pr": "yighsil"}, "She": {"ar": "تغسل", "pr": "tighsil"},
+        "We": {"ar": "نغسل", "pr": "nighsil"}, "You (pl)": {"ar": "تغسلو", "pr": "tighslu"}, "They": {"ar": "يغسلو", "pr": "yighslu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بغسِل", "pr": "baghsil"}, "You (m)": {"ar": "بتغسل", "pr": "btighsil"}, "You (f)": {"ar": "بتغسلي", "pr": "btighslī"}, "He": {"ar": "بيغسل", "pr": "byighsil"}, "She": {"ar": "بتغسل", "pr": "btighsil"},
+        "We": {"ar": "بنغسل", "pr": "bnighsil"}, "You (pl)": {"ar": "بتغسلو", "pr": "btighslu"}, "They": {"ar": "بيغسلو", "pr": "byighslu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اغسل", "pr": "aghsil"}, "You (f)": {"ar": "اغسلي", "pr": "aghslī"}, "You (pl)": {"ar": "اغسلو", "pr": "aghslu"}
+      },
+      "participle": {
+        "Male": {"ar": "غاسل", "pr": "ghāsil"}, "Female": {"ar": "غاسلة", "pr": "ghāsle"}, "Plural": {"ar": "غاسلين", "pr": "ghāslīn"}
+      }
+    }
+  },
+  {
+    "english": "to clean",
+    "arabic": "نظّف",
+    "pronunciation": "naẓẓaf",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "نظّفت", "pr": "naẓẓafit"}, "You (m)": {"ar": "نظّفت", "pr": "naẓẓafit"}, "You (f)": {"ar": "نظّفتي", "pr": "naẓẓafti"}, "He": {"ar": "نظّف", "pr": "naẓ官af"}, "She": {"ar": "نظّفت", "pr": "naẓẓafit"},
+        "We": {"ar": "نظّفنا", "pr": "naẓẓafna"}, "You (pl)": {"ar": "نظّفتو", "pr": "naẓẓaftu"}, "They": {"ar": "نظّفو", "pr": "naẓẓafu"}
+      },
+      "imperfect": {
+        "I": {"ar": "نظّف", "pr": "naẓẓif"}, "You (m)": {"ar": "تنظّف", "pr": "tnaẓẓif"}, "You (f)": {"ar": "تنظّفي", "pr": "tnaẓẓfī"}, "He": {"ar": "ينظّف", "pr": "yna05if"}, "She": {"ar": "تنظّف", "pr": "tnaẓẓif"},
+        "We": {"ar": "ننظّف", "pr": "nnaẓẓif"}, "You (pl)": {"ar": "تنظّفو", "pr": "tnaẓẓfu"}, "They": {"ar": "ينظّفو", "pr": "ynaẓẓfu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بنظّف", "pr": "bna05if"}, "You (m)": {"ar": "بتنظّف", "pr": "btna05if"}, "You (f)": {"ar": "بتنظّفي", "pr": "btnaẓẓfī"}, "He": {"ar": "بينظّف", "pr": "bynaẓẓif"}, "She": {"ar": "بتنظّف", "pr": "btna05if"},
+        "We": {"ar": "بننظّف", "pr": "bnnaẓẓif"}, "You (pl)": {"ar": "بتنظّفو", "pr": "btna05fu"}, "They": {"ar": "بينظّفو", "pr": "bynaẓẓfu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "نظّف", "pr": "naẓẓif"}, "You (f)": {"ar": "نظّفي", "pr": "naẓẓfī"}, "You (pl)": {"ar": "نظّفو", "pr": "naẓẓfu"}
+      },
+      "participle": {
+        "Male": {"ar": "منظّف", "pr": "mnaẓẓif"}, "Female": {"ar": "منظّفة", "pr": "mna05fa"}, "Plural": {"ar": "منظّفين", "pr": "mna05fīn"}
+      }
+    }
+  },
+  {
+    "english": "to laugh",
+    "arabic": "ضحك",
+    "pronunciation": "diḥik",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "ضحكت", "pr": "dḥikit"}, "You (m)": {"ar": "ضحكت", "pr": "dḥikit"}, "You (f)": {"ar": "ضحكتي", "pr": "dḥikti"}, "He": {"ar": "ضحك", "pr": "diḥik"}, "She": {"ar": "ضحكت", "pr": "diḥkit"},
+        "We": {"ar": "ضحكنا", "pr": "dḥikna"}, "You (pl)": {"ar": "ضحكتو", "pr": "dḥiktu"}, "They": {"ar": "ضحكو", "pr": "diḥku"}
+      },
+      "imperfect": {
+        "I": {"ar": "اضحك", "pr": "iḍḥak"}, "You (m)": {"ar": "تضحك", "pr": "tiḍḥak"}, "You (f)": {"ar": "تضحكي", "pr": "tiḍḥakī"}, "He": {"ar": "يضحك", "pr": "yiḍḥak"}, "She": {"ar": "تضحك", "pr": "tiḍḥak"},
+        "We": {"ar": "نضحك", "pr": "niḍḥak"}, "You (pl)": {"ar": "تضحكو", "pr": "tiḍḥaku"}, "They": {"ar": "يضحكو", "pr": "yiḍḥaku"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بضْحَك", "pr": "biḍḥak"}, "You (m)": {"ar": "بتضحك", "pr": "btiḍḥak"}, "You (f)": {"ar": "بتضحكي", "pr": "btiḍḥakī"}, "He": {"ar": "بيضْحَك", "pr": "byiḍḥak"}, "She": {"ar": "بتضحك", "pr": "btiḍḥak"},
+        "We": {"ar": "بنضحك", "pr": "bniḍḥak"}, "You (pl)": {"ar": "بتضحكو", "pr": "btiḍḥaku"}, "They": {"ar": "بيضْحَكو", "pr": "byiḍḥaku"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اضحك", "pr": "iḍḥak"}, "You (f)": {"ar": "اضحكي", "pr": "iḍḥakī"}, "You (pl)": {"ar": "اضحكو", "pr": "iḍḥaku"}
+      },
+      "participle": {
+        "Male": {"ar": "ضاحك", "pr": "ḍāḥik"}, "Female": {"ar": "ضاحكة", "pr": "ḍāḥka"}, "Plural": {"ar": "ضاحكين", "pr": "ḍāḥkīn"}
+      }
+    }
+  },
+  {
+    "english": "to cry",
+    "arabic": "بكى",
+    "pronunciation": "baka",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "بكيت", "pr": "bakayt"}, "You (m)": {"ar": "بكيت", "pr": "bakayt"}, "You (f)": {"ar": "بكيتي", "pr": "bakayti"}, "He": {"ar": "بكى", "pr": "baka"}, "She": {"ar": "بكت", "pr": "bakit"},
+        "We": {"ar": "بكينا", "pr": "bakayna"}, "You (pl)": {"ar": "بكيتو", "pr": "bakaytu"}, "They": {"ar": "بكو", "pr": "baku"}
+      },
+      "imperfect": {
+        "I": {"ar": "ابكي", "pr": "ibki"}, "You (m)": {"ar": "تبكي", "pr": "tibki"}, "You (f)": {"ar": "تبكي", "pr": "tibkī"}, "He": {"ar": "يبكي", "pr": "yibki"}, "She": {"ar": "تبكي", "pr": "tibki"},
+        "We": {"ar": "نبكي", "pr": "nibki"}, "You (pl)": {"ar": "تبكو", "pr": "tibku"}, "They": {"ar": "يبكو", "pr": "yibku"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "ببْكي", "pr": "bibki"}, "You (m)": {"ar": "بتبكي", "pr": "btibki"}, "You (f)": {"ar": "بتبكي", "pr": "btibkī"}, "He": {"ar": "بيبكي", "pr": "byibki"}, "She": {"ar": "بتبكي", "pr": "btibki"},
+        "We": {"ar": "بنبكي", "pr": "bnibki"}, "You (pl)": {"ar": "بتبكو", "pr": "btibku"}, "They": {"ar": "بيبكو", "pr": "byibku"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ابكي", "pr": "ibki"}, "You (f)": {"ar": "ابكي", "pr": "ibkī"}, "You (pl)": {"ar": "ابكو", "pr": "ibku"}
+      },
+      "participle": {
+        "Male": {"ar": "باكي", "pr": "bākī"}, "Female": {"ar": "باكية", "pr": "bākye"}, "Plural": {"ar": "باكيين", "pr": "bākyīn"}
+      }
+    }
+  },
+  {
+    "english": "to ask for / to order",
+    "arabic": "طلب",
+    "pronunciation": "ṭalab",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "طلبت", "pr": "ṭalabit"}, "You (m)": {"ar": "طلبت", "pr": "ṭalabit"}, "You (f)": {"ar": "طلبتي", "pr": "ṭalabti"}, "He": {"ar": "طلب", "pr": "ṭalab"}, "She": {"ar": "طلبت", "pr": "ṭalabit"},
+        "We": {"ar": "طلبنا", "pr": "ṭalabna"}, "You (pl)": {"ar": "طلبتو", "pr": "ṭalabtu"}, "They": {"ar": "طلبو", "pr": "ṭalabu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اطلب", "pr": "uṭlub"}, "You (m)": {"ar": "تطلب", "pr": "tuṭlub"}, "You (f)": {"ar": "تطلبي", "pr": "tuṭlbī"}, "He": {"ar": "يطلب", "pr": "yuṭlub"}, "She": {"ar": "تطلب", "pr": "tuṭlub"},
+        "We": {"ar": "نطلب", "pr": "nuṭlub"}, "You (pl)": {"ar": "تطلبو", "pr": "tuṭlbu"}, "They": {"ar": "يطلبو", "pr": "yuṭlbu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بطْلُب", "pr": "buṭlub"}, "You (m)": {"ar": "بتطلب", "pr": "btuṭlub"}, "You (f)": {"ar": "بتطلبي", "pr": "btuṭlbī"}, "He": {"ar": "بيطلب", "pr": "byuṭlub"}, "She": {"ar": "بتطلب", "pr": "btuṭlub"},
+        "We": {"ar": "بنطلب", "pr": "bnuṭlub"}, "You (pl)": {"ar": "بتطلبو", "pr": "btuṭlbu"}, "They": {"ar": "بيطلبو", "pr": "byuṭlbu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اطلب", "pr": "uṭlub"}, "You (f)": {"ar": "اطلبي", "pr": "uṭlbī"}, "You (pl)": {"ar": "اطلبو", "pr": "uṭlbu"}
+      },
+      "participle": {
+        "Male": {"ar": "طالب", "pr": "ṭālib"}, "Female": {"ar": "طالبة", "pr": "ṭālbe"}, "Plural": {"ar": "طالبين", "pr": "ṭālbīn"}
+      }
+    }
+  },
+  {
+    "english": "to drive",
+    "arabic": "ساق",
+    "pronunciation": "sā2",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "سقت", "pr": "su2it"}, "You (m)": {"ar": "سقت", "pr": "su2it"}, "You (f)": {"ar": "سقتي", "pr": "su2ti"}, "He": {"ar": "ساق", "pr": "sā2"}, "She": {"ar": "ساقت", "pr": "sā2it"},
+        "We": {"ar": "سقنا", "pr": "su2na"}, "You (pl)": {"ar": "سقتو", "pr": "su2tu"}, "They": {"ar": "ساقو", "pr": "sā2u"}
+      },
+      "imperfect": {
+        "I": {"ar": "سوق", "pr": "sū2"}, "You (m)": {"ar": "تسوق", "pr": "tsū2"}, "You (f)": {"ar": "تسوقي", "pr": "tsū2ī"}, "He": {"ar": "يسوق", "pr": "ysū2"}, "She": {"ar": "تسوق", "pr": "tsū2"},
+        "We": {"ar": "نسوق", "pr": "nsū2"}, "You (pl)": {"ar": "تسوقو", "pr": "tsū2u"}, "They": {"ar": "يسوقو", "pr": "ysū2u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسوق", "pr": "bsū2"}, "You (m)": {"ar": "بتسوق", "pr": "btsū2"}, "You (f)": {"ar": "بتسوقي", "pr": "btsū2ī"}, "He": {"ar": "بيسوق", "pr": "bysū2"}, "She": {"ar": "بتسوق", "pr": "btsū2"},
+        "We": {"ar": "بنسوق", "pr": "bnsū2"}, "You (pl)": {"ar": "بتسوقو", "pr": "btsū2u"}, "They": {"ar": "بيسوقو", "pr": "bysū2u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "سوق", "pr": "sū2"}, "You (f)": {"ar": "سوقي", "pr": "sū2ī"}, "You (pl)": {"ar": "سوقو", "pr": "sū2u"}
+      },
+      "participle": {
+        "Male": {"ar": "سايق", "pr": "sāyi2"}, "Female": {"ar": "سايقة", "pr": "sāy2a"}, "Plural": {"ar": "سايقين", "pr": "sāy2īn"}
+      }
+    }
+  },
+  {
+    "english": "to ride / to board",
+    "arabic": "ركب",
+    "pronunciation": "rikib",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "ركبت", "pr": "rkibit"}, "You (m)": {"ar": "ركبت", "pr": "rkibit"}, "You (f)": {"ar": "ركبتي", "pr": "rkibti"}, "He": {"ar": "ركب", "pr": "rikib"}, "She": {"ar": "ركبت", "pr": "rikbit"},
+        "We": {"ar": "ركبنا", "pr": "rkibna"}, "You (pl)": {"ar": "ركبتو", "pr": "rkibtu"}, "They": {"ar": "ركبو", "pr": "rikbu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اركب", "pr": "irkab"}, "You (m)": {"ar": "تركب", "pr": "tirkab"}, "You (f)": {"ar": "تركبي", "pr": "tirkabī"}, "He": {"ar": "يركب", "pr": "yirkab"}, "She": {"ar": "تركب", "pr": "tirkab"},
+        "We": {"ar": "نركب", "pr": "nirkab"}, "You (pl)": {"ar": "تركبو", "pr": "tirkabu"}, "They": {"ar": "يركبو", "pr": "yirkabu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "برْكَب", "pr": "birkab"}, "You (m)": {"ar": "بتركب", "pr": "btirkab"}, "You (f)": {"ar": "بتركبي", "pr": "btirkabī"}, "He": {"ar": "بيركب", "pr": "byirkab"}, "She": {"ar": "بتركب", "pr": "btirkab"},
+        "We": {"ar": "بنركب", "pr": "bnirkab"}, "You (pl)": {"ar": "بتركبو", "pr": "btirkabu"}, "They": {"ar": "بيركبو", "pr": "byirkabu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اركب", "pr": "irkab"}, "You (f)": {"ar": "اركبي", "pr": "irkabī"}, "You (pl)": {"ar": "اركبو", "pr": "irkabu"}
+      },
+      "participle": {
+        "Male": {"ar": "راكب", "pr": "rākib"}, "Female": {"ar": "راكبة", "pr": "rākbe"}, "Plural": {"ar": "راكبين", "pr": "rākbīn"}
+      }
+    }
+  },
+  {
+    "english": "to think",
+    "arabic": "فكّر",
+    "pronunciation": "fakkar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "فكّرت", "pr": "fakkarit"}, "You (m)": {"ar": "فكّرت", "pr": "fakkarit"}, "You (f)": {"ar": "فكّرتي", "pr": "fakkarti"}, "He": {"ar": "فكّر", "pr": "fakkar"}, "She": {"ar": "فكّرت", "pr": "fakkarit"},
+        "We": {"ar": "فكّرنا", "pr": "fakkarna"}, "You (pl)": {"ar": "فكّرتو", "pr": "fakkartu"}, "They": {"ar": "فكّرو", "pr": "fakkaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "فكّر", "pr": "fakkir"}, "You (m)": {"ar": "تفكّر", "pr": "tfakkir"}, "You (f)": {"ar": "تفكّري", "pr": "tfakkrī"}, "He": {"ar": "يفكّر", "pr": "yfakkir"}, "She": {"ar": "تفكّر", "pr": "tfakkir"},
+        "We": {"ar": "نفكّر", "pr": "nfakkir"}, "You (pl)": {"ar": "تفكّرو", "pr": "tfakkru"}, "They": {"ar": "يفكّرو", "pr": "yfakkru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بفكّر", "pr": "bfakkir"}, "You (m)": {"ar": "بتفكّر", "pr": "btfakkir"}, "You (f)": {"ar": "بتفكّري", "pr": "btfakkrī"}, "He": {"ar": "بيفكّر", "pr": "byfakkir"}, "She": {"ar": "بتفكّر", "pr": "btfakkir"},
+        "We": {"ar": "بنفتكر", "pr": "bnfakkir"}, "You (pl)": {"ar": "بتفكّرو", "pr": "btfakkru"}, "They": {"ar": "بيفكّرو", "pr": "byfakkru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "فكّر", "pr": "fakkir"}, "You (f)": {"ar": "فكّري", "pr": "fakkrī"}, "You (pl)": {"ar": "فكّرو", "pr": "fakkru"}
+      },
+      "participle": {
+        "Male": {"ar": "مفكّر", "pr": "mfakkir"}, "Female": {"ar": "مفكّرة", "pr": "mfakkra"}, "Plural": {"ar": "مفكّرين", "pr": "mfakkrīn"}
+      }
+    }
+  },
+  {
+    "english": "to mention / to remember",
+    "arabic": "ذكر",
+    "pronunciation": "zakar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "ذكرت", "pr": "zakarit"}, "You (m)": {"ar": "ذكرت", "pr": "zakarit"}, "You (f)": {"ar": "ذكرتي", "pr": "zakarti"}, "He": {"ar": "ذكر", "pr": "zakar"}, "She": {"ar": "ذكرت", "pr": "zakarit"},
+        "We": {"ar": "ذكرنا", "pr": "zakarna"}, "You (pl)": {"ar": "ذكرتو", "pr": "zakartu"}, "They": {"ar": "ذكرو", "pr": "zakaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "اذكر", "pr": "uzkur"}, "You (m)": {"ar": "تذكر", "pr": "tuzkur"}, "You (f)": {"ar": "تذكري", "pr": "tuzkrī"}, "He": {"ar": "يذكر", "pr": "yuzkur"}, "She": {"ar": "تذكر", "pr": "tuzkur"},
+        "We": {"ar": "نذكر", "pr": "nuzkur"}, "You (pl)": {"ar": "تذكرو", "pr": "tuzkru"}, "They": {"ar": "يذكرو", "pr": "yuzkru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بذْكُر", "pr": "buzkur"}, "You (m)": {"ar": "بتذكر", "pr": "btuzkur"}, "You (f)": {"ar": "بتذكري", "pr": "btuzkrī"}, "He": {"ar": "بيذكر", "pr": "byuzkur"}, "She": {"ar": "بتذكر", "pr": "btuzkur"},
+        "We": {"ar": "بنذكر", "pr": "bnuzkur"}, "You (pl)": {"ar": "بتذكرو", "pr": "btuzkru"}, "They": {"ar": "بيذكرو", "pr": "byuzkru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اذكر", "pr": "uzkur"}, "You (f)": {"ar": "اذكري", "pr": "uzkrī"}, "You (pl)": {"ar": "اذكرو", "pr": "uzkru"}
+      },
+      "participle": {
+        "Male": {"ar": "ذاكر", "pr": "zākir"}, "Female": {"ar": "ذاكرة", "pr": "zākre"}, "Plural": {"ar": "ذاكرين", "pr": "zākrīn"}
+      }
+    }
+  },
+  {
+    "english": "to forget",
+    "arabic": "نسي",
+    "pronunciation": "nisi",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "نسيت", "pr": "nisīt"}, "You (m)": {"ar": "نسيت", "pr": "nisīt"}, "You (f)": {"ar": "نسيتي", "pr": "nisīti"}, "He": {"ar": "نسي", "pr": "nisi"}, "She": {"ar": "نسيت", "pr": "nisit"},
+        "We": {"ar": "نسينا", "pr": "nisīna"}, "You (pl)": {"ar": "نسيتو", "pr": "nisītu"}, "They": {"ar": "نسيو", "pr": "nisyu"}
+      },
+      "imperfect": {
+        "I": {"ar": "انسى", "pr": "insa"}, "You (m)": {"ar": "تنسى", "pr": "tinsa"}, "You (f)": {"ar": "تنسي", "pr": "tinsī"}, "He": {"ar": "ينسى", "pr": "yinsa"}, "She": {"ar": "تنسى", "pr": "tinsa"},
+        "We": {"ar": "ننسى", "pr": "ninsa"}, "You (pl)": {"ar": "تنسو", "pr": "tinsu"}, "They": {"ar": "ينسو", "pr": "yinsu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بنْسى", "pr": "binsa"}, "You (m)": {"ar": "بتنسى", "pr": "btinsa"}, "You (f)": {"ar": "بتنسي", "pr": "btinsī"}, "He": {"ar": "بينسى", "pr": "byinsa"}, "She": {"ar": "بتنسى", "pr": "btinsa"},
+        "We": {"ar": "بننسى", "pr": "bninsa"}, "You (pl)": {"ar": "بتنسو", "pr": "btinsu"}, "They": {"ar": "بينسو", "pr": "byinsu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "انسى", "pr": "insa"}, "You (f)": {"ar": "انسي", "pr": "insī"}, "You (pl)": {"ar": "انسو", "pr": "insu"}
+      },
+      "participle": {
+        "Male": {"ar": "ناسي", "pr": "nāsī"}, "Female": {"ar": "ناسية", "pr": "nāsye"}, "Plural": {"ar": "ناسيين", "pr": "nāsyīn"}
+      }
+    }
+  },
+  {
+    "english": "to fear / to be afraid",
+    "arabic": "خاف",
+    "pronunciation": "khāf",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "خفت", "pr": "khifit"}, "You (m)": {"ar": "خفت", "pr": "khifit"}, "You (f)": {"ar": "خفتي", "pr": "khifti"}, "He": {"ar": "خاف", "pr": "khāf"}, "She": {"ar": "خافت", "pr": "khāfit"},
+        "We": {"ar": "خفنا", "pr": "khifna"}, "You (pl)": {"ar": "خفتو", "pr": "khiftu"}, "They": {"ar": "خافو", "pr": "khāfu"}
+      },
+      "imperfect": {
+        "I": {"ar": "خاف", "pr": "khāf"}, "You (m)": {"ar": "تخاف", "pr": "tkhāf"}, "You (f)": {"ar": "تخافي", "pr": "tkhāfī"}, "He": {"ar": "يخاف", "pr": "ykhāf"}, "She": {"ar": "تخاف", "pr": "tkhāf"},
+        "We": {"ar": "نخاف", "pr": "nkhāf"}, "You (pl)": {"ar": "تخافو", "pr": "tkhāfu"}, "They": {"ar": "يخافو", "pr": "ykhāfu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بخاف", "pr": "bkhāf"}, "You (m)": {"ar": "بتخاف", "pr": "btkhāf"}, "You (f)": {"ar": "بتخافي", "pr": "btkhāfī"}, "He": {"ar": "بيخاف", "pr": "bykhāf"}, "She": {"ar": "بتخاف", "pr": "btkhāf"},
+        "We": {"ar": "بنخاف", "pr": "bnkhāf"}, "You (pl)": {"ar": "بتخافو", "pr": "btkhāfu"}, "They": {"ar": "بيخافو", "pr": "bykhāfu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "خاف", "pr": "khāf"}, "You (f)": {"ar": "خافي", "pr": "khāfī"}, "You (pl)": {"ar": "خافو", "pr": "khāfu"}
+      },
+      "participle": {
+        "Male": {"ar": "خايف", "pr": "khāyif"}, "Female": {"ar": "خايفة", "pr": "khāyfe"}, "Plural": {"ar": "خايفين", "pr": "khāyfīn"}
+      }
+    }
+  },
+  {
+    "english": "to become upset / to feel sad",
+    "arabic": "زعل",
+    "pronunciation": "zi3il",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "زعلت", "pr": "z3ilit"}, "You (m)": {"ar": "زعلت", "pr": "z3ilit"}, "You (f)": {"ar": "زعلتي", "pr": "z3ilti"}, "He": {"ar": "زعل", "pr": "zi3il"}, "She": {"ar": "زعلت", "pr": "zi3lit"},
+        "We": {"ar": "زعلنا", "pr": "z3ilna"}, "You (pl)": {"ar": "زعلتو", "pr": "z3iltu"}, "They": {"ar": "زعلو", "pr": "zi3lu"}
+      },
+      "imperfect": {
+        "I": {"ar": "ازعل", "pr": "iz3al"}, "You (m)": {"ar": "تزعل", "pr": "tiz3al"}, "You (f)": {"ar": "تزعلي", "pr": "tiz3alī"}, "He": {"ar": "يزعل", "pr": "yiz3al"}, "She": {"ar": "تزعل", "pr": "tiz3al"},
+        "We": {"ar": "نزعل", "pr": "niz3al"}, "You (pl)": {"ar": "تزعلو", "pr": "tiz3alu"}, "They": {"ar": "يزعلو", "pr": "yiz3alu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بزْعَل", "pr": "biz3al"}, "You (m)": {"ar": "بتزعل", "pr": "btiz3al"}, "You (f)": {"ar": "بتزعلي", "pr": "btiz3alī"}, "He": {"ar": "بيزعل", "pr": "byiz3al"}, "She": {"ar": "بتزعل", "pr": "btiz3al"},
+        "We": {"ar": "بنزعل", "pr": "bniz3al"}, "You (pl)": {"ar": "بتزعلو", "pr": "btiz3alu"}, "They": {"ar": "بيزعلو", "pr": "byiz3alu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ازعل", "pr": "iz3al"}, "You (f)": {"ar": "ازعلي", "pr": "iz3alī"}, "You (pl)": {"ar": "ازعلو", "pr": "iz3alu"}
+      },
+      "participle": {
+        "Male": {"ar": "زعلان", "pr": "za3lān"}, "Female": {"ar": "زعلانة", "pr": "za3lāne"}, "Plural": {"ar": "زعلانين", "pr": "za3lānīn"}
+      }
+    }
+  },
+  {
+    "english": "to rejoice / to be happy",
+    "arabic": "فرح",
+    "pronunciation": "firiḥ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "فرحت", "pr": "friḥit"}, "You (m)": {"ar": "فرحت", "pr": "friḥit"}, "You (f)": {"ar": "فرحتي", "pr": "friḥti"}, "He": {"ar": "فرح", "pr": "firiḥ"}, "She": {"ar": "فرحت", "pr": "firḥit"},
+        "We": {"ar": "فرحنا", "pr": "friḥna"}, "You (pl)": {"ar": "فرحتو", "pr": "friḥtu"}, "They": {"ar": "فرحو", "pr": "firḥu"}
+      },
+      "imperfect": {
+        "I": {"ar": "افرح", "pr": "ifraḥ"}, "You (m)": {"ar": "تفرح", "pr": "tifraḥ"}, "You (f)": {"ar": "تفرحي", "pr": "tifraḥī"}, "He": {"ar": "يفرح", "pr": "yifraḥ"}, "She": {"ar": "تفرح", "pr": "tifraḥ"},
+        "We": {"ar": "نفرح", "pr": "nifraḥ"}, "You (pl)": {"ar": "تفرحو", "pr": "tifraḥu"}, "They": {"ar": "يفرحو", "pr": "yifraḥu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بفرَح", "pr": "bifraḥ"}, "You (m)": {"ar": "بتفرح", "pr": "btifraḥ"}, "You (f)": {"ar": "بتفرحي", "pr": "btifraḥī"}, "He": {"ar": "بيفرح", "pr": "byifraḥ"}, "She": {"ar": "بتفرح", "pr": "btifraḥ"},
+        "We": {"ar": "بنفرح", "pr": "bnifraḥ"}, "You (pl)": {"ar": "بتفرحو", "pr": "btifraḥu"}, "They": {"ar": "بيفرحو", "pr": "byifraḥu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "افرح", "pr": "ifraḥ"}, "You (f)": {"ar": "افرحي", "pr": "ifraḥī"}, "You (pl)": {"ar": "افرحو", "pr": "ifraḥu"}
+      },
+      "participle": {
+        "Male": {"ar": "فرحان", "pr": "farḥān"}, "Female": {"ar": "فرحانة", "pr": "farḥāne"}, "Plural": {"ar": "فرحانين", "pr": "farḥānīn"}
+      }
+    }
+  },
+  {
+    "english": "to help",
+    "arabic": "ساعد",
+    "pronunciation": "sā3ad",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "ساعدت", "pr": "sā3adit"}, "You (m)": {"ar": "ساعدت", "pr": "sā3adit"}, "You (f)": {"ar": "ساعدتي", "pr": "sā3adti"}, "He": {"ar": "ساعد", "pr": "sā3ad"}, "She": {"ar": "ساعدت", "pr": "sā3adit"},
+        "We": {"ar": "ساعدنا", "pr": "sā3adna"}, "You (pl)": {"ar": "ساعدتو", "pr": "sā3adtu"}, "They": {"ar": "ساعدو", "pr": "sā3adu"}
+      },
+      "imperfect": {
+        "I": {"ar": "ساعد", "pr": "sā3id"}, "You (m)": {"ar": "تساعد", "pr": "tsā3id"}, "You (f)": {"ar": "تساعدي", "pr": "tsā3dī"}, "He": {"ar": "يساعد", "pr": "ysā3id"}, "She": {"ar": "تساعد", "pr": "tsā3id"},
+        "We": {"ar": "نساعد", "pr": "nsā3id"}, "You (pl)": {"ar": "تساعدو", "pr": "tsā3du"}, "They": {"ar": "يساعدو", "pr": "ysā3du"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسَاعِد", "pr": "bsā3id"}, "You (m)": {"ar": "بتساعد", "pr": "btsā3id"}, "You (f)": {"ar": "بتساعدي", "pr": "btsā3dī"}, "He": {"ar": "بيساعد", "pr": "bysā3id"}, "She": {"ar": "بتساعد", "pr": "btsā3id"},
+        "We": {"ar": "بنساعد", "pr": "bnsā3id"}, "You (pl)": {"ar": "بتساعدو", "pr": "btsā3du"}, "They": {"ar": "بيساعدو", "pr": "bysā3du"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ساعد", "pr": "sā3id"}, "You (f)": {"ar": "ساعدي", "pr": "sā3dī"}, "You (pl)": {"ar": "ساعدو", "pr": "sā3du"}
+      },
+      "participle": {
+        "Male": {"ar": "مساعد", "pr": "msā3id"}, "Female": {"ar": "مساعدة", "pr": "msā3da"}, "Plural": {"ar": "مساعدين", "pr": "msā3dīn"}
+      }
+    }
+  },
+  {
+    "english": "to make a mistake / to err",
+    "arabic": "غلط",
+    "pronunciation": "ghiliṭ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "غلطت", "pr": "ghliṭit"}, "You (m)": {"ar": "غلطت", "pr": "ghliṭit"}, "You (f)": {"ar": "غلطتي", "pr": "ghliṭti"}, "He": {"ar": "غلط", "pr": "ghiliṭ"}, "She": {"ar": "غلطت", "pr": "ghilṭit"},
+        "We": {"ar": "غلطنا", "pr": "ghliṭna"}, "You (pl)": {"ar": "غلطتو", "pr": "ghliṭtu"}, "They": {"ar": "غلطو", "pr": "ghilṭu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اغلط", "pr": "aghlaṭ"}, "You (m)": {"ar": "تغلط", "pr": "tighlaṭ"}, "You (f)": {"ar": "تغلطي", "pr": "tighlaṭī"}, "He": {"ar": "يغلط", "pr": "yighlaṭ"}, "She": {"ar": "تغلط", "pr": "tighlaṭ"},
+        "We": {"ar": "نغلط", "pr": "nighlaṭ"}, "You (pl)": {"ar": "تغلطو", "pr": "tighlaṭu"}, "They": {"ar": "يغلطو", "pr": "yighlaṭu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بغلَط", "pr": "baghlaṭ"}, "You (m)": {"ar": "بتغلط", "pr": "btighlaṭ"}, "You (f)": {"ar": "بتغلطي", "pr": "btighlaṭī"}, "He": {"ar": "بيغلط", "pr": "byighlaṭ"}, "She": {"ar": "بتغلط", "pr": "btighlaṭ"},
+        "We": {"ar": "بنغلط", "pr": "bnighlaṭ"}, "You (pl)": {"ar": "بتغلطو", "pr": "btighlaṭu"}, "They": {"ar": "بيغلطو", "pr": "byighlaṭu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اغلط", "pr": "aghlaṭ"}, "You (f)": {"ar": "اغلطي", "pr": "aghlaṭī"}, "You (pl)": {"ar": "اغلطو", "pr": "aghlaṭu"}
+      },
+      "participle": {
+        "Male": {"ar": "غلطان", "pr": "ghalṭān"}, "Female": {"ar": "غلطانة", "pr": "ghalṭāne"}, "Plural": {"ar": "غلطانين", "pr": "ghalṭānīn"}
+      }
+    }
+  },
+  {
+    "english": "to lie",
+    "arabic": "كذب",
+    "pronunciation": "kizib",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "كذبت", "pr": "kzibit"}, "You (m)": {"ar": "كذبت", "pr": "kzibit"}, "You (f)": {"ar": "كذبتي", "pr": "kzibti"}, "He": {"ar": "كذب", "pr": "kizib"}, "She": {"ar": "كذبت", "pr": "kizbit"},
+        "We": {"ar": "كذبنا", "pr": "kzibna"}, "You (pl)": {"ar": "كذبتو", "pr": "kzibtu"}, "They": {"ar": "كذبو", "pr": "kizbu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اكذب", "pr": "ikzib"}, "You (m)": {"ar": "تكذب", "pr": "tikzib"}, "You (f)": {"ar": "تكذبي", "pr": "tikzbī"}, "He": {"ar": "يكذب", "pr": "yikzib"}, "She": {"ar": "تكذب", "pr": "tikzib"},
+        "We": {"ar": "نكذب", "pr": "nikzib"}, "You (pl)": {"ar": "تكذبو", "pr": "tikzbu"}, "They": {"ar": "يكذبو", "pr": "yikzbu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بكذِب", "pr": "bikzib"}, "You (m)": {"ar": "بتكذب", "pr": "btikzib"}, "You (f)": {"ar": "بتكذبي", "pr": "btikzbī"}, "He": {"ar": "بيكذب", "pr": "byikzib"}, "She": {"ar": "بتكذب", "pr": "btikzib"},
+        "We": {"ar": "بنكذب", "pr": "bnikzib"}, "You (pl)": {"ar": "بتكذبو", "pr": "btikzbu"}, "They": {"ar": "بيكذبو", "pr": "byikzbu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اكذب", "pr": "ikzib"}, "You (f)": {"ar": "اكذبي", "pr": "ikzbī"}, "You (pl)": {"ar": "اكذبو", "pr": "ikzbu"}
+      },
+      "participle": {
+        "Male": {"ar": "كذّاب", "pr": "kizzāb"}, "Female": {"ar": "كذّابة", "pr": "kizzābe"}, "Plural": {"ar": "كذّابين", "pr": "kizzābīn"}
+      }
+    }
+  },
+  {
+    "english": "to believe",
+    "arabic": "صدّق",
+    "pronunciation": "ṣaddaq",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "صدّقت", "pr": "ṣaddaqit"}, "You (m)": {"ar": "صدّقت", "pr": "ṣaddaqit"}, "You (f)": {"ar": "صدّقتي", "pr": "ṣaddaqti"}, "He": {"ar": "صدّق", "pr": "ṣaddaq"}, "She": {"ar": "صدّقت", "pr": "ṣaddaqit"},
+        "We": {"ar": "صدّقنا", "pr": "ṣaddaqna"}, "You (pl)": {"ar": "صدّقتو", "pr": "ṣaddaqtu"}, "They": {"ar": "صدّقو", "pr": "ṣaddaqu"}
+      },
+      "imperfect": {
+        "I": {"ar": "صدّق", "pr": "ṣaddiq"}, "You (m)": {"ar": "تصدّق", "pr": "tṣaddiq"}, "You (f)": {"ar": "تصدّقي", "pr": "tṣaddqī"}, "He": {"ar": "يصدّق", "pr": "yṣaddiq"}, "She": {"ar": "tصدّق", "pr": "tṣaddiq"},
+        "We": {"ar": "نصدّق", "pr": "nṣaddiq"}, "You (pl)": {"ar": "تصدّقو", "pr": "tṣaddqu"}, "They": {"ar": "يصدّقو", "pr": "yṣaddqu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بصدّق", "pr": "bṣaddiq"}, "You (m)": {"ar": "بتصدّق", "pr": "btṣaddiq"}, "You (f)": {"ar": "بتصدّقي", "pr": "btṣaddqī"}, "He": {"ar": "بيصدّق", "pr": "byṣaddiq"}, "She": {"ar": "بتصدّق", "pr": "btṣaddiq"},
+        "We": {"ar": "بنصدّق", "pr": "bnṣaddiq"}, "You (pl)": {"ar": "بتصدّقو", "pr": "btṣaddqu"}, "They": {"ar": "بيصدّقو", "pr": "byṣaddqu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "صدّق", "pr": "ṣaddiq"}, "You (f)": {"ar": "صدّقي", "pr": "ṣaddqī"}, "You (pl)": {"ar": "صدّقو", "pr": "ṣaddqu"}
+      },
+      "participle": {
+        "Male": {"ar": "مصدّق", "pr": "mṣaddiq"}, "Female": {"ar": "مصدّقة", "pr": "mṣaddqa"}, "Plural": {"ar": "مصدّقين", "pr": "mṣaddqīn"}
+      }
+    }
+  },
+  {
+    "english": "to change",
+    "arabic": "غيّر",
+    "pronunciation": "ghayyar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "غيّرت", "pr": "ghayyart"}, "You (m)": {"ar": "غيّرت", "pr": "ghayyart"}, "You (f)": {"ar": "غيّرتي", "pr": "ghayyarti"}, "He": {"ar": "غيّر", "pr": "ghayyar"}, "She": {"ar": "غيّرت", "pr": "ghayyarat"},
+        "We": {"ar": "غيّرنا", "pr": "ghayyarna"}, "You (pl)": {"ar": "غيّرتو", "pr": "ghayyartu"}, "They": {"ar": "غيّرو", "pr": "ghayyaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "غيّر", "pr": "ghayyir"}, "You (m)": {"ar": "تغيّر", "pr": "tghayyir"}, "You (f)": {"ar": "تغيّري", "pr": "tghayyrī"}, "He": {"ar": "يغيّر", "pr": "yghayyir"}, "She": {"ar": "تغيّر", "pr": "tghayyir"},
+        "We": {"ar": "نغيّر", "pr": "nghayyir"}, "You (pl)": {"ar": "تغيّرو", "pr": "tghayyru"}, "They": {"ar": "يغيّرو", "pr": "yghayyru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بغيّر", "pr": "bghayyir"}, "You (m)": {"ar": "بتغيّر", "pr": "btghayyir"}, "You (f)": {"ar": "بتغيّري", "pr": "btghayyrī"}, "He": {"ar": "بيغيّر", "pr": "byghayyir"}, "She": {"ar": "بتغيّر", "pr": "btghayyir"},
+        "We": {"ar": "بنغيّر", "pr": "bnghayyir"}, "You (pl)": {"ar": "بتغيّرو", "pr": "btghayyru"}, "They": {"ar": "بيغيّرو", "pr": "byghayyru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "غيّر", "pr": "ghayyir"}, "You (f)": {"ar": "غيّري", "pr": "ghayyrī"}, "You (pl)": {"ar": "غيّرو", "pr": "ghayyru"}
+      },
+      "participle": {
+        "Male": {"ar": "مغيّر", "pr": "mghayyir"}, "Female": {"ar": "مغيّرة", "pr": "mghayyra"}, "Plural": {"ar": "مغيّرين", "pr": "mghayyrīn"}
+      }
+    }
+  },
+  {
+    "english": "to try / to test",
+    "arabic": "جرّب",
+    "pronunciation": "jarrab",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "جرّبت", "pr": "jarrabit"}, "You (m)": {"ar": "جرّبت", "pr": "jarrabit"}, "You (f)": {"ar": "جرّبتي", "pr": "jarrabti"}, "He": {"ar": "جرّب", "pr": "jarrab"}, "She": {"ar": "جرّبت", "pr": "jarrabit"},
+        "We": {"ar": "جرّبنا", "pr": "jarrabna"}, "You (pl)": {"ar": "جرّبتو", "pr": "jarrabtu"}, "They": {"ar": "جرّبو", "pr": "jarrabu"}
+      },
+      "imperfect": {
+        "I": {"ar": "جرّب", "pr": "jarrib"}, "You (m)": {"ar": "تجرّب", "pr": "tjarrib"}, "You (f)": {"ar": "تجرّبي", "pr": "tjarrbī"}, "He": {"ar": "يجرّب", "pr": "yjarrib"}, "She": {"ar": "تجرّب", "pr": "tjarrib"},
+        "We": {"ar": "نجرّب", "pr": "njarrib"}, "You (pl)": {"ar": "تجرّبو", "pr": "tjarrbu"}, "They": {"ar": "يجرّبو", "pr": "yjarrbu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بجرّب", "pr": "bjarrib"}, "You (m)": {"ar": "بتجرّب", "pr": "btjarrib"}, "You (f)": {"ar": "بتجرّبي", "pr": "btjarrbī"}, "He": {"ar": "بيجرّب", "pr": "byjarrib"}, "She": {"ar": "بتجرّب", "pr": "btjarrib"},
+        "We": {"ar": "بنجرّب", "pr": "bnjarrib"}, "You (pl)": {"ar": "بتجرّبو", "pr": "tjarrbu"}, "They": {"ar": "بيجرّبو", "pr": "yjarrbu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "جرّب", "pr": "jarrib"}, "You (f)": {"ar": "جرّبي", "pr": "tjarrbī"}, "You (pl)": {"ar": "جرّبو", "pr": "tjarrbu"}
+      },
+      "participle": {
+        "Male": {"ar": "مجرّب", "pr": "mjarrib"}, "Female": {"ar": "مجرّبة", "pr": "mjarrba"}, "Plural": {"ar": "مجرّبين", "pr": "mjarrbīn"}
+      }
+    }
+  },
+  {
+    "english": "to be able to / can",
+    "arabic": "قدر",
+    "pronunciation": "qidir",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "قدرت", "pr": "qdirit"}, "You (m)": {"ar": "قدرت", "pr": "qdirit"}, "You (f)": {"ar": "قدرتي", "pr": "qdirti"}, "He": {"ar": "قدر", "pr": "qidir"}, "She": {"ar": "قدرت", "pr": "qidrit"},
+        "We": {"ar": "قدرنا", "pr": "qdirna"}, "You (pl)": {"ar": "قدرتو", "pr": "qdirtu"}, "They": {"ar": "قدرو", "pr": "qidru"}
+      },
+      "imperfect": {
+        "I": {"ar": "اقدر", "pr": "iqdar"}, "You (m)": {"ar": "تقدر", "pr": "tiqdar"}, "You (f)": {"ar": "تقدري", "pr": "tiqdarī"}, "He": {"ar": "يقدر", "pr": "yiqdar"}, "She": {"ar": "تقدر", "pr": "tiqdar"},
+        "We": {"ar": "نقدر", "pr": "niqdar"}, "You (pl)": {"ar": "تقدرو", "pr": "tiqdaru"}, "They": {"ar": "يقدرو", "pr": "yiqdaru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بقدر", "pr": "biqdar"}, "You (m)": {"ar": "بتقدر", "pr": "btiqdar"}, "You (f)": {"ar": "بتقدي", "pr": "btiqdarī"}, "He": {"ar": "بيقدر", "pr": "byiqdar"}, "She": {"ar": "بتقدر", "pr": "btiqdar"},
+        "We": {"ar": "بنقدر", "pr": "bniqdar"}, "You (pl)": {"ar": "بتقدرو", "pr": "btiqdaru"}, "They": {"ar": "بيقدرو", "pr": "byiqdaru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اقدر", "pr": "iqdar"}, "You (f)": {"ar": "اقدري", "pr": "iqdarī"}, "You (pl)": {"ar": "اقدرو", "pr": "iqdaru"}
+      },
+      "participle": {
+        "Male": {"ar": "قادر", "pr": "qādir"}, "Female": {"ar": "قادرة", "pr": "qādra"}, "Plural": {"ar": "قادرين", "pr": "qādrīn"}
+      }
+    }
+  },
+  {
+    "english": "to advise / to recommend",
+    "arabic": "نصح",
+    "pronunciation": "naṣaḥ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "نصحت", "pr": "naṣaḥit"}, "You (m)": {"ar": "نصحت", "pr": "naṣaḥit"}, "You (f)": {"ar": "نصحتي", "pr": "naṣaḥti"}, "He": {"ar": "نصح", "pr": "naṣaḥ"}, "She": {"ar": "نصحت", "pr": "naṣaḥit"},
+        "We": {"ar": "نصحنا", "pr": "naṣaḥna"}, "You (pl)": {"ar": "نصحتو", "pr": "naṣaḥtu"}, "They": {"ar": "نصحو", "pr": "naṣaḥu"}
+      },
+      "imperfect": {
+        "I": {"ar": "انصح", "pr": "anṣaḥ"}, "You (m)": {"ar": "تنصح", "pr": "tinṣaḥ"}, "You (f)": {"ar": "تنصحي", "pr": "tinṣaḥī"}, "He": {"ar": "ينصح", "pr": "yinṣaḥ"}, "She": {"ar": "تنصح", "pr": "tinṣaḥ"},
+        "We": {"ar": "ننصح", "pr": "ninṣaḥ"}, "You (pl)": {"ar": "تنصحو", "pr": "tinṣaḥu"}, "They": {"ar": "ينصحو", "pr": "yinṣaḥu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بنصَح", "pr": "banṣaḥ"}, "You (m)": {"ar": "بتنصح", "pr": "btinṣaḥ"}, "You (f)": {"ar": "بتنصحي", "pr": "btinṣaḥī"}, "He": {"ar": "بينصح", "pr": "byinṣaḥ"}, "She": {"ar": "بتنصح", "pr": "btinṣaḥ"},
+        "We": {"ar": "بننصح", "pr": "bninṣaḥ"}, "You (pl)": {"ar": "بتنصحو", "pr": "btinṣaḥu"}, "They": {"ar": "بينصحو", "pr": "byinṣaḥu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "انصح", "pr": "anṣaḥ"}, "You (f)": {"ar": "انصحي", "pr": "anṣaḥī"}, "You (pl)": {"ar": "انصحو", "pr": "anṣaḥu"}
+      },
+      "participle": {
+        "Male": {"ar": "ناصح", "pr": "nāṣiḥ"}, "Female": {"ar": "ناصحة", "pr": "nāṣḥa"}, "Plural": {"ar": "ناصحين", "pr": "nāṣḥīn"}
+      }
+    }
+  },
+  {
+    "english": "to allow / to permit",
+    "arabic": "سمح",
+    "pronunciation": "samaḥ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "سمحت", "pr": "samaḥit"}, "You (m)": {"ar": "سمحت", "pr": "samaḥit"}, "You (f)": {"ar": "سمحتي", "pr": "samaḥti"}, "He": {"ar": "سمح", "pr": "samaḥ"}, "She": {"ar": "سمحت", "pr": "samaḥit"},
+        "We": {"ar": "سمحنا", "pr": "samaḥna"}, "You (pl)": {"ar": "سمحتو", "pr": "samaḥtu"}, "They": {"ar": "سمحو", "pr": "samaḥu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اسمح", "pr": "asmaḥ"}, "You (m)": {"ar": "تسمح", "pr": "tismaḥ"}, "You (f)": {"ar": "تسمحي", "pr": "tismaḥī"}, "He": {"ar": "يسمح", "pr": "yismaḥ"}, "She": {"ar": "تسمح", "pr": "tismaḥ"},
+        "We": {"ar": "نسمح", "pr": "nismaḥ"}, "You (pl)": {"ar": "تسمحو", "pr": "tismaḥu"}, "They": {"ar": "يسمحو", "pr": "yismaḥu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بسمَح", "pr": "basmaḥ"}, "You (m)": {"ar": "بتسمح", "pr": "btismaḥ"}, "You (f)": {"ar": "بتسمحي", "pr": "btismaḥī"}, "He": {"ar": "بيسمح", "pr": "byismaḥ"}, "She": {"ar": "بتسمح", "pr": "btismaḥ"},
+        "We": {"ar": "بنسمح", "pr": "bnismaḥ"}, "You (pl)": {"ar": "بتسمحو", "pr": "btismaḥu"}, "They": {"ar": "بيسمحو", "pr": "byismaḥu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اسمح", "pr": "asmaḥ"}, "You (f)": {"ar": "اسمحي", "pr": "asmaḥī"}, "You (pl)": {"ar": "اسمحو", "pr": "asmaḥu"}
+      },
+      "participle": {
+        "Male": {"ar": "سامح", "pr": "sāmiḥ"}, "Female": {"ar": "سامحة", "pr": "sāmḥa"}, "Plural": {"ar": "سامحين", "pr": "sāmḥīn"}
+      }
+    }
+  },
+  {
+    "english": "to prevent / to ban",
+    "arabic": "منع",
+    "pronunciation": "mana3",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "منعت", "pr": "mana3it"}, "You (m)": {"ar": "منعت", "pr": "mana3it"}, "You (f)": {"ar": "منعتي", "pr": "mana3ti"}, "He": {"ar": "منع", "pr": "mana3"}, "She": {"ar": "منعت", "pr": "mana3at"},
+        "We": {"ar": "منعنا", "pr": "mana3na"}, "You (pl)": {"ar": "منعتو", "pr": "mana3tu"}, "They": {"ar": "منعو", "pr": "mana3u"}
+      },
+      "imperfect": {
+        "I": {"ar": "امنع", "pr": "amna3"}, "You (m)": {"ar": "تمنع", "pr": "timna3"}, "You (f)": {"ar": "تمنعي", "pr": "timna3ī"}, "He": {"ar": "يمنع", "pr": "yimna3"}, "She": {"ar": "تمنع", "pr": "timna3"},
+        "We": {"ar": "نمنع", "pr": "nimna3"}, "You (pl)": {"ar": "تمنعو", "pr": "timna3u"}, "They": {"ar": "يمنعو", "pr": "yimna3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بمنَع", "pr": "bamna3"}, "You (m)": {"ar": "بتمنع", "pr": "btimna3"}, "You (f)": {"ar": "بتمنعي", "pr": "btimna3ī"}, "He": {"ar": "بيمنع", "pr": "byimna3"}, "She": {"ar": "بتمنع", "pr": "btimna3"},
+        "We": {"ar": "بنمنع", "pr": "bnimna3"}, "You (pl)": {"ar": "بتمنعو", "pr": "btimna3u"}, "They": {"ar": "بيمنعو", "pr": "byimna3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "امنع", "pr": "amna3"}, "You (f)": {"ar": "امنعى", "pr": "amna3ī"}, "You (pl)": {"ar": "امنعو", "pr": "amna3u"}
+      },
+      "participle": {
+        "Male": {"ar": "مانع", "pr": "māni3"}, "Female": {"ar": "مانعة", "pr": "mān3a"}, "Plural": {"ar": "مانعين", "pr": "mān3īn"}
+      }
+    }
+  },
+  {
+    "english": "to lose (a game/money)",
+    "arabic": "خسر",
+    "pronunciation": "khisir",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "خسرت", "pr": "khsirit"}, "You (m)": {"ar": "خسرت", "pr": "khsirit"}, "You (f)": {"ar": "خسرتي", "pr": "khsirti"}, "He": {"ar": "خسر", "pr": "khisir"}, "She": {"ar": "خسرت", "pr": "khisrit"},
+        "We": {"ar": "خسرنا", "pr": "khsirna"}, "You (pl)": {"ar": "خسرتو", "pr": "khsirtu"}, "They": {"ar": "خسرو", "pr": "khisru"}
+      },
+      "imperfect": {
+        "I": {"ar": "اخسر", "pr": "akhsar"}, "You (m)": {"ar": "تخسر", "pr": "tikhsar"}, "You (f)": {"ar": "تخسري", "pr": "tikhsarī"}, "He": {"ar": "يخسر", "pr": "yikhsar"}, "She": {"ar": "تخسر", "pr": "tikhsar"},
+        "We": {"ar": "نخسر", "pr": "nikhsar"}, "You (pl)": {"ar": "تخسرو", "pr": "tikhsaru"}, "They": {"ar": "يخسرو", "pr": "yikhsaru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بخسَر", "pr": "bakhsar"}, "You (m)": {"ar": "بتخسر", "pr": "btikhsar"}, "You (f)": {"ar": "بتخسري", "pr": "btikhsarī"}, "He": {"ar": "بيخسر", "pr": "byikhsar"}, "She": {"ar": "بتخسر", "pr": "btikhsar"},
+        "We": {"ar": "بنخسر", "pr": "bnikhsar"}, "You (pl)": {"ar": "بتخسرو", "pr": "btikhsaru"}, "They": {"ar": "بيخسرو", "pr": "byikhsaru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اخسر", "pr": "akhsar"}, "You (f)": {"ar": "اخسري", "pr": "akhsarī"}, "You (pl)": {"ar": "اخسرو", "pr": "akhsaru"}
+      },
+      "participle": {
+        "Male": {"ar": "خسران", "pr": "khasrān"}, "Female": {"ar": "خسرانة", "pr": "khasrāne"}, "Plural": {"ar": "خسرانين", "pr": "khasrānīn"}
+      }
+    }
+  },
+  {
+    "english": "to win / to profit",
+    "arabic": "ربح",
+    "pronunciation": "ribiḥ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "ربحت", "pr": "rbiḥit"}, "You (m)": {"ar": "ربحت", "pr": "rbiḥit"}, "You (f)": {"ar": "ربحتي", "pr": "rbiḥti"}, "He": {"ar": "ربح", "pr": "ribiḥ"}, "She": {"ar": "ربحت", "pr": "ribḥit"},
+        "We": {"ar": "ربحنا", "pr": "rbiḥna"}, "You (pl)": {"ar": "ربحتو", "pr": "rbiḥtu"}, "They": {"ar": "ربحو", "pr": "ribḥu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اربحه", "pr": "irbaḥ"}, "You (m)": {"ar": "تربح", "pr": "tirbaḥ"}, "You (f)": {"ar": "تربحي", "pr": "tirbaḥī"}, "He": {"ar": "يربح", "pr": "yirbaḥ"}, "She": {"ar": "تربح", "pr": "tirbaḥ"},
+        "We": {"ar": "نربح", "pr": "nirbaḥ"}, "You (pl)": {"ar": "تربحو", "pr": "tirbaḥu"}, "They": {"ar": "يربحو", "pr": "yirbaḥu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بربَح", "pr": "birbaḥ"}, "You (m)": {"ar": "بتربح", "pr": "btirbaḥ"}, "You (f)": {"ar": "بتربحي", "pr": "btirbaḥī"}, "He": {"ar": "بيربح", "pr": "byirbaḥ"}, "She": {"ar": "بتربح", "pr": "btirbaḥ"},
+        "We": {"ar": "بنربح", "pr": "bnirbaḥ"}, "You (pl)": {"ar": "بتربحو", "pr": "btirbaḥu"}, "They": {"ar": "بيربحو", "pr": "byirbaḥu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اربَح", "pr": "irbaḥ"}, "You (f)": {"ar": "اربَحي", "pr": "irbaḥī"}, "You (pl)": {"ar": "اربَحو", "pr": "irbaḥu"}
+      },
+      "participle": {
+        "Male": {"ar": "ربحان", "pr": "rabḥān"}, "Female": {"ar": "ربحانة", "pr": "rabḥāne"}, "Plural": {"ar": "ربحانين", "pr": "rabḥānīn"}
+      }
+    }
+  },
+  {
+    "english": "to send",
+    "arabic": "بعت",
+    "pronunciation": "ba3at",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "بعتت", "pr": "ba3atit"}, "You (m)": {"ar": "بعتت", "pr": "ba3atit"}, "You (f)": {"ar": "بعتّي", "pr": "ba3atti"}, "He": {"ar": "بعت", "pr": "ba3at"}, "She": {"ar": "بعتت", "pr": "ba3atit"},
+        "We": {"ar": "بعتنا", "pr": "ba3atna"}, "You (pl)": {"ar": "بعتّو", "pr": "ba3attu"}, "They": {"ar": "بعتو", "pr": "ba3atu"}
+      },
+      "imperfect": {
+        "I": {"ar": "ابعت", "pr": "ib3at"}, "You (m)": {"ar": "تبعت", "pr": "tib3at"}, "You (f)": {"ar": "تبعتي", "pr": "tib3atī"}, "He": {"ar": "يبعت", "pr": "yib3at"}, "She": {"ar": "تبعت", "pr": "tib3at"},
+        "We": {"ar": "نبعت", "pr": "nib3at"}, "You (pl)": {"ar": "تبعتو", "pr": "tib3atu"}, "They": {"ar": "يبعتو", "pr": "yib3atu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "ببْعَت", "pr": "bib3at"}, "You (m)": {"ar": "بتبعت", "pr": "btib3at"}, "You (f)": {"ar": "بتبعتي", "pr": "btib3atī"}, "He": {"ar": "بيبِعت", "pr": "byib3at"}, "She": {"ar": "بتبعت", "pr": "btib3at"},
+        "We": {"ar": "بنبعت", "pr": "bnib3at"}, "You (pl)": {"ar": "بتبعتو", "pr": "btib3atu"}, "They": {"ar": "بيبعتو", "pr": "byib3atu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ابعت", "pr": "ib3at"}, "You (f)": {"ar": "ابعتي", "pr": "ib3atī"}, "You (pl)": {"ar": "ابعتو", "pr": "ib3atu"}
+      },
+      "participle": {
+        "Male": {"ar": "باعت", "pr": "bā3it"}, "Female": {"ar": "باعثة", "pr": "bā3the"}, "Plural": {"ar": "باعتين", "pr": "bā3tīn"}
+      }
+    }
+  },
+  {
+    "english": "to show",
+    "arabic": "فرّج",
+    "pronunciation": "farraj",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "فرّجت", "pr": "farrajit"}, "You (m)": {"ar": "فرّجت", "pr": "farrajit"}, "You (f)": {"ar": "فرّجتي", "pr": "farrajti"}, "He": {"ar": "فرّج", "pr": "farraj"}, "She": {"ar": "فرّجت", "pr": "farrajit"},
+        "We": {"ar": "فرّجنا", "pr": "farrajna"}, "You (pl)": {"ar": "فرّجتو", "pr": "farrajtu"}, "They": {"ar": "فرّجو", "pr": "farraju"}
+      },
+      "imperfect": {
+        "I": {"ar": "فرّج", "pr": "farrij"}, "You (m)": {"ar": "تفرّج", "pr": "tfarrij"}, "You (f)": {"ar": "تفرّجي", "pr": "tfarrjī"}, "He": {"ar": "يفرّج", "pr": "yfarrij"}, "She": {"ar": "تفرّج", "pr": "tfarrij"},
+        "We": {"ar": "نفرّج", "pr": "nfarrij"}, "You (pl)": {"ar": "تفرّجو", "pr": "tfarrju"}, "They": {"ar": "يفرّجو", "pr": "yfarrju"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بفرّج", "pr": "bfarrij"}, "You (m)": {"ar": "بتفرّج", "pr": "btfarrij"}, "You (f)": {"ar": "بتفرّجي", "pr": "btfarrjī"}, "He": {"ar": "بيفرّج", "pr": "byfarrij"}, "She": {"ar": "بتفرّج", "pr": "btfarrij"},
+        "We": {"ar": "بنفرّج", "pr": "bnfarrij"}, "You (pl)": {"ar": "بتفرّجو", "pr": "btfarrju"}, "They": {"ar": "بيفرّجو", "pr": "yfarrju"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "فرّج", "pr": "farrij"}, "You (f)": {"ar": "فرّجي", "pr": "tfarrjī"}, "You (pl)": {"ar": "فرّجو", "pr": "tfarrju"}
+      },
+      "participle": {
+        "Male": {"ar": "مفرّج", "pr": "mfarrij"}, "Female": {"ar": "مفرّجة", "pr": "mfarrja"}, "Plural": {"ar": "مفرّجين", "pr": "mfarrjīn"}
+      }
+    }
+  },
+  {
+    "english": "to introduce / to define",
+    "arabic": "عرّف",
+    "pronunciation": "3arraf",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "عرّفت", "pr": "3arrafet"}, "You (m)": {"ar": "عرّفت", "pr": "3arrafet"}, "You (f)": {"ar": "عرّفتي", "pr": "3arrafti"}, "He": {"ar": "عرّف", "pr": "3arraf"}, "She": {"ar": "عرّفت", "pr": "3arrafet"},
+        "We": {"ar": "عرّفنا", "pr": "3arrafna"}, "You (pl)": {"ar": "عرّفتو", "pr": "3arraftu"}, "They": {"ar": "عرّفو", "pr": "3arrafu"}
+      },
+      "imperfect": {
+        "I": {"ar": "عرّف", "pr": "3arrif"}, "You (m)": {"ar": "تعرّف", "pr": "t3arrif"}, "You (f)": {"ar": "تعرّفي", "pr": "t3arrfī"}, "He": {"ar": "يعرّف", "pr": "y3arrif"}, "She": {"ar": "تعرّف", "pr": "t3arrif"},
+        "We": {"ar": "نعرّف", "pr": "n3arrif"}, "You (pl)": {"ar": "تعرّفو", "pr": "t3arrfu"}, "They": {"ar": "يعرّفو", "pr": "y3arrfu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بعرّف", "pr": "b3arrif"}, "You (m)": {"ar": "بتعرّف", "pr": "bt3arrif"}, "You (f)": {"ar": "بتعرّفي", "pr": "bt3arrfī"}, "He": {"ar": "بيعرّف", "pr": "by3arrif"}, "She": {"ar": "بتعرّف", "pr": "bt3arrif"},
+        "We": {"ar": "بنعرّف", "pr": "bn3arrif"}, "You (pl)": {"ar": "بتعرّفو", "pr": "bt3arrfu"}, "They": {"ar": "بيعرّفو", "pr": "by3arrfu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "عرّف", "pr": "3arrif"}, "You (f)": {"ar": "عرّفي", "pr": "3arrfī"}, "You (pl)": {"ar": "عرّفو", "pr": "3arrfu"}
+      },
+      "participle": {
+        "Male": {"ar": "معرّف", "pr": "m3arrif"}, "Female": {"ar": "معرّفة", "pr": "m3arrfa"}, "Plural": {"ar": "معرّفين", "pr": "m3arrfīn"}
+      }
+    }
+  },
+  {
+    "english": "to call / to contact",
+    "arabic": "اتّصل",
+    "pronunciation": "ittaṣal",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "اتّصلت", "pr": "ittaṣalet"}, "You (m)": {"ar": "اتّصلت", "pr": "ittaṣalet"}, "You (f)": {"ar": "اتّصلتي", "pr": "ittaṣalti"}, "He": {"ar": "اتّصل", "pr": "ittaṣal"}, "She": {"ar": "اتّصلت", "pr": "ittaṣalet"},
+        "We": {"ar": "اتّصلنا", "pr": "ittaṣalna"}, "You (pl)": {"ar": "اتّصلتو", "pr": "ittaṣaltu"}, "They": {"ar": "اتّصلو", "pr": "ittaṣalu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اتّصل", "pr": "ittiṣil"}, "You (m)": {"ar": "تتّصل", "pr": "tittiṣil"}, "You (f)": {"ar": "تتّصلي", "pr": "tittiṣlī"}, "He": {"ar": "يتّصل", "pr": "yittiṣil"}, "She": {"ar": "تتّصل", "pr": "tittiṣil"},
+        "We": {"ar": "نتّصل", "pr": "nittiṣil"}, "You (pl)": {"ar": "تتّصلو", "pr": "tittiṣlu"}, "They": {"ar": "يتّصلو", "pr": "yittiṣlu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بتّصِل", "pr": "bittiṣil"}, "You (m)": {"ar": "بتتّصل", "pr": "btittiṣil"}, "You (f)": {"ar": "بتتّصلي", "pr": "btittiṣlī"}, "He": {"ar": "بيتّصل", "pr": "byittiṣil"}, "She": {"ar": "بتتّصل", "pr": "btittiṣil"},
+        "We": {"ar": "بنتّصل", "pr": "bnittiṣil"}, "You (pl)": {"ar": "بتتّصلو", "pr": "btittiṣlu"}, "They": {"ar": "بيتّصلو", "pr": "byittiṣlu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اتّصل", "pr": "ittiṣil"}, "You (f)": {"ar": "اتّصلي", "pr": "ittiṣlī"}, "You (pl)": {"ar": "اتّصلو", "pr": "ittiṣlu"}
+      },
+      "participle": {
+        "Male": {"ar": "متّصل", "pr": "mittiṣil"}, "Female": {"ar": "متّصلة", "pr": "mittiṣla"}, "Plural": {"ar": "متّصلين", "pr": "mittiṣlīn"}
+      }
+    }
+  },
+  {
+    "english": "to agree",
+    "arabic": "اتّفق",
+    "pronunciation": "ittafaq",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "اتّفقت", "pr": "ittafaqet"}, "You (m)": {"ar": "اتّفقت", "pr": "ittafaqet"}, "You (f)": {"ar": "اتّفقتي", "pr": "ittafaqti"}, "He": {"ar": "اتّفق", "pr": "ittafaq"}, "She": {"ar": "اتّفقت", "pr": "ittafaqet"},
+        "We": {"ar": "اتّفقنا", "pr": "ittafaqna"}, "You (pl)": {"ar": "اتّفقتو", "pr": "ittafaqtu"}, "They": {"ar": "اتّفقو", "pr": "ittafaqu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اتّفق", "pr": "ittifiq"}, "You (m)": {"ar": "تتّفق", "pr": "tittifiq"}, "You (f)": {"ar": "تتّفقي", "pr": "tittifqī"}, "He": {"ar": "يتّفق", "pr": "yittifiq"}, "She": {"ar": "تتّفق", "pr": "tittifiq"},
+        "We": {"ar": "نتّفق", "pr": "nittifiq"}, "You (pl)": {"ar": "تتّفقو", "pr": "tittifqu"}, "They": {"ar": "يتّفقو", "pr": "yittifqu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بتّفِق", "pr": "bittifiq"}, "You (m)": {"ar": "بتتّفق", "pr": "btittifiq"}, "You (f)": {"ar": "بتتّفقي", "pr": "btittifqī"}, "He": {"ar": "بيتّفق", "pr": "byittifiq"}, "She": {"ar": "بتتّفق", "pr": "btittifiq"},
+        "We": {"ar": "بنتّفق", "pr": "bnittifiq"}, "You (pl)": {"ar": "بتتّفقو", "pr": "btittifqu"}, "They": {"ar": "بيتّفقو", "pr": "byittifqu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اتّفق", "pr": "ittifiq"}, "You (f)": {"ar": "اتّفقي", "pr": "ittifqī"}, "You (pl)": {"ar": "اتّفقو", "pr": "ittifqu"}
+      },
+      "participle": {
+        "Male": {"ar": "متّفق", "pr": "mittifiq"}, "Female": {"ar": "متّفقة", "pr": "mittifqa"}, "Plural": {"ar": "متّفقين", "pr": "mittifqīn"}
+      }
+    }
+  },
+  {
+    "english": "to learn",
+    "arabic": "تعلّم",
+    "pronunciation": "t3allam",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "تعلّمت", "pr": "t3allamet"}, "You (m)": {"ar": "تعلّمت", "pr": "t3allamet"}, "You (f)": {"ar": "تعلّمتي", "pr": "t3allamti"}, "He": {"ar": "تعلّم", "pr": "t3allam"}, "She": {"ar": "تعلّمت", "pr": "t3allamet"},
+        "We": {"ar": "تعلّمنا", "pr": "t3allamna"}, "You (pl)": {"ar": "تعلّمتو", "pr": "t3allamtu"}, "They": {"ar": "تعلّمو", "pr": "t3allamu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اتعلّم", "pr": "it3allam"}, "You (m)": {"ar": "تتعلّم", "pr": "tit3allam"}, "You (f)": {"ar": "تتعلّمي", "pr": "tit3allmī"}, "He": {"ar": "يتعلّم", "pr": "yit3allam"}, "She": {"ar": "تتعلّم", "pr": "tit3allam"},
+        "We": {"ar": "نتعلّم", "pr": "nit3allam"}, "You (pl)": {"ar": "تتعلّمو", "pr": "tit3allmu"}, "They": {"ar": "يتعلّمو", "pr": "yit3allmu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بتْعلَّم", "pr": "bit3allam"}, "You (m)": {"ar": "بتتعلّم", "pr": "btit3allam"}, "You (f)": {"ar": "بتتعلّمي", "pr": "btit3allmī"}, "He": {"ar": "بيتعلّم", "pr": "byit3allam"}, "She": {"ar": "بتتعلّم", "pr": "btit3allam"},
+        "We": {"ar": "بنتعلّم", "pr": "bnit3allam"}, "You (pl)": {"ar": "بتتعلّمو", "pr": "btit3allmu"}, "They": {"ar": "بيتعلّمو", "pr": "byit3allmu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "تعلّم", "pr": "t3allam"}, "You (f)": {"ar": "تعلّمي", "pr": "t3allmī"}, "You (pl)": {"ar": "تعلّمو", "pr": "t3allmu"}
+      },
+      "participle": {
+        "Male": {"ar": "متعلّم", "pr": "mit3allim"}, "Female": {"ar": "متعلّمة", "pr": "mit3allme"}, "Plural": {"ar": "متعلّمين", "pr": "mit3allmīn"}
+      }
+    }
+  },
+  {
+    "english": "to teach",
+    "arabic": "علّم",
+    "pronunciation": "3allam",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "علّمت", "pr": "3allamet"}, "You (m)": {"ar": "علّمت", "pr": "3allamet"}, "You (f)": {"ar": "علّمتي", "pr": "3allamti"}, "He": {"ar": "علّم", "pr": "3allam"}, "She": {"ar": "علّمت", "pr": "3allamet"},
+        "We": {"ar": "علّمنا", "pr": "3allamna"}, "You (pl)": {"ar": "علّمتو", "pr": "3allamtu"}, "They": {"ar": "علّمو", "pr": "3allamu"}
+      },
+      "imperfect": {
+        "I": {"ar": "علّم", "pr": "3allim"}, "You (m)": {"ar": "تعلّم", "pr": "t3allim"}, "You (f)": {"ar": "تعلّمي", "pr": "t3allmī"}, "He": {"ar": "يعلّم", "pr": "y3allim"}, "She": {"ar": "تعلّم", "pr": "t3allim"},
+        "We": {"ar": "نعلّم", "pr": "n3allim"}, "You (pl)": {"ar": "تعلّمو", "pr": "t3allmu"}, "They": {"ar": "يعلّمو", "pr": "y3allmu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بعلّم", "pr": "b3allim"}, "You (m)": {"ar": "بتعلّم", "pr": "bt3allim"}, "You (f)": {"ar": "بتعلّمي", "pr": "bt3allmī"}, "He": {"ar": "بيعلّم", "pr": "by3allim"}, "She": {"ar": "بتعلّم", "pr": "bt3allim"},
+        "We": {"ar": "بنعلّم", "pr": "bn3allim"}, "You (pl)": {"ar": "بتعلّمو", "pr": "bt3allmu"}, "They": {"ar": "بيعلّمو", "pr": "by3allmu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "علّم", "pr": "3allim"}, "You (f)": {"ar": "علّمي", "pr": "3allmī"}, "You (pl)": {"ar": "علّمو", "pr": "3allmu"}
+      },
+      "participle": {
+        "Male": {"ar": "معلّم", "pr": "m3allim"}, "Female": {"ar": "معلّمة", "pr": "m3allme"}, "Plural": {"ar": "معلّمين", "pr": "m3allmīn"}
+      }
+    }
+  },
+  {
+    "english": "to feel",
+    "arabic": "حسّ",
+    "pronunciation": "ḥass",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "حسّيت", "pr": "ḥasayt"}, "You (m)": {"ar": "حسّيت", "pr": "ḥasayt"}, "You (f)": {"ar": "حسّيتي", "pr": "ḥasayti"}, "He": {"ar": "حسّ", "pr": "ḥass"}, "She": {"ar": "حسّت", "pr": "ḥassat"},
+        "We": {"ar": "حسّينا", "pr": "ḥasayna"}, "You (pl)": {"ar": "حسّيتو", "pr": "ḥasaytu"}, "They": {"ar": "حسّو", "pr": "ḥassu"}
+      },
+      "imperfect": {
+        "I": {"ar": "احس", "pr": "iḥiss"}, "You (m)": {"ar": "تحس", "pr": "tiḥiss"}, "You (f)": {"ar": "تحسّي", "pr": "tiḥissī"}, "He": {"ar": "يحس", "pr": "yiḥiss"}, "She": {"ar": "تحس", "pr": "tiḥiss"},
+        "We": {"ar": "نحس", "pr": "niḥiss"}, "You (pl)": {"ar": "تحسّو", "pr": "tiḥissu"}, "They": {"ar": "يحسّو", "pr": "yiḥissu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بحِسّ", "pr": "biḥiss"}, "You (m)": {"ar": "بتحس", "pr": "btiḥiss"}, "You (f)": {"ar": "بتحسّي", "pr": "btiḥissī"}, "He": {"ar": "بيحس", "pr": "byiḥiss"}, "She": {"ar": "بتحس", "pr": "btiḥiss"},
+        "We": {"ar": "بنحس", "pr": "bniḥiss"}, "You (pl)": {"ar": "بتحسّو", "pr": "btiḥissu"}, "They": {"ar": "بيحسّو", "pr": "byiḥissu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "حسّ", "pr": "ḥiss"}, "You (f)": {"ar": "حسّي", "pr": "ḥissī"}, "You (pl)": {"ar": "حسّو", "pr": "ḥissu"}
+      },
+      "participle": {
+        "Male": {"ar": "حاسس", "pr": "ḥāsis"}, "Female": {"ar": "حاسة", "pr": "ḥāsse"}, "Plural": {"ar": "حاسين", "pr": "ḥāssīn"}
+      }
+    }
+  },
+  {
+    "english": "to touch",
+    "arabic": "لمس",
+    "pronunciation": "lamas",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "لمست", "pr": "lamasit"}, "You (m)": {"ar": "لمست", "pr": "lamasit"}, "You (f)": {"ar": "لمستي", "pr": "lamasti"}, "He": {"ar": "لمس", "pr": "lamas"}, "She": {"ar": "لمست", "pr": "lamasit"},
+        "We": {"ar": "لمسنا", "pr": "lamasna"}, "You (pl)": {"ar": "لمستو", "pr": "lamastu"}, "They": {"ar": "لمسو", "pr": "lamasu"}
+      },
+      "imperfect": {
+        "I": {"ar": "المس", "pr": "ilmus"}, "You (m)": {"ar": "تلمس", "pr": "tilmus"}, "You (f)": {"ar": "تلمسي", "pr": "tilmsī"}, "He": {"ar": "يلمس", "pr": "yilmus"}, "She": {"ar": "تلمس", "pr": "tilmus"},
+        "We": {"ar": "نلمس", "pr": "nilmus"}, "You (pl)": {"ar": "تلمسو", "pr": "tilmsu"}, "They": {"ar": "يلمسو", "pr": "yilmsu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بلمُس", "pr": "bilmus"}, "You (m)": {"ar": "بتلمس", "pr": "btilmus"}, "You (f)": {"ar": "بتلمسي", "pr": "btilmsī"}, "He": {"ar": "بيلمس", "pr": "byilmus"}, "She": {"ar": "بتلمس", "pr": "btilmus"},
+        "We": {"ar": "بنلمس", "pr": "bnilmus"}, "You (pl)": {"ar": "بتلمسو", "pr": "btilmsu"}, "They": {"ar": "بيلمسو", "pr": "byilmsu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "المس", "pr": "ilmus"}, "You (f)": {"ar": "المسي", "pr": "ilmsī"}, "You (pl)": {"ar": "المسو", "pr": "ilmsu"}
+      },
+      "participle": {
+        "Male": {"ar": "لامس", "pr": "lāmis"}, "Female": {"ar": "لامسة", "pr": "lāmse"}, "Plural": {"ar": "لامسين", "pr": "lāmsīn"}
+      }
+    }
+  },
+  {
+    "english": "to smell",
+    "arabic": "شمّ",
+    "pronunciation": "shamm",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "شمّيت", "pr": "shammayt"}, "You (m)": {"ar": "شمّيت", "pr": "shammayt"}, "You (f)": {"ar": "شمّيتي", "pr": "shammayti"}, "He": {"ar": "شمّ", "pr": "shamm"}, "She": {"ar": "شمّت", "pr": "shammat"},
+        "We": {"ar": "شمّينا", "pr": "shammayna"}, "You (pl)": {"ar": "شمّيتو", "pr": "shammaytu"}, "They": {"ar": "شمّو", "pr": "shammu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اشم", "pr": "ishimm"}, "You (m)": {"ar": "تشم", "pr": "tishimm"}, "You (f)": {"ar": "تشمّي", "pr": "tishimmī"}, "He": {"ar": "يشم", "pr": "yishimm"}, "She": {"ar": "تشم", "pr": "tishimm"},
+        "We": {"ar": "نشم", "pr": "nishimm"}, "You (pl)": {"ar": "تشمّو", "pr": "tishimmu"}, "They": {"ar": "يشمّو", "pr": "yishimmu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بشِمّ", "pr": "bishimm"}, "You (m)": {"ar": "بتشم", "pr": "btishimm"}, "You (f)": {"ar": "بتشمّي", "pr": "btishimmī"}, "He": {"ar": "بيشم", "pr": "byishimm"}, "She": {"ar": "بتشم", "pr": "btishimm"},
+        "We": {"ar": "بنشم", "pr": "bnishimm"}, "You (pl)": {"ar": "بتشمّو", "pr": "btishimmu"}, "They": {"ar": "بيشمّو", "pr": "byishimmu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "شمّ", "pr": "shimm"}, "You (f)": {"ar": "شمّي", "pr": "shimmī"}, "You (pl)": {"ar": "شمّو", "pr": "shimmu"}
+      },
+      "participle": {
+        "Male": {"ar": "شامم", "pr": "shāmim"}, "Female": {"ar": "شامة", "pr": "shāmme"}, "Plural": {"ar": "شامين", "pr": "shāmmīn"}
+      }
+    }
+  },
+  {
+    "english": "to taste",
+    "arabic": "داق",
+    "pronunciation": "dāq",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "دقت", "pr": "duqt"}, "You (m)": {"ar": "دقت", "pr": "duqt"}, "You (f)": {"ar": "دقّتي", "pr": "duqti"}, "He": {"ar": "داق", "pr": "dāq"}, "She": {"ar": "داقت", "pr": "dāqat"},
+        "We": {"ar": "دقنا", "pr": "duqna"}, "You (pl)": {"ar": "دقتو", "pr": "duqtu"}, "They": {"ar": "داقو", "pr": "dāqu"}
+      },
+      "imperfect": {
+        "I": {"ar": "ادوق", "pr": "idūq"}, "You (m)": {"ar": "تدوق", "pr": "tidūq"}, "You (f)": {"ar": "تدوقي", "pr": "tidūqī"}, "He": {"ar": "يدوق", "pr": "yidūq"}, "She": {"ar": "تدوق", "pr": "tidūq"},
+        "We": {"ar": "ندوق", "pr": "nidūq"}, "You (pl)": {"ar": "تدوقو", "pr": "tidūqu"}, "They": {"ar": "يدوقو", "pr": "yidūqu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بدوق", "pr": "bidūq"}, "You (m)": {"ar": "بتدوق", "pr": "btidūq"}, "You (f)": {"ar": "بتدوقي", "pr": "btidūqī"}, "He": {"ar": "بيدوق", "pr": "byidūq"}, "She": {"ar": "بتدوق", "pr": "btidūq"},
+        "We": {"ar": "بندوق", "pr": "bnidūq"}, "You (pl)": {"ar": "بتدوقو", "pr": "btidūqu"}, "They": {"ar": "بيدوقو", "pr": "byidūqu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "دوق", "pr": "dūq"}, "You (f)": {"ar": "دوقي", "pr": "dūqī"}, "You (pl)": {"ar": "دوقو", "pr": "dūqu"}
+      },
+      "participle": {
+        "Male": {"ar": "دايق", "pr": "dāyiq"}, "Female": {"ar": "دايقة", "pr": "dāyqa"}, "Plural": {"ar": "دايقين", "pr": "dāyqīn"}
+      }
+    }
+  },
+  {
+    "english": "to answer / to reply",
+    "arabic": "جاوب",
+    "pronunciation": "jāwab",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "جاوبت", "pr": "jāwabit"}, "You (m)": {"ar": "جاوبت", "pr": "jāwabit"}, "You (f)": {"ar": "جاوبتي", "pr": "jāwabti"}, "He": {"ar": "جاوب", "pr": "jāwab"}, "She": {"ar": "جاوبت", "pr": "jāwabit"},
+        "We": {"ar": "جاوبنا", "pr": "jāwabna"}, "You (pl)": {"ar": "جاوبتو", "pr": "jāwabtu"}, "They": {"ar": "جاوبو", "pr": "jāwabu"}
+      },
+      "imperfect": {
+        "I": {"ar": "جاوب", "pr": "jāwib"}, "You (m)": {"ar": "تجاوب", "pr": "tjāwib"}, "You (f)": {"ar": "تجاوبي", "pr": "tjāwbī"}, "He": {"ar": "يجاوب", "pr": "yjāwib"}, "She": {"ar": "تجاوب", "pr": "tjāwib"},
+        "We": {"ar": "نجاوب", "pr": "njāwib"}, "You (pl)": {"ar": "تجاوبو", "pr": "tjāwbu"}, "They": {"ar": "يجاوِبو", "pr": "yjāwbu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بجَاوِب", "pr": "bjāwib"}, "You (m)": {"ar": "بتجاوب", "pr": "btjāwib"}, "You (f)": {"ar": "بتجاوبي", "pr": "btjāwbī"}, "He": {"ar": "بيجاوب", "pr": "byjāwib"}, "She": {"ar": "بتجاوب", "pr": "btjāwib"},
+        "We": {"ar": "بنجاوب", "pr": "bnjāwib"}, "You (pl)": {"ar": "بتجاوبو", "pr": "btjāwbu"}, "They": {"ar": "بيجاوبو", "pr": "byjāwbu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "جاوب", "pr": "jāwib"}, "You (f)": {"ar": "جاوبي", "pr": "tjāwbī"}, "You (pl)": {"ar": "جاوبو", "pr": "tjāwbu"}
+      },
+      "participle": {
+        "Male": {"ar": "مجاوب", "pr": "mjāwib"}, "Female": {"ar": "مجاوبة", "pr": "mjāwba"}, "Plural": {"ar": "مجاوبين", "pr": "mjāwbīn"}
+      }
+    }
+  },
+  {
+    "english": "to carry / to hold",
+    "arabic": "حمل",
+    "pronunciation": "ḥamal",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "حملت", "pr": "ḥamalit"}, "You (m)": {"ar": "حملت", "pr": "ḥamalit"}, "You (f)": {"ar": "حملتي", "pr": "ḥamalti"}, "He": {"ar": "حمل", "pr": "ḥamal"}, "She": {"ar": "حملت", "pr": "ḥamlit"},
+        "We": {"ar": "حملنا", "pr": "ḥamalna"}, "You (pl)": {"ar": "حملتو", "pr": "ḥamaltu"}, "They": {"ar": "حملو", "pr": "ḥamalu"}
+      },
+      "imperfect": {
+        "I": {"ar": "احمل", "pr": "iḥmil"}, "You (m)": {"ar": "تحمل", "pr": "tiḥmil"}, "You (f)": {"ar": "تحملي", "pr": "tiḥmlī"}, "He": {"ar": "يحمل", "pr": "yiḥmil"}, "She": {"ar": "تحمل", "pr": "tiḥmil"},
+        "We": {"ar": "نحمل", "pr": "niḥmil"}, "You (pl)": {"ar": "تحملو", "pr": "tiḥmlu"}, "They": {"ar": "يحملو", "pr": "yiḥmlu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بحمِل", "pr": "biḥmil"}, "You (m)": {"ar": "بتحمل", "pr": "btiḥmil"}, "You (f)": {"ar": "بتحملي", "pr": "btiḥmlī"}, "He": {"ar": "بيحمل", "pr": "byiḥmil"}, "She": {"ar": "بتحمل", "pr": "btiḥmil"},
+        "We": {"ar": "بنحمل", "pr": "bniḥmil"}, "You (pl)": {"ar": "بتحملو", "pr": "btiḥmlu"}, "They": {"ar": "بيحملو", "pr": "byiḥmlu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "احمل", "pr": "iḥmil"}, "You (f)": {"ar": "احملي", "pr": "iḥmlī"}, "You (pl)": {"ar": "احملو", "pr": "iḥmlu"}
+      },
+      "participle": {
+        "Male": {"ar": "حامل", "pr": "ḥāmil"}, "Female": {"ar": "حاملة", "pr": "ḥāmle"}, "Plural": {"ar": "حاملين", "pr": "ḥāmlīn"}
+      }
+    }
+  },
+  {
+    "english": "to throw",
+    "arabic": "رمى",
+    "pronunciation": "rama",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "رميت", "pr": "ramayt"}, "You (m)": {"ar": "رميت", "pr": "ramayt"}, "You (f)": {"ar": "رميتي", "pr": "ramayti"}, "He": {"ar": "رمى", "pr": "rama"}, "She": {"ar": "رمت", "pr": "ramat"},
+        "We": {"ar": "رمينا", "pr": "ramayna"}, "You (pl)": {"ar": "رميتو", "pr": "ramaytu"}, "They": {"ar": "رمو", "pr": "ramu"}
+      },
+      "imperfect": {
+        "I": {"ar": "ارمي", "pr": "irmi"}, "You (m)": {"ar": "ترمي", "pr": "tirmi"}, "You (f)": {"ar": "ترمي", "pr": "tirmī"}, "He": {"ar": "يرمي", "pr": "yirmi"}, "She": {"ar": "ترمي", "pr": "tirmi"},
+        "We": {"ar": "نرمي", "pr": "nirmi"}, "You (pl)": {"ar": "ترمو", "pr": "tirmū"}, "They": {"ar": "يرمو", "pr": "yirmū"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "برمِي", "pr": "birmi"}, "You (m)": {"ar": "بترمي", "pr": "btirmi"}, "You (f)": {"ar": "بترمي", "pr": "btirmī"}, "He": {"ar": "بيرمي", "pr": "byirmi"}, "She": {"ar": "بترمي", "pr": "btirmi"},
+        "We": {"ar": "بنرمي", "pr": "bnirmi"}, "You (pl)": {"ar": "بترمو", "pr": "btirmū"}, "They": {"ar": "بيرمو", "pr": "byirmū"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "ارمي", "pr": "irmi"}, "You (f)": {"ar": "ارمي", "pr": "irmī"}, "You (pl)": {"ar": "ارمو", "pr": "irmū"}
+      },
+      "participle": {
+        "Male": {"ar": "رامي", "pr": "rāmī"}, "Female": {"ar": "رامية", "pr": "rāmye"}, "Plural": {"ar": "راميين", "pr": "rāmyīn"}
+      }
+    }
+  },
+  {
+    "english": "to cut",
+    "arabic": "قطع",
+    "pronunciation": "qaṭa3",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "قطعت", "pr": "qaṭa3it"}, "You (m)": {"ar": "قطعت", "pr": "qaṭa3it"}, "You (f)": {"ar": "قطعتي", "pr": "qaṭa3ti"}, "He": {"ar": "قطع", "pr": "qaṭa3"}, "She": {"ar": "قطعت", "pr": "qaṭ3at"},
+        "We": {"ar": "قطعنا", "pr": "qaṭa3na"}, "You (pl)": {"ar": "قطعتو", "pr": "qaṭa3tu"}, "They": {"ar": "قطعو", "pr": "qaṭa3u"}
+      },
+      "imperfect": {
+        "I": {"ar": "اقطع", "pr": "iqṭa3"}, "You (m)": {"ar": "تقطع", "pr": "tiqṭa3"}, "You (f)": {"ar": "تقطعي", "pr": "tiqṭa3ī"}, "He": {"ar": "يقطع", "pr": "yiqṭa3"}, "She": {"ar": "تقطع", "pr": "tiqṭa3"},
+        "We": {"ar": "نقطع", "pr": "niqṭa3"}, "You (pl)": {"ar": "تقطعو", "pr": "tiqṭa3u"}, "They": {"ar": "يقطعو", "pr": "yiqṭa3u"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بقْطَع", "pr": "biqṭa3"}, "You (m)": {"ar": "بتقطع", "pr": "btiqṭa3"}, "You (f)": {"ar": "بتقطعي", "pr": "btiqṭa3ī"}, "He": {"ar": "بيقطع", "pr": "byiqṭa3"}, "She": {"ar": "بتقطع", "pr": "btiqṭa3"},
+        "We": {"ar": "بنقطع", "pr": "bniqṭa3"}, "You (pl)": {"ar": "بتقطعو", "pr": "btiqṭa3u"}, "They": {"ar": "بيقطعو", "pr": "byiqṭa3u"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اقطع", "pr": "iqṭa3"}, "You (f)": {"ar": "اقطعي", "pr": "iqṭa3ī"}, "You (pl)": {"ar": "اقطعو", "pr": "iqṭa3u"}
+      },
+      "participle": {
+        "Male": {"ar": "قاطع", "pr": "qāṭi3"}, "Female": {"ar": "قاطعة", "pr": "qāṭ3a"}, "Plural": {"ar": "قاطعين", "pr": "qāṭ3īn"}
+      }
+    }
+  },
+  {
+    "english": "to break",
+    "arabic": "كسر",
+    "pronunciation": "kasar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "كسرت", "pr": "kasarit"}, "You (m)": {"ar": "كسرت", "pr": "kasarit"}, "You (f)": {"ar": "كسرتي", "pr": "kasarti"}, "He": {"ar": "كسر", "pr": "kasar"}, "She": {"ar": "كسرت", "pr": "kasrat"},
+        "We": {"ar": "كسرنا", "pr": "kasarna"}, "You (pl)": {"ar": "كسرتو", "pr": "kasartu"}, "They": {"ar": "كسرو", "pr": "kasaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "اكسر", "pr": "iksir"}, "You (m)": {"ar": "تكسر", "pr": "tiksir"}, "You (f)": {"ar": "تكسري", "pr": "tiksirī"}, "He": {"ar": "يكسر", "pr": "yiksir"}, "She": {"ar": "تكسر", "pr": "tiksir"},
+        "We": {"ar": "نكسر", "pr": "niksir"}, "You (pl)": {"ar": "تكسرو", "pr": "tiksiru"}, "They": {"ar": "يكسرو", "pr": "yiksiru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بكسِر", "pr": "biksir"}, "You (m)": {"ar": "بتكسر", "pr": "btiksir"}, "You (f)": {"ar": "بتكسري", "pr": "btiksirī"}, "He": {"ar": "بيكسر", "pr": "byiksir"}, "She": {"ar": "بتكسر", "pr": "btiksir"},
+        "We": {"ar": "بنكسر", "pr": "bniksir"}, "You (pl)": {"ar": "بتكسرو", "pr": "btiksiru"}, "They": {"ar": "بيكسرو", "pr": "byiksiru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اكسر", "pr": "iksir"}, "You (f)": {"ar": "اكسري", "pr": "iksirī"}, "You (pl)": {"ar": "اكسرو", "pr": "iksiru"}
+      },
+      "participle": {
+        "Male": {"ar": "كاسر", "pr": "kāsir"}, "Female": {"ar": "كاسرة", "pr": "kāsre"}, "Plural": {"ar": "كاسرين", "pr": "kāsrīn"}
+      }
+    }
+  },
+  {
+    "english": "to fix / to repair",
+    "arabic": "صلّح",
+    "pronunciation": "ṣallaḥ",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "صلّحت", "pr": "ṣallaḥit"}, "You (m)": {"ar": "صلّحت", "pr": "ṣallaḥit"}, "You (f)": {"ar": "صلّحتي", "pr": "ṣallaḥti"}, "He": {"ar": "صلّح", "pr": "ṣallaḥ"}, "She": {"ar": "صلّحت", "pr": "ṣallaḥat"},
+        "We": {"ar": "صلّحنا", "pr": "ṣallaḥna"}, "You (pl)": {"ar": "صلّحتو", "pr": "ṣallaḥtu"}, "They": {"ar": "صلّحو", "pr": "ṣallaḥu"}
+      },
+      "imperfect": {
+        "I": {"ar": "صلّح", "pr": "ṣalliḥ"}, "You (m)": {"ar": "تصلّح", "pr": "tṣalliḥ"}, "You (f)": {"ar": "تصلّحي", "pr": "tṣallḥī"}, "He": {"ar": "يصلّح", "pr": "yṣalliḥ"}, "She": {"ar": "تصلّح", "pr": "tṣalliḥ"},
+        "We": {"ar": "نصلّح", "pr": "nṣalliḥ"}, "You (pl)": {"ar": "تصلّحو", "pr": "tṣallḥu"}, "They": {"ar": "يصلّحو", "pr": "yṣallḥu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بصلّح", "pr": "bṣalliḥ"}, "You (m)": {"ar": "بتصلّح", "pr": "btṣalliḥ"}, "You (f)": {"ar": "بتصلّحي", "pr": "btṣallḥī"}, "He": {"ar": "بيصلّح", "pr": "byṣalliḥ"}, "She": {"ar": "بتصلّح", "pr": "btṣalliḥ"},
+        "We": {"ar": "بنصلّح", "pr": "bnṣalliḥ"}, "You (pl)": {"ar": "بتصلّحو", "pr": "btṣallḥu"}, "They": {"ar": "بيصلّحو", "pr": "byṣallḥu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "صلّح", "pr": "ṣalliḥ"}, "You (f)": {"ar": "صلّحي", "pr": "tṣallḥī"}, "You (pl)": {"ar": "صلّحو", "pr": "tṣallḥu"}
+      },
+      "participle": {
+        "Male": {"ar": "مصلّح", "pr": "mṣalliḥ"}, "Female": {"ar": "مصلّحة", "pr": "mṣallḥa"}, "Plural": {"ar": "مصلّحين", "pr": "mṣallḥīn"}
+      }
+    }
+  },
+  {
+    "english": "to hide",
+    "arabic": "خبّى",
+    "pronunciation": "khabba",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "خبّيت", "pr": "khabbayt"}, "You (m)": {"ar": "خبّيت", "pr": "khabbayt"}, "You (f)": {"ar": "خبّيتي", "pr": "khabbayti"}, "He": {"ar": "خبّى", "pr": "khabba"}, "She": {"ar": "خبّت", "pr": "khabbat"},
+        "We": {"ar": "خبّينا", "pr": "khabbayna"}, "You (pl)": {"ar": "خبّيتو", "pr": "khabbaytu"}, "They": {"ar": "خبّو", "pr": "khabbu"}
+      },
+      "imperfect": {
+        "I": {"ar": "خبّي", "pr": "khabbi"}, "You (m)": {"ar": "تخبّي", "pr": "tkhabbi"}, "You (f)": {"ar": "تخبّي", "pr": "tkhabbī"}, "He": {"ar": "يخبّي", "pr": "ykhabbi"}, "She": {"ar": "تخبّي", "pr": "tkhabbi"},
+        "We": {"ar": "نخبّي", "pr": "nkhabbi"}, "You (pl)": {"ar": "تخبّو", "pr": "tkhabbū"}, "They": {"ar": "يخبّو", "pr": "ykhabbū"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بخبّي", "pr": "bkhabbi"}, "You (m)": {"ar": "بتخبّي", "pr": "btkhabbi"}, "You (f)": {"ar": "بتخبّي", "pr": "btkhabbī"}, "He": {"ar": "بيخبّي", "pr": "bykhabbi"}, "She": {"ar": "بتخبّي", "pr": "btkhabbi"},
+        "We": {"ar": "بنخبّي", "pr": "bnkhabbi"}, "You (pl)": {"ar": "بتخبّو", "pr": "btkhabbū"}, "They": {"ar": "بيخبّو", "pr": "bykhabbū"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "خبّي", "pr": "khabbi"}, "You (f)": {"ar": "خبّي", "pr": "khabbī"}, "You (pl)": {"ar": "خبّو", "pr": "khabbū"}
+      },
+      "participle": {
+        "Male": {"ar": "مخبّى", "pr": "mkhabbi"}, "Female": {"ar": "مخبّاية", "pr": "mkhabbāye"}, "Plural": {"ar": "مخبّايين", "pr": "mkhabbāyīn"}
+      }
+    }
+  },
+  {
+    "english": "to tell / to inform",
+    "arabic": "خبّر",
+    "pronunciation": "khabbar",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "خبّرت", "pr": "khabbarit"}, "You (m)": {"ar": "خبّرت", "pr": "khabbarit"}, "You (f)": {"ar": "خبّرتي", "pr": "khabbarti"}, "He": {"ar": "خبّر", "pr": "khabbar"}, "She": {"ar": "خبّرت", "pr": "khabbrat"},
+        "We": {"ar": "خبّرنا", "pr": "khabbarna"}, "You (pl)": {"ar": "خبّرتو", "pr": "khabbartu"}, "They": {"ar": "خبّرو", "pr": "khabbaru"}
+      },
+      "imperfect": {
+        "I": {"ar": "خبّر", "pr": "khabbir"}, "You (m)": {"ar": "تخبّر", "pr": "txabbir"}, "You (f)": {"ar": "تخبّري", "pr": "txabbrī"}, "He": {"ar": "يخبّر", "pr": "yxabbir"}, "She": {"ar": "تخبّر", "pr": "txabbir"},
+        "We": {"ar": "نخبّر", "pr": "nxabbir"}, "You (pl)": {"ar": "تخبّرو", "pr": "txabbru"}, "They": {"ar": "يخبّرو", "pr": "yxabbru"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بخبّر", "pr": "bkhabbir"}, "You (m)": {"ar": "بتخبّر", "pr": "btxabbir"}, "You (f)": {"ar": "بتخبّري", "pr": "btxabbrī"}, "He": {"ar": "بيخبّر", "pr": "byxabbir"}, "She": {"ar": "بتخبّر", "pr": "btxabbir"},
+        "We": {"ar": "بنخبّر", "pr": "bnxabbir"}, "You (pl)": {"ar": "بتخبّرو", "pr": "btxabbru"}, "They": {"ar": "بيخبّرو", "pr": "byxabbru"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "خبّر", "pr": "khabbir"}, "You (f)": {"ar": "خبّري", "pr": "khabbrī"}, "You (pl)": {"ar": "خبّرو", "pr": "khabbru"}
+      },
+      "participle": {
+        "Male": {"ar": "مخبّر", "pr": "mkhabbir"}, "Female": {"ar": "مخبّرة", "pr": "mkhabbra"}, "Plural": {"ar": "مخبّرين", "pr": "mkhabbrīn"}
+      }
+    }
+  },
+  {
+    "english": "to choose / to pick",
+    "arabic": "نقّى",
+    "pronunciation": "naqqa",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "نقّيت", "pr": "naqqayt"}, "You (m)": {"ar": "نقّيت", "pr": "naqqayt"}, "You (f)": {"ar": "نقّيتي", "pr": "naqqayti"}, "He": {"ar": "نقّى", "pr": "naqqa"}, "She": {"ar": "نقّت", "pr": "naqqat"},
+        "We": {"ar": "نقّينا", "pr": "naqqayna"}, "You (pl)": {"ar": "نقّيتو", "pr": "naqqaytu"}, "They": {"ar": "نقّو", "pr": "naqqu"}
+      },
+      "imperfect": {
+        "I": {"ar": "نقّي", "pr": "naqqi"}, "You (m)": {"ar": "تنقّي", "pr": "tnaqqi"}, "You (f)": {"ar": "تنقّي", "pr": "tnaqqī"}, "He": {"ar": "ينقّي", "pr": "ynaqqi"}, "She": {"ar": "تنقّي", "pr": "tnaqqi"},
+        "We": {"ar": "ننقّي", "pr": "nnaqqi"}, "You (pl)": {"ar": "تنقّو", "pr": "tnaqqū"}, "They": {"ar": "ينقّو", "pr": "ynaqqu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بنقّي", "pr": "bnaqqi"}, "You (m)": {"ar": "بتنقّي", "pr": "btnaqqi"}, "You (f)": {"ar": "بتنقّي", "pr": "btnaqqī"}, "He": {"ar": "بينقّي", "pr": "bynaqqi"}, "She": {"ar": "بتنقّي", "pr": "btnaqqi"},
+        "We": {"ar": "بننقّي", "pr": "bnnaqqi"}, "You (pl)": {"ar": "بتنقّو", "pr": "btnaqqū"}, "They": {"ar": "بينقّو", "pr": "bynaqqu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "نقّي", "pr": "naqqi"}, "You (f)": {"ar": "نقّي", "pr": "naqqī"}, "You (pl)": {"ar": "نقّو", "pr": "naqqū"}
+      },
+      "participle": {
+        "Male": {"ar": "منقّى", "pr": "mnaqqi"}, "Female": {"ar": "منقّاية", "pr": "mnaqqāye"}, "Plural": {"ar": "منقّايين", "pr": "mnaqqāyīn"}
+      }
+    }
+  },
+  {
+    "english": "to promise",
+    "arabic": "وعد",
+    "pronunciation": "wa3ad",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "وعدت", "pr": "wa3adit"}, "You (m)": {"ar": "وعدت", "pr": "wa3adit"}, "You (f)": {"ar": "وعدتي", "pr": "wa3adti"}, "He": {"ar": "وعد", "pr": "wa3ad"}, "She": {"ar": "وعدت", "pr": "wa3dat"},
+        "We": {"ar": "وعدنا", "pr": "wa3adna"}, "You (pl)": {"ar": "وعدتو", "pr": "wa3adtu"}, "They": {"ar": "وعدو", "pr": "wa3adu"}
+      },
+      "imperfect": {
+        "I": {"ar": "اوعد", "pr": "ū3id"}, "You (m)": {"ar": "توعد", "pr": "tū3id"}, "You (f)": {"ar": "توعدي", "pr": "tū3dī"}, "He": {"ar": "يوعد", "pr": "yū3id"}, "She": {"ar": "توعد", "pr": "tū3id"},
+        "We": {"ar": "نوعد", "pr": "nū3id"}, "You (pl)": {"ar": "توعدو", "pr": "tū3du"}, "They": {"ar": "يوعدو", "pr": "yū3du"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بوْعِد", "pr": "bū3id"}, "You (m)": {"ar": "بتوعد", "pr": "btū3id"}, "You (f)": {"ar": "بتوعدي", "pr": "btū3dī"}, "He": {"ar": "بيوعد", "pr": "byū3id"}, "She": {"ar": "بتوعد", "pr": "btū3id"},
+        "We": {"ar": "بنوعد", "pr": "bnū3id"}, "You (pl)": {"ar": "بتوعدو", "pr": "btū3du"}, "They": {"ar": "بيوعدو", "pr": "byū3du"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "اوعد", "pr": "ū3id"}, "You (f)": {"ar": "اوعدي", "pr": "ū3dī"}, "You (pl)": {"ar": "اوعدو", "pr": "ū3du"}
+      },
+      "participle": {
+        "Male": {"ar": "واعد", "pr": "wā3id"}, "Female": {"ar": "واعدة", "pr": "wā3de"}, "Plural": {"ar": "واعدين", "pr": "wā3dīn"}
+      }
+    }
+  },
+  {
+    "english": "to reserve / to book",
+    "arabic": "حجز",
+    "pronunciation": "ḥajaz",
+    "conjugations": {
+      "perfect": {
+        "I": {"ar": "حجزت", "pr": "ḥajazit"}, "You (m)": {"ar": "حجزت", "pr": "ḥajazit"}, "You (f)": {"ar": "حجزتي", "pr": "ḥajazti"}, "He": {"ar": "حجز", "pr": "ḥajaz"}, "She": {"ar": "حجزت", "pr": "ḥajzat"},
+        "We": {"ar": "حجزنا", "pr": "ḥajazna"}, "You (pl)": {"ar": "حجزتو", "pr": "ḥajaztu"}, "They": {"ar": "حجزو", "pr": "ḥajazu"}
+      },
+      "imperfect": {
+        "I": {"ar": "احجز", "pr": "iḥjiz"}, "You (m)": {"ar": "تحجز", "pr": "tiḥjiz"}, "You (f)": {"ar": "تحجزي", "pr": "tiḥjzī"}, "He": {"ar": "يحجز", "pr": "yihjiz"}, "She": {"ar": "تحجز", "pr": "tiḥjiz"},
+        "We": {"ar": "نحجز", "pr": "nihjiz"}, "You (pl)": {"ar": "تحجزو", "pr": "tiḥjzu"}, "They": {"ar": "يحجزو", "pr": "yihjzu"}
+      },
+      "bi_imperfect": {
+        "I": {"ar": "بحجِز", "pr": "biḥjiz"}, "You (m)": {"ar": "بتحجز", "pr": "btiḥjiz"}, "You (f)": {"ar": "بتحجزي", "pr": "btiḥjzī"}, "He": {"ar": "بيحجز", "pr": "byihjiz"}, "She": {"ar": "بتحجز", "pr": "btiḥjiz"},
+        "We": {"ar": "بنحجز", "pr": "bnihjiz"}, "You (pl)": {"ar": "بتحجزو", "pr": "btiḥjzu"}, "They": {"ar": "بيحجزو", "pr": "byihjzu"}
+      },
+      "imperative": {
+        "You (m)": {"ar": "احجز", "pr": "iḥjiz"}, "You (f)": {"ar": "احجزي", "pr": "iḥjzī"}, "You (pl)": {"ar": "احجزو", "pr": "iḥjzu"}
+      },
+      "participle": {
+        "Male": {"ar": "حاجز", "pr": "ḥājiz"}, "Female": {"ar": "حاجزة", "pr": "ḥājze"}, "Plural": {"ar": "حاجزين", "pr": "ḥājzīn"}
+      }
+    }
+  }
+ ];
+
+const suffixPractice = [
+        { en: "He saw me", ar: "شافني", pr: "shafni" },
+		{ en: "We wrote to him", ar: "كتبنالو", pr: "katabnalu" },
+        { en: "I told her", ar: "قلتلها", pr: "qiltilha" },
+        { en: "She took it (m)", ar: "أخذتو", pr: "akhdatu" },
+        { en: "They heard us", ar: "سمعونا", pr: "sim3una" },
+        { en: "He saw me", ar: "شافني", pr: "shafni" },
+        { en: "I told you (m)", ar: "قلتلك", pr: "2iltillak" },
+        { en: "She asked him", ar: "سألته", pr: "sa2alito" },
+        { en: "They heard us", ar: "سمعونا", pr: "sim3ūna" },
+        { en: "He brought it (m)", ar: "جابه", pr: "jābo" },
+        { en: "We found her", ar: "لاقيناها", pr: "lā2aynāha" },
+        { en: "You (m) took it (f)", ar: "أخدتها", pr: "akhadtha" },
+        { en: "She loves me", ar: "بتحبني", pr: "bti7ibbni" },
+        { en: "I understand you (f)", ar: "بفهمك", pr: "bafhamik" },
+        { en: "They gave us", ar: "عطونا", pr: "3aṭūna" },
+        { en: "He knows them", ar: "بيعرفهن", pr: "bya3rifhon" },
+        { en: "You (pl) saw her", ar: "شفتوها", pr: "shiftūha" },
+        { en: "We told them", ar: "قلنالهن", pr: "2ilnālahon" },
+        { en: "She brought me", ar: "جابتني", pr: "jābitni" },
+        { en: "I heard you (pl)", ar: "سمعتكن", pr: "smi3itkun" },
+        { en: "He wants me", ar: "بده ياني", pr: "baddo yānī" },
+        { en: "They left us", ar: "تركونا", pr: "tarakūna" },
+        { en: "You (f) found it (m)", ar: "لاقيتيه", pr: "lā2aytīh" },
+        { en: "We asked you (m)", ar: "سألناك", pr: "sa2alnāk" },
+        { en: "She put it (m)", ar: "حطته", pr: "ḥaṭṭito" },
+        { en: "They take me", ar: "بياخدوني", pr: "byākhdūnī" },
+        { en: "He brought her", ar: "جابها", pr: "jābha" },
+        { en: "I saw them", ar: "شفتهن", pr: "shifthon" },
+        { en: "They told me", ar: "قالولي", pr: "2ālūlī" },
+        { en: "She heard you (m)", ar: "سمعتك", pr: "sim3itak" },
+        { en: "We found it (m)", ar: "لاقيناه", pr: "lā2aynāh" },
+        { en: "You (m) asked us", ar: "سألتنا", pr: "sa2altna" },
+        { en: "He took me", ar: "أخدني", pr: "akhadni" },
+        { en: "She knows you (f)", ar: "بتعرفك", pr: "bta3rifik" },
+        { en: "I left them", ar: "تركتهن", pr: "tarakthon" },
+        { en: "They gave it (m)", ar: "عطوه", pr: "3aṭūh" },
+        { en: "You (pl) understood me", ar: "فهمتوني", pr: "fhimtūni" },
+        { en: "We put them", ar: "حطيناهن", pr: "ḥaṭṭaynāhon" },
+        { en: "He wants us", ar: "بده يانا", pr: "baddo yāna" },
+        { en: "She brought them", ar: "جابتهن", pr: "jābithon" },
+        { en: "I love you (pl)", ar: "بحبكن", pr: "bḥibbkun" },
+        { en: "They saw you (f)", ar: "شافوكي", pr: "shāfūki" },
+        { en: "You (m) told her", ar: "قلتلها", pr: "2iltilha" },
+        { en: "We hear him", ar: "منسمعه", pr: "mnisma3o" },
+        { en: "She left us", ar: "تركتنا", pr: "tarakitna" },
+        { en: "I know it (f)", ar: "بعرفها", pr: "ba3rifha" },
+		{ en: "He saw you (m)", ar: "شافك", pr: "shāfak" },
+		{ en: "I asked them", ar: "سألتن", pr: "sa2altan" },
+		{ en: "She gave me", ar: "عطتني", pr: "3aṭatni" },
+		{ en: "They understood her", ar: "فهموها", pr: "fhimūha" },
+		{ en: "We brought you (f)", ar: "جبناكي", pr: "jibnāki" },
+		{ en: "You (m) put it (m)", ar: "حطيته", pr: "ḥaṭṭēto" },
+		{ en: "He told us", ar: "قلنا", pr: "2ālna" },
+		{ en: "She took them", ar: "أخدتهن", pr: "akhadthon" },
+		{ en: "I found you (m)", ar: "لاقيتك", pr: "lā2ētāk" },
+		{ en: "They hear me", ar: "بيسمعوني", pr: "byisma3ūni" },
+		{ en: "We love her", ar: "منحبها", pr: "mniḥibba" },
+		{ en: "You (pl) left him", ar: "تركتوه", pr: "tarakētūh" },
+		{ en: "He knows me", ar: "بيعرفني", pr: "bya3rifni" },
+		{ en: "She saw you (pl)", ar: "شافتكن", pr: "shāfitkun" },
+		{ en: "I brought it (f)", ar: "جبتها", pr: "jibtīha" },
+		{ en: "They want you (m)", ar: "بدهم ياك", pr: "biddon yāk" },
+		{ en: "We heard her", ar: "سمعناها", pr: "simi3nāha" },
+		{ en: "You (f) told me", ar: "قلتيلي", pr: "2iltīli" },
+		{ en: "He asked you (f)", ar: "سألك", pr: "sa2alik" },
+		{ en: "She found us", ar: "لاقيتنا", pr: "lā2ētna" },
+		{ en: "I put it (f)", ar: "حطيتها", pr: "ḥaṭṭētīha" },
+		{ en: "They took you (f)", ar: "أخدوكي", pr: "akhadūki" },
+		{ en: "We understand them", ar: "منفهمهن", pr: "mnifhamhon" },
+		{ en: "You (m) gave her", ar: "عطيتها", pr: "3aṭētīha" },
+		{ en: "He left us", ar: "تركنا", pr: "tarakna" },
+		{ en: "She wants you (pl)", ar: "بدها ياكن", pr: "badda yākun" },
+		{ en: "I heard them", ar: "سمعتهن", pr: "simi3thon" },
+		{ en: "They saw him", ar: "شافوه", pr: "shāfūh" },
+		{ en: "We know you (m)", ar: "منعرفك", pr: "mna3rifak" },
+		{ en: "You (pl) brought me", ar: "جبتوني", pr: "jibtūni" },
+		{ en: "He loves her", ar: "بيحبها", pr: "byiḥibba" },
+    { en: "I told them", ar: "قلتلن", pr: "2iltillan" },
+    { en: "She brought you (m)", ar: "جابتك", pr: "jābitak" },
+    { en: "They asked me", ar: "سألوني", pr: "sa2alūni" },
+    { en: "We saw you (pl)", ar: "شفناكن", pr: "shifnākun" },
+    { en: "You (m) left it (m)", ar: "تركته", pr: "tarakto" },
+    { en: "He understands me", ar: "بيفهمني", pr: "byifhamni" },
+    { en: "She found you (f)", ar: "لاقيتكي", pr: "lā2ētiki" },
+    { en: "I gave them", ar: "عطيتن", pr: "3aṭētun" },
+    { en: "They put me", ar: "حطوني", pr: "ḥaṭṭūni" },
+    { en: "We took it (f)", ar: "أخدناها", pr: "akhadnāha" },
+    { en: "You (f) know us", ar: "بتعرفينا", pr: "bta3rifīna" },
+    { en: "He wants you (m)", ar: "بده ياك", pr: "baddo yāk" },
+    { en: "She heard them", ar: "سمعتهن", pr: "simi3thon" },
+    { en: "I brought her", ar: "جبتها", pr: "jibtaha" },
+    { en: "They saw us", ar: "شافونا", pr: "shāfūna" },
+    { en: "We asked him", ar: "سألناه", pr: "sa2alnāh" },
+    { en: "You (pl) love me", ar: "بتحبوني", pr: "btiḥibbūni" },
+    { en: "He told you (f)", ar: "قلك", pr: "2illik" },
+    { en: "She left him", ar: "تركته", pr: "tarakto" },
+    { en: "I took you (pl)", ar: "أخدتكن", pr: "akhadtkun" },
+    { en: "They know you (m)", ar: "بيعرفوك", pr: "bya3rifūk" },
+    { en: "We put it (m)", ar: "حطيناه", pr: "ḥaṭṭaynāh" },
+    { en: "You (m) hear her", ar: "بتسمعها", pr: "bitsma3ha" },
+    { en: "He found them", ar: "لاقاهن", pr: "lā2āhon" },
+    { en: "She gave us", ar: "عطتنا", pr: "3aṭatna" },
+    { en: "I understand you (m)", ar: "بفهمك", pr: "bafhamak" },
+    { en: "They brought it (m)", ar: "جابوه", pr: "jābūh" },
+    { en: "We want you (f)", ar: "بدنا ياكي", pr: "bidna yāki" },
+    { en: "You (f) saw me", ar: "شفتيني", pr: "shiftīni" },
+    { en: "He left them", ar: "تركهن", pr: "tarakhon" },
+    { en: "She told you (pl)", ar: "قالتلكن", pr: "2ālitilkun" },
+    { en: "I know her", ar: "بعرفها", pr: "ba3rifha" },
+    { en: "They heard you (m)", ar: "سمعوك", pr: "simi3ūk" },
+    { en: "We brought you (m)", ar: "جبناك", pr: "jibnāk" },
+    { en: "You (pl) put it (f)", ar: "حطيتوها", pr: "ḥaṭṭētūha" },
+    { en: "He asked us", ar: "سألنا", pr: "sa2alna" },
+    { en: "She loves you (m)", ar: "بتحبك", pr: "btiḥibbak" },
+    { en: "I took it (m)", ar: "أخدته", pr: "akhadto" },
+    { en: "They found her", ar: "لاقوها", pr: "lā2ūha" },
+    { en: "We give you (pl)", ar: "منعطيكن", pr: "mna3ṭīkun" },
+    { en: "You (m) want me", ar: "بدك ياني", pr: "biddak yāni" },
+    { en: "He brings us", ar: "بيجيبنا", pr: "byijībna" },
+    { en: "She understands him", ar: "بتفهمه", pr: "bitfahmo" },
+    { en: "I left you (m)", ar: "تركتك", pr: "taraktak" },
+    { en: "They told her", ar: "قالولها", pr: "2ālūlha" },
+    { en: "We saw you (m)", ar: "شفناك", pr: "shifnāk" },
+    { en: "You (f) heard me", ar: "سمعتيني", pr: "simi3tīni" },
+    { en: "He put them", ar: "حطهن", pr: "ḥaṭṭon" },
+    { en: "She knows us", ar: "بتعرفنا", pr: "bta3rifna" },
+	{ en: "He gave it to me", ar: "عطاني ياه", pr: "a3ṭāni yāh" },
+    { en: "She told it to him", ar: "قالتلو ياها", pr: "2ālitlo yāha" },
+    { en: "I brought it to you", ar: "جبتلك ياه", pr: "jibtillak yāh" },
+    { en: "They gave it to us", ar: "عطونا ياه", pr: "a3ṭūna yāh" },
+    { en: "We told it to her", ar: "حكينا إلها ياه", pr: "ḥakēna ilha yāh" },
+    { en: "He threw it to me", ar: "رمالي ياه", pr: "ramāli yāh" },
+    { en: "You brought it to them", ar: "جبتلن ياه", pr: "jibtillan yāh" },
+    { en: "She sent it to you", ar: "بعتتلكن ياها", pr: "ba3atatilkun yāha" },
+    { en: "I sold it to him", ar: "بعتلو ياها", pr: "bi3tillo yāha" },
+    { en: "They showed it to us", ar: "ورجونا ياها", pr: "warrajūna yāha" },
+    { en: "We offered it to her", ar: "قدمنا إلها ياه", pr: "2addamna ilha yāh" },
+    { en: "He explained it to me", ar: "شرحلي ياه", pr: "sharaḥli yāh" },
+    { en: "She wrote it to you", ar: "كتبتلك ياها", pr: "katabitlak yāha" },
+    { en: "I bought it for you", ar: "اشتريتلك ياه", pr: "ishtaraytillik yāh" },
+    { en: "They cooked it for us", ar: "طبخو لنا ياه", pr: "ṭabakhūlna yāh" },
+    { en: "We lent it to him", ar: "دّينا إلو ياه", pr: "dayyēna ilo yāh" },
+    { en: "You returned it to me", ar: "رجعتيلي ياه", pr: "rajja3tīli yāh" },
+    { en: "He read it to them", ar: "قرالُن ياه", pr: "2arālun yāh" },
+    { en: "She gave it to you", ar: "عطتك ياه", pr: "a3ṭitak yāh" },
+    { en: "I played it for her", ar: "سمّعتلا ياها", pr: "sammi3tla yāha" },
+    { en: "They asked for it from us", ar: "طلبوا منا ياه", pr: "ṭalabū minna yāh" },
+    { en: "We sang it to you", ar: "غنينا إلكن ياها", pr: "ghannēna ilkun yāha" },
+    { en: "He promised it to me", ar: "وعدني فيه", pr: "wa3adni fīh" },
+    { en: "She left it for us", ar: "تركتلنا ياها", pr: "tarakitilna yāha" },
+    { en: "I handed it to him", ar: "ناولتو ياها", pr: "nāwaltlo yāha" },
+    { en: "They sold it to us", ar: "باعونا ياه", pr: "bā3ūna yāh" },
+    { en: "We served it to them", ar: "صبينا إلن ياه", pr: "ṣabbēna ilon yāh" },
+    { en: "You drew it for me", ar: "رسمتلي ياها", pr: "rasamtīli yāha" },
+    { en: "He described it to her", ar: "وصفلا ياها", pr: "waṣafla yāha" },
+    { en: "She sang it to us", ar: "غنتلنا ياها", pr: "ghannat-ilna yāha" },
+	{ en: "He sent it to me", ar: "بعتلي ياه", pr: "ba3atli yāh" },
+    { en: "I told it to you (f)", ar: "قلتلك ياه", pr: "2iltillik yāh" },
+    { en: "She gave it to them", ar: "عطتن ياه", pr: "a3ṭiton yāh" },
+    { en: "They showed it to her", ar: "ورجوها ياه", pr: "warrajūha yāh" },
+    { en: "We bought it for him", ar: "اشترينا إلو ياه", pr: "ishtaraynālo yāh" },
+    { en: "You (m) left it for me", ar: "تركتلي ياه", pr: "taraketli yāh" },
+    { en: "He brought it to us", ar: "جاب النا ياه", pr: "jāb-ilna yāh" },
+    { en: "She read it to me", ar: "قرأتلي ياه", pr: "2aratli yāh" },
+    { en: "I offered it to you (pl)", ar: "قدمتلكن ياه", pr: "2addamtillkun yāh" },
+    { en: "They explained it to him", ar: "شرحولو ياه", pr: "sharaḥūlo yāh" },
+    { en: "We handed it to her", ar: "ناولناها ياه", pr: "nāwalnāha yāh" },
+    { en: "You (f) sold it to us", ar: "بعتّيلي ياه", pr: "bi3tīli yāh" },
+    { en: "He described it to you (m)", ar: "وصفلك ياه", pr: "waṣafillak yāh" },
+    { en: "She promised it to them", ar: "وعدتن فيه", pr: "wa3adton fīh" },
+    { en: "I lent it to her", ar: "دّيتلا ياه", pr: "dayyētla yāh" },
+    { en: "They cooked it for me", ar: "طبخولي ياه", pr: "ṭabakhūli yāh" },
+    { en: "We sang it to him", ar: "غنينا إلو ياه", pr: "ghannēna-ilo yāh" },
+    { en: "You (m) threw it to them", ar: "رميتلن ياه", pr: "ramētillan yāh" },
+    { en: "He returned it to us", ar: "رجع النا ياه", pr: "rajja3-ilna yāh" },
+    { en: "She sent it to him", ar: "بعتتلو ياها", pr: "ba3atatlo yāha" },
+    { en: "I drew it for her", ar: "رسمتلا ياها", pr: "rasamtla yāha" },
+    { en: "They wrote it to me", ar: "كتبولي ياه", pr: "katabūli yāh" },
+    { en: "We served it to you (f)", ar: "صبّينالك ياه", pr: "ṣabbēnillik yāh" },
+    { en: "You (pl) sold it to me", ar: "بعتولي ياه", pr: "bi3tūli yāh" },
+    { en: "He explained it to them", ar: "شرحلن ياه", pr: "sharaḥillan yāh" },
+    { en: "She handed it to you (m)", ar: "ناولتك ياه", pr: "nāwaltak yāh" },
+    { en: "I brought it to her", ar: "جبتلا ياه", pr: "jibtilla yāh" },
+    { en: "They offered it to us", ar: "قدمولنا ياه", pr: "2addamūlna yāh" },
+    { en: "We read it to you (pl)", ar: "قرأنا لكن ياه", pr: "2araynālkun yāh" },
+    { en: "You (f) left it for him", ar: "تركتيلو ياه", pr: "taraketīlo yāh" }
+	];
+	
+    // --- LOGIC ---
+    function togglePronunciation() {
+        if(document.getElementById('pronToggle').checked) {
+            document.body.classList.add('show-pronunciation');
+        } else {
+            document.body.classList.remove('show-pronunciation');
+        }
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById('nav-' + tabId).classList.add('active');
+        
+        if(tabId === 'conjugation') loadNewQuestion();
+        if(tabId === 'suffixes') loadNewSuffix();
+    }
+
+    let currentVerbIndex = 0;
+    let isFlipped = false;
+
+    function updateReviewCard() {
+        const v = verbs[currentVerbIndex];
+        const tense = document.getElementById('tenseSelect').value;
+        
+        document.getElementById('rev-ar').innerText = v.arabic;
+        document.getElementById('rev-pr').innerText = v.pronunciation;
+        document.getElementById('rev-en').innerText = v.english;
+        
+        document.getElementById('rev-tense-label').innerText = tense.replace('_', '-').toUpperCase();
+        let gridHTML = `<div class="conj-col"><strong>Singular</strong>`;
+        let pluralHTML = `<div class="conj-col"><strong>Plural</strong>`;
+        
+        const conjData = v.conjugations[tense];
+        
+        for (const [person, data] of Object.entries(conjData)) {
+            const itemStr = `<div class="conj-item"><span class="person-label">${person}</span><br>${data.ar} <span class="pron">${data.pr}</span></div>`;
+            if (person.includes("We") || person.includes("pl") || person.includes("They") || person === "Plural") {
+                pluralHTML += itemStr;
+            } else {
+                gridHTML += itemStr;
+            }
+        }
+        
+        gridHTML += `</div>` + pluralHTML + `</div>`;
+        document.getElementById('rev-grid').innerHTML = gridHTML;
+    }
+
+    function flipReviewCard() {
+        isFlipped = !isFlipped;
+        document.getElementById('review-front').style.display = isFlipped ? 'none' : 'block';
+        document.getElementById('review-back').style.display = isFlipped ? 'block' : 'none';
+    }
+
+    function nextVerb() {
+        currentVerbIndex = (currentVerbIndex + 1) % verbs.length;
+        if(isFlipped) flipReviewCard();
+        updateReviewCard();
+    }
+
+    function prevVerb() {
+        currentVerbIndex = (currentVerbIndex - 1 + verbs.length) % verbs.length;
+        if(isFlipped) flipReviewCard();
+        updateReviewCard();
+    }
+
+    let practiceQuestions = [];
+    let currentPracQ = {};
+
+    function generatePracticeQuestions() {
+        practiceQuestions = [];
+        verbs.forEach(v => {
+            for (const [tense, persons] of Object.entries(v.conjugations)) {
+                for (const [person, data] of Object.entries(persons)) {
+                    practiceQuestions.push({
+                        q_en: `${person} ${v.english}`,
+                        a_ar: data.ar,
+                        a_pr: data.pr,
+                        tense: tense
+                    });
+                }
+            }
+        });
+    }
+
+    function loadNewQuestion() {
+        if(practiceQuestions.length === 0) generatePracticeQuestions();
+        
+        const selectedTense = document.getElementById('pracTenseSelect').value;
+        let filtered = practiceQuestions;
+        if(selectedTense !== 'mixed') {
+            filtered = practiceQuestions.filter(q => q.tense === selectedTense);
+        }
+        
+        const randIndex = Math.floor(Math.random() * filtered.length);
+        currentPracQ = filtered[randIndex];
+        
+        const guessArabic = Math.random() > 0.5;
+
+        document.getElementById('prac-tense-hint').innerText = `Tense: ${currentPracQ.tense.replace('_',' ')}`;
+        document.getElementById('prac-a').classList.remove('visible');
+        document.getElementById('prac-btn').innerText = "Show Answer";
+
+        if(guessArabic) {
+            document.getElementById('prac-q').innerText = currentPracQ.q_en;
+            document.getElementById('prac-q-pr').innerText = "";
+            document.getElementById('prac-a-ar').innerText = currentPracQ.a_ar;
+            document.getElementById('prac-a-pr').innerText = currentPracQ.a_pr;
+        } else {
+            document.getElementById('prac-q').innerText = currentPracQ.a_ar;
+            document.getElementById('prac-q-pr').innerText = currentPracQ.a_pr;
+            document.getElementById('prac-a-ar').innerText = currentPracQ.q_en;
+            document.getElementById('prac-a-pr').innerText = "";
+        }
+    }
+
+    function handlePracticeClick() {
+        const answerBox = document.getElementById('prac-a');
+        if(answerBox.classList.contains('visible')) {
+            loadNewQuestion();
+        } else {
+            answerBox.classList.add('visible');
+            document.getElementById('prac-btn').innerText = "Next Question";
+        }
+    }
+
+    let currentSuffQ = {};
+
+    function loadNewSuffix() {
+        const randIndex = Math.floor(Math.random() * suffixPractice.length);
+        currentSuffQ = suffixPractice[randIndex];
+        
+        const guessArabic = Math.random() > 0.5;
+        document.getElementById('suff-a').classList.remove('visible');
+        document.getElementById('suff-btn').innerText = "Show Answer";
+
+        if(guessArabic) {
+            document.getElementById('suff-q').innerText = currentSuffQ.en;
+            document.getElementById('suff-q-pr').innerText = "";
+            document.getElementById('suff-a-ar').innerText = currentSuffQ.ar;
+            document.getElementById('suff-a-pr').innerText = currentSuffQ.pr;
+        } else {
+            document.getElementById('suff-q').innerText = currentSuffQ.ar;
+            document.getElementById('suff-q-pr').innerText = currentSuffQ.pr;
+            document.getElementById('suff-a-ar').innerText = currentSuffQ.en;
+            document.getElementById('suff-a-pr').innerText = "";
+        }
+    }
+
+    function handleSuffixClick() {
+        const answerBox = document.getElementById('suff-a');
+        if(answerBox.classList.contains('visible')) {
+            loadNewSuffix();
+        } else {
+            answerBox.classList.add('visible');
+            document.getElementById('suff-btn').innerText = "Next Question";
+        }
+    }
+
+    // Init
+    updateReviewCard();
+    generatePracticeQuestions();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Levantine Arabic Verbs Practice</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #0d9488;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --correct: #10b981;
+            --incorrect: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 70px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            padding: 16px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .controls-bar {
+            background-color: #ffffff;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--secondary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .nav-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 6px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-top: 3px solid var(--primary);
+            background-color: #f0f4ff;
+        }
+
+        .tab-icon {
+            font-size: 1.2rem;
+        }
+
+        .content-container {
+            padding: 0 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .app-section {
+            display: none;
+        }
+
+        .app-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            outline: none;
+        }
+        .search-box:focus {
+            border-color: var(--primary);
+        }
+
+        /* 3D Flashcard System Layout */
+        .verb-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .flashcard {
+            perspective: 1000px;
+            height: 110px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.4s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+        }
+
+        .flashcard-front {
+            background-color: var(--card-bg);
+            border-left: 4px solid var(--secondary);
+            justify-content: space-between;
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            transform: rotateY(180deg);
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            gap: 6px;
+        }
+
+        .verb-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .verb-id {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .verb-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            direction: rtl;
+        }
+
+        .verb-arabic-group {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .pronunciation {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            font-style: italic;
+        }
+
+        .flashcard-back .pronunciation {
+            color: #93c5fd;
+        }
+
+        .hidden-pron {
+            display: none !important;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .quiz-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .streak-badge {
+            background-color: #fef3c7;
+            color: #d97706;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .question-box {
+            margin: 20px 0;
+        }
+
+        .question-context {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .question-text {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .question-arabic-large {
+            font-size: 2.3rem;
+            color: #000000;
+            direction: rtl;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            background-color: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .option-btn:active {
+            transform: scale(0.99);
+        }
+
+        .option-btn.correct {
+            background-color: #d1fae5;
+            border-color: var(--correct);
+            color: #065f46;
+        }
+
+        .option-btn.incorrect {
+            background-color: #fee2e2;
+            border-color: var(--incorrect);
+            color: #991b1b;
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            height: 24px;
+        }
+
+        .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            display: none;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        }
+
+        .next-btn:active {
+            background-color: #1d4ed8;
+        }
+
+        .chips-container {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+        }
+        .chips-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+        }
+
+        .chip.active {
+            background-color: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Levantine Verbs Mastery</h1>
+        <p>Dynamic Interactive Lebanese Dialect App</p>
+    </header>
+
+    <div class="controls-bar">
+        <div class="toggle-container">
+            <span>🇱🇧 Show Pronunciation</span>
+            <label class="switch">
+                <input type="checkbox" id="pronToggle" checked onchange="togglePronunciation()">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div style="font-size: 0.75rem; font-weight: bold; color: var(--secondary);" id="globalCount">
+            103 Verbs Loaded
+        </div>
+    </div>
+
+    <div class="content-container">
+
+        <!-- SECTION 1: REVIEW -->
+        <div id="section-review" class="app-section active">
+            <input type="text" id="searchBar" class="search-box" placeholder="🔍 Search by English or Arabic..." oninput="filterVerbs()">
+            <div class="verb-list" id="verbListContainer">
+                <!-- Dynamically injected flashcards -->
+            </div>
+        </div>
+
+        <!-- SECTION 2: CONJUGATIONS -->
+        <div id="section-conjugation" class="app-section">
+            <div class="chips-container" id="tenseChips">
+                <button class="chip active" onclick="setTenseFilter('all', this)">All Tenses</button>
+                <button class="chip" onclick="setTenseFilter('past', this)">Past (الماضي)</button>
+                <button class="chip" onclick="setTenseFilter('imperfect', this)">Imperfect (المضارع)</button>
+                <button class="chip" onclick="setTenseFilter('bi-imperfect', this)">Bi-Imperfect (بـ)</button>
+            </div>
+            
+            <div class="quiz-container">
+                <div class="quiz-stats">
+                    <span id="conj-score">Score: 0/0</span>
+                    <span class="streak-badge" id="conj-streak">Streak: 0 🔥</span>
+                </div>
+                <div class="question-box" id="conj-question-box">
+                    <!-- Dynamic question content -->
+                </div>
+                <div class="options-grid" id="conj-options">
+                    <!-- Options buttons -->
+                </div>
+                <div class="feedback-msg" id="conj-feedback"></div>
+                <button class="next-btn" id="conj-next" onclick="generateConjugationQuestion()">Next Question ➡️</button>
+            </div>
+        </div>
+
+        <!-- SECTION 3: COMPLEX CONJUGATIONS -->
+        <div id="section-complex" class="app-section">
+            <div class="chips-container">
+                <button class="chip active" onclick="setComplexMode('all', this)">All Complex Mixed</button>
+                <button class="chip" onclick="setComplexMode('future', this)">Future (رح)</button>
+                <button class="chip" onclick="setComplexMode('want', this)">Want to (بدو)</button>
+                <button class="chip" onclick="setComplexMode('love', this)">Likes to (بحب)</button>
+                <button class="chip" onclick="setComplexMode('objects', this)">With Pronoun Objects</button>
+            </div>
+
+            <div class="quiz-container">
+                <div class="quiz-stats">
+                    <span id="complex-score">Score: 0/0</span>
+                    <span class="streak-badge" id="complex-streak">Streak: 0 🔥</span>
+                </div>
+                <div class="question-box" id="complex-question-box">
+                    <!-- Dynamic question content -->
+                </div>
+                <div class="options-grid" id="complex-options">
+                    <!-- Options buttons -->
+                </div>
+                <div class="feedback-msg" id="complex-feedback"></div>
+                <button class="next-btn" id="complex-next" onclick="generateComplexQuestion()">Next Question ➡️</button>
+            </div>
+        </div>
+
+        <!-- SECTION 4: ACTIVE PARTICIPLE -->
+        <div id="section-ap" class="app-section">
+            <div class="quiz-container">
+                <div class="quiz-stats">
+                    <span id="ap-score">Score: 0/0</span>
+                    <span class="streak-badge" id="ap-streak">Streak: 0 🔥</span>
+                </div>
+                <div class="question-box" id="ap-question-box">
+                    <!-- Dynamic question content -->
+                </div>
+                <div class="options-grid" id="ap-options">
+                    <!-- Options buttons -->
+                </div>
+                <div class="feedback-msg" id="ap-feedback"></div>
+                <button class="next-btn" id="ap-next" onclick="generateAPQuestion()">Next Question ➡️</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- STICKY FOOTER TABS FOR NAVIGATION -->
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchSection('review', this)">
+            <span class="tab-icon">📖</span>
+            <span>Review</span>
+        </button>
+        <button class="tab-btn" onclick="switchSection('conjugation', this); generateConjugationQuestion();">
+            <span class="tab-icon">🔄</span>
+            <span>Conjugations</span>
+        </button>
+        <button class="tab-btn" onclick="switchSection('complex', this); generateComplexQuestion();">
+            <span class="tab-icon">🧠</span>
+            <span>Complex</span>
+        </button>
+        <button class="tab-btn" onclick="switchSection('ap', this); generateAPQuestion();">
+            <span class="tab-icon">✨</span>
+            <span>Participle</span>
+        </button>
+    </nav>
+
+    <script>
+        const verbs = [{"id": 1, "past": "إجا", "present": "يجي", "past_tr": "ija", "present_tr": "yīji", "english": "come", "ap": "جاية", "ap_tr": "jāye", "type": "irregular"}, {"id": 2, "past": "أخد", "present": "ياخد", "past_tr": "akhad", "present_tr": "yākhod", "english": "take", "ap": "آخد", "ap_tr": "ākhid", "type": "sound_a"}, {"id": 3, "past": "أعلن", "present": "يعلن", "past_tr": "a'lan", "present_tr": "yi'lin", "english": "announce", "ap": "معلن", "ap_tr": "mu'lin", "type": "form_iv"}, {"id": 4, "past": "أكل", "present": "ياكل", "past_tr": "akal", "present_tr": "yākol", "english": "eat", "ap": "آكل", "ap_tr": "ākil", "type": "sound_a"}, {"id": 5, "past": "أمر", "present": "يؤمر", "past_tr": "amar", "present_tr": "yu'mor", "english": "order", "ap": "آمر", "ap_tr": "āmir", "type": "sound_a"}, {"id": 6, "past": "باع", "present": "يبيع", "past_tr": "bā'", "present_tr": "yibī'", "english": "sell", "ap": "بايع", "ap_tr": "bāyi'", "type": "hollow_i"}, {"id": 7, "past": "برم", "present": "يبرم", "past_tr": "baram", "present_tr": "yibrom", "english": "turn", "ap": "بارم", "ap_tr": "bārim", "type": "sound_o"}, {"id": 8, "past": "بقى", "present": "يبقى", "past_tr": "ba'a", "present_tr": "yib'a", "english": "become / stay", "ap": "باقي", "ap_tr": "bāqi", "type": "defective"}, {"id": 9, "past": "بلّش", "present": "يبلّش", "past_tr": "ballash", "present_tr": "yiballesh", "english": "begin", "ap": "مبلّش", "ap_tr": "mballish", "type": "form_ii"}, {"id": 10, "past": "ترك", "present": "يترك", "past_tr": "tarak", "present_tr": "yitrok", "english": "leave", "ap": "تارك", "ap_tr": "tārik", "type": "sound_o"}, {"id": 11, "past": "تعامل", "present": "يتتعامل", "past_tr": "t'āmal", "present_tr": "yit'āmal", "english": "treat", "ap": "متعامل", "ap_tr": "mit'āmil", "type": "form_vi"}, {"id": 12, "past": "تعلّم", "present": "يتعلّم", "past_tr": "t'allam", "present_tr": "yit'allam", "english": "learn", "ap": "متعلّم", "ap_tr": "mit'allim", "type": "form_v"}, {"id": 13, "past": "تغدّى", "present": "يتغدّى", "past_tr": "tghadda", "present_tr": "yitghadda", "english": "have lunch", "ap": "متغدّي", "ap_tr": "mitghaddi", "type": "form_v_def"}, {"id": 14, "past": "تفادى", "present": "يتفادى", "past_tr": "tfāda", "present_tr": "yitfāda", "english": "avoid", "ap": "متفادي", "ap_tr": "mitfādi", "type": "form_vi_def"}, {"id": 15, "past": "تلخبط", "present": "يتلخبط", "past_tr": "tlakhbat", "present_tr": "yitlakhbat", "english": "err", "ap": "متلخبط", "ap_tr": "mitlakhbit", "type": "quad"}, {"id": 16, "past": "تلفن", "present": "يتلفن", "past_tr": "talfan", "present_tr": "yitalfen", "english": "phone", "ap": "متلفن", "ap_tr": "mitalfin", "type": "quad"}, {"id": 17, "past": "تمنّى", "present": "يتمنّى", "past_tr": "tmanna", "present_tr": "yitmanna", "english": "hope", "ap": "متمنّي", "ap_tr": "mitmanni", "type": "form_v_def"}, {"id": 18, "past": "جاب", "present": "يجيب", "past_tr": "jāb", "present_tr": "yijīb", "english": "bring", "ap": "جايب", "ap_tr": "jāyib", "type": "hollow_i"}, {"id": 19, "past": "حاول", "present": "يحاول", "past_tr": "Hāwal", "present_tr": "yiHāwel", "english": "try", "ap": "محاول", "ap_tr": "mHāwil", "type": "form_iii"}, {"id": 20, "past": "حبّ", "present": "يحبّ", "past_tr": "Habb", "present_tr": "yiHibb", "english": "like / love", "ap": "حابب", "ap_tr": "Hābib", "type": "doubled"}, {"id": 21, "past": "حتفل", "present": "يحتفل", "past_tr": "iHtafal", "present_tr": "yiHtafil", "english": "celebrate", "ap": "محتفل", "ap_tr": "miHtifil", "type": "form_viii"}, {"id": 22, "past": "حرّك", "present": "يحرّك", "past_tr": "Harrak", "present_tr": "yiHarrek", "english": "move", "ap": "محرّك", "ap_tr": "mHarrik", "type": "form_ii"}, {"id": 23, "past": "حسّ", "present": "يحسّ", "past_tr": "Hass", "present_tr": "yiHiss", "english": "feel", "ap": "حاسس", "ap_tr": "Hāsis", "type": "doubled"}, {"id": 24, "past": "حضر", "present": "يحضر", "past_tr": "Hadar", "present_tr": "yiHdar", "english": "watch", "ap": "حاضر", "ap_tr": "Hādir", "type": "sound_a"}, {"id": 25, "past": "حطّ", "present": "يحطّ", "past_tr": "Hatt", "present_tr": "yaHutt", "english": "put", "ap": "حاطط", "ap_tr": "HāTit", "type": "doubled"}, {"id": 26, "past": "حكي", "present": "يحكي", "past_tr": "Haki", "present_tr": "yiHki", "english": "speak", "ap": "حاكي", "ap_tr": "Hāki", "type": "defective_i"}, {"id": 27, "past": "حمرّ", "present": "يحمرّ", "past_tr": "Hmarّ", "present_tr": "yiHmarr", "english": "turn red", "ap": "محمرّ", "ap_tr": "mHmarr", "type": "form_ix"}, {"id": 28, "past": "خلص", "present": "يخلص", "past_tr": "khalas", "present_tr": "yikhlas", "english": "stop / finish", "ap": "خالص", "ap_tr": "khāliS", "type": "sound_a"}, {"id": 29, "past": "خلّص", "present": "يخلّص", "past_tr": "khallas", "present_tr": "yikhalles", "english": "finish", "ap": "مخلّص", "ap_tr": "mkhalliS", "type": "form_ii"}, {"id": 30, "past": "خلّى", "present": "يخلّي", "past_tr": "khalla", "present_tr": "yikhalli", "english": "let / make", "ap": "مخلّي", "ap_tr": "mkhalli", "type": "form_ii_def"}, {"id": 31, "past": "درس", "present": "يدرس", "past_tr": "daras", "present_tr": "yidros", "english": "study", "ap": "دارس", "ap_tr": "dāris", "type": "sound_o"}, {"id": 32, "past": "دفع", "present": "يدفع", "past_tr": "dafa'", "present_tr": "yidfa'", "english": "pay", "ap": "دافع", "ap_tr": "dāfi'", "type": "sound_a"}, {"id": 33, "past": "دقّ", "present": "يدقّ", "past_tr": "daqq", "present_tr": "yiduqq", "english": "touch / ring", "ap": "داقّ", "ap_tr": "dāqq", "type": "doubled"}, {"id": 34, "past": "راح", "present": "يروح", "past_tr": "rāH", "present_tr": "yirūH", "english": "go", "ap": "رايح", "ap_tr": "rāyiH", "type": "hollow_u"}, {"id": 35, "past": "ربط", "present": "يربط", "past_tr": "rabat", "present_tr": "yirbot", "english": "bind", "ap": "رابط", "ap_tr": "rābiT", "type": "sound_o"}, {"id": 36, "past": "رتاح", "present": "يرتاح", "past_tr": "irtāH", "present_tr": "yirtāH", "english": "rest", "ap": "مرتاح", "ap_tr": "mirtāH", "type": "form_viii_hol"}, {"id": 37, "past": "رجع", "present": "يرجع", "past_tr": "riji'", "present_tr": "yirja'", "english": "return", "ap": "راجع", "ap_tr": "rāji'", "type": "sound_i_a"}, {"id": 38, "past": "ركب", "present": "يركب", "past_tr": "rikib", "present_tr": "yirkab", "english": "ride", "ap": "راكب", "ap_tr": "rākib", "type": "sound_i_a"}, {"id": 39, "past": "رمى", "present": "يرمي", "past_tr": "rama", "present_tr": "yirmi", "english": "throw", "ap": "رامي", "ap_tr": "rāmi", "type": "defective"}, {"id": 40, "past": "زار", "present": "يزور", "past_tr": "zār", "present_tr": "yizūr", "english": "visit", "ap": "زاير", "ap_tr": "zāyir", "type": "hollow_u"}, {"id": 41, "past": "ساعد", "present": "يساعد", "past_tr": "sā'ed", "present_tr": "yisā'ed", "english": "help", "ap": "مساعد", "ap_tr": "misā'id", "type": "form_iii"}, {"id": 42, "past": "سأل", "present": "يسأل", "past_tr": "sa'al", "present_tr": "yis'al", "english": "ask", "ap": "سائل", "ap_tr": "sā'il", "type": "sound_a"}, {"id": 43, "past": "ستعمل", "present": "يستعمل", "past_tr": "ista'mal", "present_tr": "yista'mil", "english": "use", "ap": "مستعمل", "ap_tr": "mista'mil", "type": "form_x"}, {"id": 44, "past": "ستهنى", "present": "يستهني", "past_tr": "istahna", "present_tr": "yistahni", "english": "enjoy", "ap": "مستهني", "ap_tr": "mistahni", "type": "form_x_def"}, {"id": 45, "past": "سكّر", "present": "يسكّر", "past_tr": "sakkar", "present_tr": "yisakker", "english": "close", "ap": "مسكّر", "ap_tr": "msakkar", "type": "form_ii"}, {"id": 46, "past": "سكن", "present": "يسكن", "past_tr": "sakan", "present_tr": "yiskon", "english": "live", "ap": "ساكن", "ap_tr": "sākin", "type": "sound_o"}, {"id": 47, "past": "سمع", "present": "يسمع", "past_tr": "simi'", "present_tr": "yisma'", "english": "hear", "ap": "سامع", "ap_tr": "sāmi'", "type": "sound_i_a"}, {"id": 48, "past": "شاف", "present": "يشوف", "past_tr": "shāf", "present_tr": "yishūf", "english": "see", "ap": "شايف", "ap_tr": "shāyif", "type": "hollow_u"}, {"id": 49, "past": "شترى", "present": "يشتري", "past_tr": "ishtara", "present_tr": "yishtri", "english": "buy", "ap": "مشتري", "ap_tr": "mishtri", "type": "form_viii_def"}, {"id": 50, "past": "شتغل", "present": "يشتغل", "past_tr": "ishtaghal", "present_tr": "yishtghil", "english": "work", "ap": "مشتغل", "ap_tr": "mishtghil", "type": "form_viii"}, {"id": 51, "past": "شرب", "present": "يشرب", "past_tr": "shrib", "present_tr": "yishrab", "english": "drink", "ap": "شارب", "ap_tr": "shārib", "type": "sound_i_a"}, {"id": 52, "past": "شكر", "present": "يشكر", "past_tr": "shakar", "present_tr": "yishkor", "english": "thank", "ap": "شاكر", "ap_tr": "shākir", "type": "sound_o"}, {"id": 53, "past": "صار", "present": "يصير", "past_tr": "sār", "present_tr": "yiSīr", "english": "become", "ap": "صاير", "ap_tr": "Sāyir", "type": "hollow_i"}, {"id": 54, "past": "ضحك", "present": "يضحك", "past_tr": "diHik", "present_tr": "yidHak", "english": "laugh", "ap": "ضاحك", "ap_tr": "DāHik", "type": "sound_i_a"}, {"id": 55, "past": "ضلّ", "present": "يضلّ", "past_tr": "dall", "present_tr": "yidall", "english": "stay / remain", "ap": "ضالّ", "ap_tr": "Dāll", "type": "doubled"}, {"id": 56, "past": "طبخ", "present": "يطبخ", "past_tr": "tabakh", "present_tr": "yitbokh", "english": "cook", "ap": "طابخ", "ap_tr": "Tābiikh", "type": "sound_o"}, {"id": 57, "past": "طلب", "present": "يطلب", "past_tr": "talab", "present_tr": "yitlob", "english": "request / order", "ap": "طالب", "ap_tr": "Tālib", "type": "sound_o"}, {"id": 58, "past": "طلع", "present": "يطلع", "past_tr": "tili'", "present_tr": "yitla'", "english": "ascend / go up", "ap": "طالع", "ap_tr": "Tāli'", "type": "sound_i_a"}, {"id": 59, "past": "عرف", "present": "يعرف", "past_tr": "'irif", "present_tr": "yi'raf", "english": "know", "ap": "عارف", "ap_tr": "'ārif", "type": "sound_i_a"}, {"id": 60, "past": "عزم", "present": "يعزم", "past_tr": "'azam", "present_tr": "yi'zim", "english": "invite", "ap": "عازم", "ap_tr": "'āzim", "type": "sound_i_a"}, {"id": 61, "past": "عطى", "present": "يعطي", "past_tr": "a'ta", "present_tr": "yi'ti", "english": "give", "ap": "عاطي", "ap_tr": "'āTi", "type": "defective"}, {"id": 62, "past": "عمل", "present": "يعمل", "past_tr": "'imil", "present_tr": "yi'mal", "english": "do / make", "ap": "عامل", "ap_tr": "'āmil", "type": "sound_i_a"}, {"id": 63, "past": "غسل", "present": "يغسل", "past_tr": "ghasal", "present_tr": "yighsil", "english": "wash", "ap": "غاسل", "ap_tr": "ghāsil", "type": "sound_i_a"}, {"id": 64, "past": "غيّر", "present": "يغيّر", "past_tr": "ghayyar", "present_tr": "yighayyer", "english": "change", "ap": "مغيّر", "ap_tr": "mghayyir", "type": "form_ii"}, {"id": 65, "past": "فاق", "present": "يفيق", "past_tr": "fāq", "present_tr": "yifīq", "english": "wake up", "ap": "فايق", "ap_tr": "fāyiq", "type": "hollow_i"}, {"id": 66, "past": "فتح", "present": "يفتح", "past_tr": "fataH", "present_tr": "yiftaH", "english": "open", "ap": "فاتح", "ap_tr": "fātiH", "type": "sound_a"}, {"id": 67, "past": "فرجى", "present": "يفرجي", "past_tr": "farja", "present_tr": "yifarji", "english": "show", "ap": "مفرجي", "ap_tr": "mifarji", "type": "form_ii_def"}, {"id": 68, "past": "فكّر", "present": "يفكّر", "past_tr": "fakkar", "present_tr": "yifakker", "english": "think", "ap": "مفكّر", "ap_tr": "mfakkir", "type": "form_ii"}, {"id": 69, "past": "فهم", "present": "يفهم", "past_tr": "fihim", "present_tr": "yifham", "english": "understand", "ap": "فاهم", "ap_tr": "fāhim", "type": "sound_i_a"}, {"id": 70, "past": "قال", "present": "يقول", "past_tr": "qāl", "present_tr": "yiqūl", "english": "say", "ap": "قايل", "ap_tr": "qāyil", "type": "hollow_u"}, {"id": 71, "past": "قبض", "present": "يقبض", "past_tr": "qabad", "present_tr": "yiqbod", "english": "earn / receive pay", "ap": "قابض", "ap_tr": "qābiD", "type": "sound_o"}, {"id": 72, "past": "قتل", "present": "يقتل", "past_tr": "qatal", "present_tr": "yiqtol", "english": "kill", "ap": "قاتل", "ap_tr": "qātil", "type": "sound_o"}, {"id": 73, "past": "قدر", "present": "يقدر", "past_tr": "qidir", "present_tr": "yiqdar", "english": "be able to", "ap": "قادر", "ap_tr": "qādir", "type": "sound_i_a"}, {"id": 74, "past": "قرأ", "present": "يقرأ", "past_tr": "qara", "present_tr": "yiqra", "english": "read", "ap": "قاري", "ap_tr": "qāri", "type": "sound_a"}, {"id": 75, "past": "قعد", "present": "يقعد", "past_tr": "qi'id", "present_tr": "yi'qod", "english": "sit", "ap": "قاعد", "ap_tr": "qā'id", "type": "sound_o"}, {"id": 76, "past": "كان", "present": "يكون", "past_tr": "kān", "present_tr": "yikūn", "english": "be", "ap": "كايم", "ap_tr": "kāyin", "type": "hollow_u"}, {"id": 77, "past": "كتب", "present": "يكتب", "past_tr": "katab", "present_tr": "yiktob", "english": "write", "ap": "كاتب", "ap_tr": "kātib", "type": "sound_o"}, {"id": 78, "past": "كذب", "present": "يكذب", "past_tr": "kizib", "present_tr": "yikzib", "english": "lie", "ap": "كاذب", "ap_tr": "kāzib", "type": "sound_i_a"}, {"id": 79, "past": "لقى", "present": "يلاقي", "past_tr": "laqa", "present_tr": "yilāqi", "english": "find", "ap": "لاقي", "ap_tr": "lāqi", "type": "defective"}, {"id": 80, "past": "لبس", "present": "يلبس", "past_tr": "libis", "present_tr": "yilbas", "english": "wear", "ap": "لابس", "ap_tr": "lābis", "type": "sound_i_a"}, {"id": 81, "past": "لعب", "present": "يلعب", "past_tr": "li'ib", "present_tr": "yil'ab", "english": "play", "ap": "لاعب", "ap_tr": "lā'ib", "type": "sound_i_a"}, {"id": 82, "past": "مسك", "present": "يمسك", "past_tr": "misik", "present_tr": "yimsik", "english": "hold", "ap": "ماسك", "ap_tr": "māsik", "type": "sound_i_a"}, {"id": 83, "past": "مشي", "present": "يمشي", "past_tr": "mishi", "present_tr": "yimshi", "english": "walk", "ap": "ماشي", "ap_tr": "māshi", "type": "defective_i"}, {"id": 84, "past": "نام", "present": "ينام", "past_tr": "nām", "present_tr": "yinām", "english": "sleep", "ap": "نايم", "ap_tr": "nāyim", "type": "hollow_a"}, {"id": 85, "past": "نبسط", "present": "ينبسط", "past_tr": "inbasat", "present_tr": "yinbSit", "english": "enjoy / be happy", "ap": "منبسط", "ap_tr": "minbSit", "type": "form_vii"}, {"id": 86, "past": "نسي", "present": "ينسى", "past_tr": "nisi", "present_tr": "yinsa", "english": "forget", "ap": "ناسي", "ap_tr": "nāsi", "type": "defective_i"}, {"id": 87, "past": "نضمّ", "present": "ينضمّ", "past_tr": "indamm", "present_tr": "yindamm", "english": "join", "ap": "منضمّ", "ap_tr": "mindamm", "type": "form_vii_doub"}, {"id": 88, "past": "نطر", "present": "ينطر", "past_tr": "natar", "present_tr": "yinTor", "english": "wait", "ap": "ناطر", "ap_tr": "nāTir", "type": "sound_o"}, {"id": 89, "past": "نقال", "present": "ينقال", "past_tr": "inqāl", "present_tr": "yinqāl", "english": "be said", "ap": "منقال", "ap_tr": "minqāl", "type": "form_vii_hol"}, {"id": 90, "past": "نلغى", "present": "ينلغى", "past_tr": "inlgha", "present_tr": "yinlgha", "english": "be canceled", "ap": "منلغي", "ap_tr": "minlghi", "type": "form_vii_def"}, {"id": 91, "past": "هتمّ", "present": "يهتمّ", "past_tr": "ihtamm", "present_tr": "yihtamm", "english": "be interested", "ap": "مهتمّ", "ap_tr": "mihtamm", "type": "form_viii_doub"}, {"id": 92, "past": "وصل", "present": "يوصل", "past_tr": "wisil", "present_tr": "yiwSal", "english": "arrive", "ap": "واصل", "ap_tr": "wāSil", "type": "sound_i_a"}, {"id": 93, "past": "وعد", "present": "يوعد", "past_tr": "wa'ad", "present_tr": "yū'ad", "english": "promise", "ap": "واعد", "ap_tr": "wā'id", "type": "sound_a"}, {"id": 94, "past": "وقع", "present": "يوقع", "past_tr": "wiqi'", "present_tr": "yūqa'", "english": "fall", "ap": "واقع", "ap_tr": "wāqi'", "type": "sound_i_a"}, {"id": 95, "past": "وقف", "present": "يوقف", "past_tr": "wiqif", "present_tr": "yūqaf", "english": "stand", "ap": "واقف", "ap_tr": "wāqif", "type": "sound_i_a"}, {"id": 96, "past": "وقفّ", "present": "يوقفّ", "past_tr": "waqqaf", "present_tr": "yiwaqqef", "english": "stop", "ap": "موقفّ", "ap_tr": "mwaqqif", "type": "form_ii"}, {"id": 97, "past": "ولد", "present": "يولد", "past_tr": "wiled", "present_tr": "yūlad", "english": "be born", "ap": "مولود", "ap_tr": "mawlūd", "type": "sound_i_a"}, {"id": 98, "past": "كان في", "present": "يكون في", "past_tr": "kān fī", "present_tr": "yikūn fī", "english": "there to be", "ap": "موجود", "ap_tr": "mawjūd", "type": "aux"}, {"id": 99, "past": "كان عنده", "present": "يكون عنده", "past_tr": "kān 'indo", "present_tr": "yikūn 'indo", "english": "can have", "ap": "-", "ap_tr": "-", "type": "aux"}, {"id": 100, "past": "كان إلو", "present": "يكون إلو", "past_tr": "kān ilo", "present_tr": "yikūn ilo", "english": "can have (right/belonging)", "ap": "-", "ap_tr": "-", "type": "aux"}, {"id": 101, "past": "كان معه", "present": "يكون معه", "past_tr": "kān ma'o", "present_tr": "yikūn ma'o", "english": "can have (with him)", "ap": "-", "ap_tr": "-", "type": "aux"}, {"id": 102, "past": "كان بدّو", "present": "يكون بدّو", "past_tr": "kān baddo", "present_tr": "yikūn baddo", "english": "can want", "ap": "-", "ap_tr": "-", "type": "aux"}, {"id": 103, "past": "كان فييو", "present": "يكون فيو", "past_tr": "kān fīyo", "present_tr": "yikūn fīyo", "english": "can be able to", "ap": "-", "ap_tr": "-", "type": "aux"}];
+
+        const pronouns = [
+            { eng: "I", arb: "أنا", pron: "ana" },
+            { eng: "We", arb: "نحن", pron: "niHna" },
+            { eng: "You (m)", arb: "إنتَ", pron: "inta" },
+            { eng: "You (f)", arb: "إنتِ", pron: "inti" },
+            { eng: "You (plural)", arb: "إنتو", pron: "into" },
+            { eng: "He / It", arb: "هوّي", pron: "huwwe" },
+            { eng: "She", arb: "هيّي", pron: "hiyye" },
+            { eng: "They", arb: "هنّي", pron: "hinne" }
+        ];
+
+        const objPronouns = [
+            { eng: "me", arb: "ني", pron: "ni", indArb: "لي", indPron: "li" },
+            { eng: "him", arb: "و", pron: "o", indArb: "لو", indPron: "lo" },
+            { eng: "her", arb: "ها", pron: "ha", indArb: "لها", indPron: "lha" },
+            { eng: "us", arb: "نا", pron: "na", indArb: "لنا", indPron: "lna" },
+            { eng: "you (m)", arb: "اك", pron: "ak", indArb: "لاك", indPron: "lak" }
+        ];
+
+        let showPron = true;
+        let selectedTenseFilter = 'all';
+        let selectedComplexMode = 'all';
+        let currentConjAnswerTarget = "";
+        let currentComplexTarget = "";
+        let currentAPTarget = "";
+
+        let stats = {
+            conj: { correct: 0, total: 0, streak: 0 },
+            complex: { correct: 0, total: 0, streak: 0 },
+            ap: { correct: 0, total: 0, streak: 0 }
+        };
+
+        window.onload = function() {
+            renderReviewList();
+        };
+
+        function togglePronunciation() {
+            showPron = document.getElementById('pronToggle').checked;
+            const elements = document.querySelectorAll('.pronunciation');
+            elements.forEach(el => {
+                if(showPron) el.classList.remove('hidden-pron');
+                else el.classList.add('hidden-pron');
+            });
+        }
+
+        function switchSection(sectionId, element) {
+            document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`section-${sectionId}`).classList.add('active');
+            element.classList.add('active');
+        }
+
+        function renderReviewList() {
+            const container = document.getElementById('verbListContainer');
+            container.innerHTML = '';
+            
+            verbs.forEach(v => {
+                const card = document.createElement('div');
+                card.className = 'flashcard';
+                card.id = `vcard-${v.id}`;
+                card.onclick = () => card.classList.toggle('flipped');
+                
+                const pronClass = showPron ? '' : 'hidden-pron';
+                
+                card.innerHTML = `
+                    <div class="flashcard-inner">
+                        <!-- Side A: Arabic Stems -->
+                        <div class="flashcard-front">
+                            <div class="verb-left">
+                                <span class="verb-id">#${v.id}</span>
+                                <span class="pronunciation ${pronClass}">[${v.past_tr} / ${v.present_tr}]</span>
+                            </div>
+                            <div class="verb-right">
+                                <span class="verb-arabic-group">${v.past} / ${v.present} / ${v.ap !== '-' ? v.ap : '—'}</span>
+                                <span class="pronunciation ${pronClass}" style="font-size:0.7rem; color:var(--text-muted)">ap: ${v.ap_tr}</span>
+                            </div>
+                        </div>
+                        <!-- Side B: English Meaning & Category Metadata -->
+                        <div class="flashcard-back">
+                            <span style="font-size: 1.1rem; font-weight: 800; tracking-wide;">${v.english}</span>
+                            <span style="font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 8px;">Category: ${v.type}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterVerbs() {
+            const q = document.getElementById('searchBar').value.toLowerCase();
+            verbs.forEach((v) => {
+                const match = v.english.toLowerCase().includes(q) || 
+                              v.past.includes(q) || 
+                              v.present.includes(q) || 
+                              v.past_tr.toLowerCase().includes(q);
+                
+                const cardEl = document.getElementById(`vcard-${v.id}`);
+                if (cardEl) {
+                    cardEl.style.display = match ? 'block' : 'none';
+                }
+            });
+        }
+
+        function setTenseFilter(tense, btn) {
+            selectedTenseFilter = tense;
+            btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            generateConjugationQuestion();
+        }
+
+        function setComplexMode(mode, btn) {
+            selectedComplexMode = mode;
+            btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            generateComplexQuestion();
+        }
+
+        function getLevantineConjugation(verb, pronoun, tense) {
+            let pArb = verb.present;
+            let pastBase = verb.past;
+            let stemPres = pArb.startsWith('ي') ? pArb.substring(1) : pArb;
+            
+            if (tense === 'past') {
+                if (pronoun.eng === "I") return pastBase + "ت";
+                if (pronoun.eng === "We") return pastBase + "نا";
+                if (pronoun.eng === "You (m)") return pastBase + "ت";
+                if (pronoun.eng === "You (f)") return pastBase + "تي";
+                if (pronoun.eng === "You (plural)") return pastBase + "تو";
+                if (pronoun.eng === "He / It") return pastBase;
+                if (pronoun.eng === "She") return pastBase + "ت";
+                if (pronoun.eng === "They") return pastBase + "و";
+            }
+            
+            let impPrefix = "ي";
+            if (pronoun.eng === "I") impPrefix = "إ";
+            if (pronoun.eng === "We") impPrefix = "ن";
+            if (pronoun.eng === "You (m)" || pronoun.eng === "She") impPrefix = "ت";
+            if (pronoun.eng === "You (f)") return "ت" + stemPres + "ي";
+            if (pronoun.eng === "You (plural)") return "ت" + stemPres + "و";
+            if (pronoun.eng === "They") return "ي" + stemPres + "و";
+            
+            let imperfectForm = impPrefix + stemPres;
+            
+            if (tense === 'imperfect') {
+                return imperfectForm;
+            }
+            
+            if (tense === 'bi-imperfect') {
+                if (pronoun.eng === "I") return "ب" + imperfectForm;
+                if (pronoun.eng === "We") return "م" + imperfectForm;
+                if (pronoun.eng === "He / It" || pronoun.eng === "They") return "بي" + stemPres + (pronoun.eng === "They" ? "و" : "");
+                return "بت" + stemPres + (pronoun.eng === "You (f)" ? "ي" : (pronoun.eng === "You (plural)" ? "و" : ""));
+            }
+            return imperfectForm;
+        }
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        /* SECTION 2: CONJUGATION QUIZ GENERATOR */
+        let currentConjAnswerStr = "";
+        function generateConjugationQuestion() {
+            document.getElementById('conj-next').style.display = 'none';
+            document.getElementById('conj-feedback').innerHTML = '';
+            
+            const validVerbs = verbs.filter(v => v.type !== 'aux');
+            const randomVerb = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+            const randomPronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
+            
+            let tensesPool = ['past', 'imperfect', 'bi-imperfect'];
+            if(selectedTenseFilter !== 'all') tensesPool = [selectedTenseFilter];
+            const randomTense = tensesPool[Math.floor(Math.random() * tensesPool.length)];
+            
+            currentConjAnswerStr = getLevantineConjugation(randomVerb, randomPronoun, randomTense);
+            
+            const isArbToEng = Math.random() > 0.5;
+            const qBox = document.getElementById('conj-question-box');
+            const pronClass = showPron ? '' : 'hidden-pron';
+            
+            let questionHTML = "";
+            let choices = [];
+            
+            const activePronunciation = randomTense === 'past' ? randomVerb.past_tr : randomVerb.present_tr;
+
+            if (isArbToEng) {
+                questionHTML = `
+                    <div class="question-context">Translate this Lebanese Form to English:</div>
+                    <div class="question-arabic-large">${currentConjAnswerStr}</div>
+                    <div class="pronunciation ${pronClass}" style="font-size:0.95rem; color:var(--secondary); font-style:italic; margin-top:4px;">Base Pronunciation: [${activePronunciation}]</div>
+                `;
+                
+                const correctEnglish = `${randomPronoun.eng} (${randomTense}) -> "${randomVerb.english}"`;
+                currentConjAnswerTarget = correctEnglish;
+                choices.push(correctEnglish);
+                
+                while(choices.length < 4) {
+                    const p = pronouns[Math.floor(Math.random() * pronouns.length)];
+                    const t = tensesPool[Math.floor(Math.random() * tensesPool.length)];
+                    const v = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+                    const option = `${p.eng} (${t}) -> "${v.english}"`;
+                    if(!choices.includes(option)) choices.push(option);
+                }
+            } else {
+                questionHTML = `
+                    <div class="question-context">How do you conjugate in Lebanese Arabic:</div>
+                    <div class="question-text">${randomPronoun.eng} "${randomVerb.english}" <span class="pronunciation ${pronClass}">[${randomPronoun.pron}]</span></div>
+                    <div style="font-size:1.1rem; color:var(--secondary); font-weight:bold; margin-top: 6px;">Tense: ${randomTense}</div>
+                    <div class="pronunciation ${pronClass}" style="font-size:0.95rem; color:var(--secondary); font-style:italic; margin-top:4px;">Base Pronunciation: [${activePronunciation}]</div>
+                `;
+                
+                currentConjAnswerTarget = currentConjAnswerStr;
+                choices.push(currentConjAnswerStr);
+                while(choices.length < 4) {
+                    const p = pronouns[Math.floor(Math.random() * pronouns.length)];
+                    const t = tensesPool[Math.floor(Math.random() * tensesPool.length)];
+                    const wrongForm = getLevantineConjugation(randomVerb, p, t);
+                    if(!choices.includes(wrongForm)) choices.push(wrongForm);
+                }
+            }
+            
+            qBox.innerHTML = questionHTML;
+            shuffle(choices);
+            
+            const optionsGrid = document.getElementById('conj-options');
+            optionsGrid.innerHTML = '';
+            
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.setAttribute('data-value', c);
+
+                if (!isArbToEng) {
+                    btn.innerHTML = `
+                        <span>${c}</span>
+                        <span class="pronunciation ${pronClass}" style="font-weight: normal; font-size: 0.85rem; color: var(--secondary); font-style: italic;">[${activePronunciation}]</span>
+                    `;
+                } else {
+                    btn.innerText = c;
+                }
+
+                btn.onclick = () => checkConjAnswer(btn, c);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function checkConjAnswer(btn, chosen) {
+            const btns = document.getElementById('conj-options').querySelectorAll('.option-btn');
+            btns.forEach(b => b.classList.add('disabled'));
+            
+            if(chosen === currentConjAnswerTarget) {
+                btn.classList.add('correct');
+                document.getElementById('conj-feedback').innerHTML = "<span style='color:var(--correct)'>🎉 Correct! Excellent job!</span>";
+                stats.conj.correct++;
+                stats.conj.streak++;
+            } else {
+                btn.classList.add('incorrect');
+                document.getElementById('conj-feedback').innerHTML = `<span style='color:var(--incorrect)'>❌ Incorrect.</span>`;
+                stats.conj.streak = 0;
+                
+                btns.forEach(b => {
+                    if(b.getAttribute('data-value') === currentConjAnswerTarget) b.classList.add('correct');
+                });
+            }
+            
+            stats.conj.total++;
+            document.getElementById('conj-score').innerText = `Score: ${stats.conj.correct}/${stats.conj.total}`;
+            document.getElementById('conj-streak').innerText = `Streak: ${stats.conj.streak} 🔥`;
+            document.getElementById('conj-next').style.display = 'block';
+        }
+
+        /* SECTION 3: COMPLEX CONJUGATIONS (Mixed Dynamic Testing) */
+        function generateComplexQuestion() {
+            document.getElementById('complex-next').style.display = 'none';
+            document.getElementById('complex-feedback').innerHTML = '';
+            
+            const validVerbs = verbs.filter(v => v.type !== 'aux');
+            const randomVerb = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+            const randomPronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
+            
+            let modes = ['future', 'want', 'love', 'objects'];
+            if(selectedComplexMode !== 'all') modes = [selectedComplexMode];
+            const activeMode = modes[Math.floor(Math.random() * modes.length)];
+            
+            let qText = "";
+            let aText = "";
+            
+            const impForm = getLevantineConjugation(randomVerb, randomPronoun, 'imperfect');
+            
+            if(activeMode === 'future') {
+                qText = `${randomPronoun.eng} will "${randomVerb.english}"`;
+                aText = "رح " + impForm;
+            } else if (activeMode === 'want') {
+                let wantPrefix = "بدو";
+                if(randomPronoun.eng === "I") wantPrefix = "بدي";
+                if(randomPronoun.eng === "We") wantPrefix = "بدنا";
+                if(randomPronoun.eng === "You (m)") wantPrefix = "بدك";
+                if(randomPronoun.eng === "You (f)") wantPrefix = "بدك";
+                if(randomPronoun.eng === "You (plural)") wantPrefix = "بدكن";
+                if(randomPronoun.eng === "She") wantPrefix = "بدها";
+                if(randomPronoun.eng === "They") wantPrefix = "بدهن";
+                
+                qText = `${randomPronoun.eng} want(s) to "${randomVerb.english}"`;
+                aText = wantPrefix + " " + impForm;
+            } else if (activeMode === 'love') {
+                let lovePrefix = "بيحب";
+                if(randomPronoun.eng === "I") lovePrefix = "بحبّ";
+                if(randomPronoun.eng === "We") lovePrefix = "منحبّ";
+                if(randomPronoun.eng === "You (m)" || randomPronoun.eng === "She") lovePrefix = "بتحبّ";
+                if(randomPronoun.eng === "You (f)") lovePrefix = "بتحبّي";
+                if(randomPronoun.eng === "You (plural)") lovePrefix = "بتحبّوا";
+                if(randomPronoun.eng === "They") lovePrefix = "بيحبّوا";
+                
+                qText = `${randomPronoun.eng} love(s) to "${randomVerb.english}"`;
+                aText = lovePrefix + " " + impForm;
+            } else {
+                const obj = objPronouns[Math.floor(Math.random() * objPronouns.length)];
+                const pastForm = getLevantineConjugation(randomVerb, randomPronoun, 'past');
+                qText = `${randomPronoun.eng} "${randomVerb.english}"-ed ${obj.eng}`;
+                aText = pastForm + obj.arb;
+            }
+            
+            const isArbToEng = Math.random() > 0.5;
+            const qBox = document.getElementById('complex-question-box');
+            const pronClass = showPron ? '' : 'hidden-pron';
+            const basePron = activeMode === 'objects' ? randomVerb.past_tr : randomVerb.present_tr;
+            
+            let choices = [];
+            
+            if (isArbToEng) {
+                currentComplexTarget = qText;
+                choices.push(qText);
+                
+                qBox.innerHTML = `
+                    <div class="question-context">Complex Construction Practice (Translate to English):</div>
+                    <div class="question-arabic-large">${aText}</div>
+                    <div class="pronunciation ${pronClass}" style="font-size:0.95rem; color:var(--secondary); font-style:italic; margin-top:4px;">Base Verb Pronunciation: [${basePron}]</div>
+                `;
+                
+                while(choices.length < 4) {
+                    const p = pronouns[Math.floor(Math.random() * pronouns.length)];
+                    const v = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+                    let wrongOpt = "";
+                    if(activeMode === 'future') wrongOpt = `${p.eng} will "${v.english}"`;
+                    else if(activeMode === 'want') wrongOpt = `${p.eng} want(s) to "${v.english}"`;
+                    else if(activeMode === 'love') wrongOpt = `${p.eng} love(s) to "${v.english}"`;
+                    else {
+                        const o = objPronouns[Math.floor(Math.random() * objPronouns.length)];
+                        wrongOpt = `${p.eng} "${v.english}"-ed ${o.eng}`;
+                    }
+                    if(!choices.includes(wrongOpt)) choices.push(wrongOpt);
+                }
+            } else {
+                currentComplexTarget = aText;
+                choices.push(aText);
+                
+                qBox.innerHTML = `
+                    <div class="question-context">Complex Construction Practice (Translate to Arabic):</div>
+                    <div class="question-text">${qText}</div>
+                    <div class="pronunciation ${pronClass}" style="font-size:0.95rem; color:var(--secondary); font-style:italic; margin-top:4px;">Base Verb Pronunciation: [${basePron}]</div>
+                `;
+                
+                while(choices.length < 4) {
+                    const randomV2 = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+                    const impForm2 = getLevantineConjugation(randomV2, randomPronoun, 'imperfect');
+                    let wrongOpt = "";
+                    
+                    if(activeMode === 'future') wrongOpt = "رح " + impForm2;
+                    else if (activeMode === 'want') wrongOpt = "بدي " + impForm2;
+                    else if (activeMode === 'love') wrongOpt = "بحبّ " + impForm2;
+                    else wrongOpt = getLevantineConjugation(randomV2, randomPronoun, 'past') + "ني";
+                    
+                    if(!choices.includes(wrongOpt)) choices.push(wrongOpt);
+                }
+            }
+            
+            shuffle(choices);
+            const optionsGrid = document.getElementById('complex-options');
+            optionsGrid.innerHTML = '';
+            
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.setAttribute('data-value', c);
+                
+                if (!isArbToEng) {
+                    btn.innerHTML = `
+                        <span>${c}</span>
+                        <span class="pronunciation ${pronClass}" style="font-weight: normal; font-size: 0.85rem; color: var(--secondary); font-style: italic;">[${basePron}]</span>
+                    `;
+                } else {
+                    btn.innerText = c;
+                }
+                
+                btn.onclick = () => {
+                    const btns = optionsGrid.querySelectorAll('.option-btn');
+                    btns.forEach(b => b.classList.add('disabled'));
+                    if(c === currentComplexTarget) {
+                        btn.classList.add('correct');
+                        document.getElementById('complex-feedback').innerHTML = "<span style='color:var(--correct)'>🎉 Brilliant! Correct!</span>";
+                        stats.complex.correct++;
+                        stats.complex.streak++;
+                    } else {
+                        btn.classList.add('incorrect');
+                        document.getElementById('complex-feedback').innerHTML = "<span style='color:var(--incorrect)'>❌ Incorrect. Try again!</span>";
+                        stats.complex.streak = 0;
+                        btns.forEach(b => { 
+                            if(b.getAttribute('data-value') === currentComplexTarget) b.classList.add('correct'); 
+                        });
+                    }
+                    stats.complex.total++;
+                    document.getElementById('complex-score').innerText = `Score: ${stats.complex.correct}/${stats.complex.total}`;
+                    document.getElementById('complex-streak').innerText = `Streak: ${stats.complex.streak} 🔥`;
+                    document.getElementById('complex-next').style.display = 'block';
+                };
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        /* SECTION 4: ACTIVE PARTICIPLE (Mixed Directions With Total Toggle Control) */
+        function generateAPQuestion() {
+            document.getElementById('ap-next').style.display = 'none';
+            document.getElementById('ap-feedback').innerHTML = '';
+            
+            const validVerbs = verbs.filter(v => v.ap !== '-');
+            const randomVerb = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+            
+            const isArbToEng = Math.random() > 0.5;
+            const pronClass = showPron ? '' : 'hidden-pron';
+            const qBox = document.getElementById('ap-question-box');
+            
+            let choices = [];
+            
+            if (isArbToEng) {
+                currentAPTarget = randomVerb.english;
+                choices.push(randomVerb.english);
+                
+                qBox.innerHTML = `
+                    <div class="question-context">Identify the Active Participle Meaning (اسم الفاعل):</div>
+                    <div class="question-arabic-large">${randomVerb.ap}</div>
+                    <div class="pronunciation ${pronClass}" style="font-size:0.95rem; color:var(--secondary); font-style:italic; margin-top:4px;">Participle Pronunciation: [${randomVerb.ap_tr}]</div>
+                `;
+                
+                while(choices.length < 4) {
+                    const v = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+                    if(!choices.includes(v.english)) choices.push(v.english);
+                }
+            } else {
+                currentAPTarget = randomVerb.ap;
+                choices.push(randomVerb.ap);
+                
+                qBox.innerHTML = `
+                    <div class="question-context">Identify the Active Participle (اسم الفاعل):</div>
+                    <div class="question-text">What is the active participle for "${randomVerb.english}"?</div>
+                    <div style="font-size:1.1rem; color:var(--secondary); margin-top:6px; font-weight:bold;">Verb Base: ${randomVerb.past} <span class="pronunciation ${pronClass}">[${randomVerb.past_tr}]</span></div>
+                `;
+                
+                while(choices.length < 4) {
+                    const v = validVerbs[Math.floor(Math.random() * validVerbs.length)];
+                    if(!choices.includes(v.ap) && v.ap !== '-') choices.push(v.ap);
+                }
+            }
+            
+            shuffle(choices);
+            const optionsGrid = document.getElementById('ap-options');
+            optionsGrid.innerHTML = '';
+            
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.setAttribute('data-value', c);
+                
+                if (!isArbToEng) {
+                    const matchedV = verbs.find(v => v.ap === c);
+                    const trLabel = matchedV ? ` [${matchedV.ap_tr}]` : '';
+                    btn.innerHTML = `
+                        <span>${c}</span>
+                        <span class="pronunciation ${pronClass}" style="font-weight: normal; font-size: 0.85rem; color: var(--secondary); font-style: italic;">${trLabel}</span>
+                    `;
+                } else {
+                    btn.innerText = c;
+                }
+                
+                btn.onclick = () => {
+                    const btns = optionsGrid.querySelectorAll('.option-btn');
+                    btns.forEach(b => b.classList.add('disabled'));
+                    if(c === currentAPTarget) {
+                        btn.classList.add('correct');
+                        document.getElementById('ap-feedback').innerHTML = "<span style='color:var(--correct)'>🎉 Fantastic! Correct.</span>";
+                        stats.ap.correct++;
+                        stats.ap.streak++;
+                    } else {
+                        btn.classList.add('incorrect');
+                        document.getElementById('ap-feedback').innerHTML = "<span style='color:var(--incorrect)'>❌ Wrong. Keep practicing!</span>";
+                        stats.ap.streak = 0;
+                        btns.forEach(b => { 
+                            if(b.getAttribute('data-value') === currentAPTarget) b.classList.add('correct'); 
+                        });
+                    }
+                    stats.ap.total++;
+                    document.getElementById('ap-score').innerText = `Score: ${stats.ap.correct}/${stats.ap.total}`;
+                    document.getElementById('ap-streak').innerText = `Streak: ${stats.ap.streak} 🔥`;
+                    document.getElementById('ap-next').style.display = 'block';
+                };
+                optionsGrid.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>
