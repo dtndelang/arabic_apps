@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Haki Waqt & Tarikh — Lebanese Dates & Time</title>
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --card: #ffffff;
+      --card-alt: #f4efe6;
+      --text: #1f1c18;
+      --muted: #6e655c;
+      --accent: #b84a27;
+      --accent-dark: #93381b;
+      --accent-soft: #f6e7e1;
+      --teal: #1d6f63;
+      --teal-soft: #e3f2ef;
+      --gold: #a66f14;
+      --gold-soft: #fbf1dc;
+      --danger: #b91c1c;
+      --danger-soft: #fee2e2;
+      --border: #e6ddd0;
+      --shadow: 0 2px 10px rgba(31, 28, 24, 0.05);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding-top: calc(64px + env(safe-area-inset-top));
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+    }
+
+    .ar {
+      font-family: "Geeza Pro", "SF Arabic", "Noto Sans Arabic", "Cairo", Tahoma, Arial, sans-serif;
+      direction: rtl;
+      unicode-bidi: isolate;
+      line-height: 1.65;
+    }
+
+    /* Top Header */
+    header.topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      background: rgba(250, 247, 242, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+    }
+
+    .topbar-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: var(--text);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .pron-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pron-toggle.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pron-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Main Container */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Bottom Navigation */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    }
+
+    .nav-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+
+    .nav-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 2px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      gap: 2px;
+    }
+
+    .nav-btn .nav-icon {
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .nav-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    /* Section Header & Subtabs */
+    .section-head {
+      margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .subtabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+
+    .subtabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .subtab {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .subtab.active {
+      background: var(--text);
+      color: #ffffff;
+      border-color: var(--text);
+    }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .pill.teal {
+      background: var(--teal-soft);
+      color: var(--teal);
+    }
+
+    .pill.gold {
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 480px) {
+      .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .ref-item {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .ref-item:active {
+      border-color: var(--accent);
+    }
+
+    .ref-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .ref-en {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .ref-ar {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .ref-pron {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .hide-pron .ref-pron,
+    .hide-pron .tile-pron,
+    .hide-pron .pron-text {
+      display: none !important;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background: var(--card-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-teal {
+      background: var(--teal);
+      color: #ffffff;
+    }
+
+    .btn-sm {
+      padding: 7px 11px;
+      font-size: 12px;
+      border-radius: 9px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    /* Interactive Game Elements */
+    .prompt-box {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .prompt-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .prompt-main {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .prompt-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Word Tiles & Answer Dropzone */
+    .dropzone {
+      min-height: 64px;
+      background: #fdfbf7;
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: row-reverse;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .tile-bank {
+      display: flex;
+      flex-direction: row-reverse;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .word-tile {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 13px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      user-select: none;
+    }
+
+    .word-tile.placed {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .tile-ar {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .tile-pron {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Multiple Choice & Matching */
+    .mc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .mc-opt {
+      width: 100%;
+      text-align: left;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 13px;
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .mc-opt.correct {
+      background: var(--teal-soft);
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .mc-opt.wrong {
+      background: var(--danger-soft);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .match-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .match-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .match-card {
+      min-height: 54px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .match-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .match-card.matched {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+      color: var(--teal);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .match-card.wrong {
+      border-color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .feedback {
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .feedback.ok {
+      background: var(--teal-soft);
+      color: var(--teal);
+    }
+
+    .feedback.err {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    /* Controls for Calendar & Clock */
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    label.field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      font-size: 16px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+    }
+
+    /* Analog Clock */
+    .clock-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 14px;
+    }
+
+    .clock-svg {
+      width: 230px;
+      height: 230px;
+      touch-action: manipulation;
+    }
+
+    .min-dot {
+      cursor: pointer;
+    }
+
+    .speaker-badge {
+      font-size: 13px;
+      opacity: 0.75;
+    }
+
+    .score-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <a href="index.html" class="home-btn" aria-label="Back to App Hub">‹ Hub</a>
+        <span class="brand-title">Haki Waqt & Tarikh</span>
+      </div>
+      <button id="pronToggle" class="pron-toggle active" type="button" onclick="togglePronunciation()">
+        <span class="pron-dot"></span>
+        <span id="pronLabel">Pronunciation: ON</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="app"></main>
+
+  <nav class="bottom-nav" aria-label="Sections">
+    <div class="nav-inner">
+      <button class="nav-btn active" data-tab="numbers" onclick="switchTab('numbers')">
+        <span class="nav-icon">🔢</span>
+        <span>Numbers</span>
+      </button>
+      <button class="nav-btn" data-tab="calendar" onclick="switchTab('calendar')">
+        <span class="nav-icon">📅</span>
+        <span>Days/Months</span>
+      </button>
+      <button class="nav-btn" data-tab="timevocab" onclick="switchTab('timevocab')">
+        <span class="nav-icon">⏱️</span>
+        <span>Time Vocab</span>
+      </button>
+      <button class="nav-btn" data-tab="datesex" onclick="switchTab('datesex')">
+        <span class="nav-icon">🗓️</span>
+        <span>Dates Lab</span>
+      </button>
+      <button class="nav-btn" data-tab="timeex" onclick="switchTab('timeex')">
+        <span class="nav-icon">🕰️</span>
+        <span>Clock Lab</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    // =========================================================================
+    // STATE & AUDIO
+    // =========================================================================
+    const state = {
+      tab: 'numbers',
+      showPron: true,
+      sub: {
+        numbers: 'match',
+        calendar: 'match',
+        timevocab: 'match',
+        datesex: 'build',
+        timeex: 'build'
+      },
+      score: {
+        numbers: 0,
+        calendar: 0,
+        timevocab: 0,
+        datesex: 0,
+        timeex: 0
+      },
+      // Dates Lab interactive state
+      dateMode: 'random', // 'random' | 'picker'
+      dateSample: null,
+      datePlaced: [],
+      dateBank: [],
+      dateFeedback: null,
+      dateMcChoices: [],
+      dateMcAnswered: null,
+      // Time Lab interactive state
+      timeMode: 'random', // 'random' | 'clock'
+      timeSample: null,
+      timePlaced: [],
+      timeBank: [],
+      timeFeedback: null,
+      timeMcChoices: [],
+      timeMcAnswered: null
+    };
+
+    function speakArabic(text) {
+      if (!('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ar-LB';
+        u.rate = 0.9;
+        const voices = window.speechSynthesis.getVoices();
+        const arVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ar'));
+        if (arVoice) u.voice = arVoice;
+        window.speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    function togglePronunciation() {
+      state.showPron = !state.showPron;
+      document.body.classList.toggle('hide-pron', !state.showPron);
+      const btn = document.getElementById('pronToggle');
+      const lbl = document.getElementById('pronLabel');
+      btn.classList.toggle('active', state.showPron);
+      lbl.textContent = state.showPron ? 'Pronunciation: ON' : 'Pronunciation: OFF';
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // =========================================================================
+    // LEBANESE ARABIC DATA & GENERATORS
+    // =========================================================================
+    const DAYS_OF_WEEK = [
+      { id: 'mon', en: 'Monday', ar: 'التنين', pron: 'et-tneyn' },
+      { id: 'tue', en: 'Tuesday', ar: 'التلاتا', pron: 'et-tlēta' },
+      { id: 'wed', en: 'Wednesday', ar: 'الأربعا', pron: 'el-arbʿa' },
+      { id: 'thu', en: 'Thursday', ar: 'الخميس', pron: 'el-khamīs' },
+      { id: 'fri', en: 'Friday', ar: 'الجمعة', pron: 'ej-jomʿa' },
+      { id: 'sat', en: 'Saturday', ar: 'السبت', pron: 'es-sabt' },
+      { id: 'sun', en: 'Sunday', ar: 'الأحد', pron: 'el-aḥad' }
+    ];
+
+    const MONTHS = [
+      { num: 1, en: 'January', ar: 'كانون التاني', pron: 'kēnūn et-tēni' },
+      { num: 2, en: 'February', ar: 'شباط', pron: 'shbāṭ' },
+      { num: 3, en: 'March', ar: 'آذار', pron: 'āzār' },
+      { num: 4, en: 'April', ar: 'نيسان', pron: 'nīsēn' },
+      { num: 5, en: 'May', ar: 'أيّار', pron: 'ayyār' },
+      { num: 6, en: 'June', ar: 'حزيران', pron: 'ḥzayrān' },
+      { num: 7, en: 'July', ar: 'تمّوز', pron: 'tammūz' },
+      { num: 8, en: 'August', ar: 'آب', pron: 'āb' },
+      { num: 9, en: 'September', ar: 'أيلول', pron: 'aylūl' },
+      { num: 10, en: 'October', ar: 'تشرين الأول', pron: 'tishrīn el-awwal' },
+      { num: 11, en: 'November', ar: 'تشرين التاني', pron: 'tishrīn et-tēni' },
+      { num: 12, en: 'December', ar: 'كانون الأول', pron: 'kēnūn el-awwal' }
+    ];
+
+    const DAY_NUMBERS_1_31 = [
+      { n: 1, ar: 'واحد', pron: 'wēḥad' },
+      { n: 2, ar: 'تنين', pron: 'tneyn' },
+      { n: 3, ar: 'تلاتة', pron: 'tlēte' },
+      { n: 4, ar: 'أربعة', pron: 'arbʿa' },
+      { n: 5, ar: 'خمسة', pron: 'khamse' },
+      { n: 6, ar: 'ستّة', pron: 'sitte' },
+      { n: 7, ar: 'سبعة', pron: 'sabʿa' },
+      { n: 8, ar: 'تمانة', pron: 'tmēne' },
+      { n: 9, ar: 'تسعة', pron: 'tisʿa' },
+      { n: 10, ar: 'عشرة', pron: 'ʿashra' },
+      { n: 11, ar: 'حدعش', pron: 'ḥdaʿsh' },
+      { n: 12, ar: 'طنعش', pron: 'ṭnaʿsh' },
+      { n: 13, ar: 'تلتعش', pron: 'tlattaʿsh' },
+      { n: 14, ar: 'أربعتعش', pron: 'arbaʿtaʿsh' },
+      { n: 15, ar: 'خمستعش', pron: 'khamstaʿsh' },
+      { n: 16, ar: 'ستّعش', pron: 'sittaʿsh' },
+      { n: 17, ar: 'سبعتعش', pron: 'sabʿtaʿsh' },
+      { n: 18, ar: 'تمنتعش', pron: 'tmantaʿsh' },
+      { n: 19, ar: 'تسعتعش', pron: 'tisʿtaʿsh' },
+      { n: 20, ar: 'عشرين', pron: 'ʿishrīn' },
+      { n: 21, ar: 'واحد وعشرين', pron: 'wēḥad w-ʿishrīn' },
+      { n: 22, ar: 'تنين وعشرين', pron: 'tneyn w-ʿishrīn' },
+      { n: 23, ar: 'تلاتة وعشرين', pron: 'tlēte w-ʿishrīn' },
+      { n: 24, ar: 'أربعة وعشرين', pron: 'arbʿa w-ʿishrīn' },
+      { n: 25, ar: 'خمسة وعشرين', pron: 'khamse w-ʿishrīn' },
+      { n: 26, ar: 'ستّة وعشرين', pron: 'sitte w-ʿishrīn' },
+      { n: 27, ar: 'سبعة وعشرين', pron: 'sabʿa w-ʿishrīn' },
+      { n: 28, ar: 'تمانة وعشرين', pron: 'tmēne w-ʿishrīn' },
+      { n: 29, ar: 'تسعة وعشرين', pron: 'tisʿa w-ʿishrīn' },
+      { n: 30, ar: 'تلاتين', pron: 'tlētīn' },
+      { n: 31, ar: 'واحد وتلاتين', pron: 'wēḥad w-tlētīn' }
+    ];
+
+    function number0to99ToLebanese(n) {
+      if (n === 0) return { ar: 'صفر', pron: 'ṣifr' };
+      if (n <= 31) {
+        const found = DAY_NUMBERS_1_31.find(x => x.n === n);
+        return { ar: found.ar, pron: found.pron };
+      }
+      const tensMap = {
+        30: { ar: 'تلاتين', pron: 'tlētīn' },
+        40: { ar: 'أربعين', pron: 'arbʿīn' },
+        50: { ar: 'خمسين', pron: 'khamsīn' },
+        60: { ar: 'ستّين', pron: 'sittīn' },
+        70: { ar: 'سبعين', pron: 'sabʿīn' },
+        80: { ar: 'تمانين', pron: 'tmēnīn' },
+        90: { ar: 'تسعين', pron: 'tisʿīn' }
+      };
+      const t = Math.floor(n / 10) * 10;
+      const u = n % 10;
+      if (u === 0) return tensMap[t];
+      const unitObj = DAY_NUMBERS_1_31[u - 1];
+      return {
+        ar: `${unitObj.ar} و${tensMap[t].ar}`,
+        pron: `${unitObj.pron} w-${tensMap[t].pron}`
+      };
+    }
+
+    function number0to2100ToLebanese(n) {
+      if (n === 0) return { ar: 'صفر', pron: 'ṣifr' };
+      if (n < 100) return number0to99ToLebanese(n);
+
+      const hundredsMap = {
+        1: { ar: 'ميّة', pron: 'miyyeh' },
+        2: { ar: 'ميتين', pron: 'mīteyn' },
+        3: { ar: 'تلتميّة', pron: 'tlat-miyyeh' },
+        4: { ar: 'أربعميّة', pron: 'arbaʿ-miyyeh' },
+        5: { ar: 'خمسميّة', pron: 'khams-miyyeh' },
+        6: { ar: 'ستّميّة', pron: 'sitt-miyyeh' },
+        7: { ar: 'سبعميّة', pron: 'sabʿ-miyyeh' },
+        8: { ar: 'تمنميّة', pron: 'tman-miyyeh' },
+        9: { ar: 'تسعميّة', pron: 'tisʿ-miyyeh' }
+      };
+
+      const thousandsMap = {
+        1: { ar: 'ألف', pron: 'alf' },
+        2: { ar: 'ألفين', pron: 'alfeyn' }
+      };
+
+      const th = Math.floor(n / 1000);
+      const remAfterTh = n % 1000;
+      const hu = Math.floor(remAfterTh / 100);
+      const rem = remAfterTh % 100;
+
+      const partsAr = [];
+      const partsPron = [];
+
+      if (th > 0) {
+        partsAr.push(thousandsMap[th].ar);
+        partsPron.push(thousandsMap[th].pron);
+      }
+      if (hu > 0) {
+        const prefixAr = partsAr.length > 0 ? 'و' : '';
+        const prefixPron = partsPron.length > 0 ? 'w-' : '';
+        partsAr.push(prefixAr + hundredsMap[hu].ar);
+        partsPron.push(prefixPron + hundredsMap[hu].pron);
+      }
+      if (rem > 0) {
+        const sub = number0to99ToLebanese(rem);
+        const prefixAr = partsAr.length > 0 ? 'و' : '';
+        const prefixPron = partsPron.length > 0 ? 'w-' : '';
+        partsAr.push(prefixAr + sub.ar);
+        partsPron.push(prefixPron + sub.pron);
+      }
+
+      return {
+        ar: partsAr.join(' '),
+        pron: partsPron.join(' ')
+      };
+    }
+
+    function yearToLebanese(year, era) {
+      const base = number0to2100ToLebanese(year);
+      if (era === 'BC') {
+        return {
+          ar: `${base.ar} قبل الميلاد`,
+          pron: `${base.pron} abl el-mīlēd`
+        };
+      }
+      return {
+        ar: base.ar,
+        pron: base.pron
+      };
+    }
+
+    // Time Vocabulary (5-minute increments)
+    const HOURS_LEBANESE = [
+      { h: 1, ar: 'الساعة وحدة', pron: 'es-sēʿa waḥde' },
+      { h: 2, ar: 'الساعة تنتين', pron: 'es-sēʿa tinteyn' },
+      { h: 3, ar: 'الساعة تلاتة', pron: 'es-sēʿa tlēte' },
+      { h: 4, ar: 'الساعة أربعة', pron: 'es-sēʿa arbʿa' },
+      { h: 5, ar: 'الساعة خمسة', pron: 'es-sēʿa khamse' },
+      { h: 6, ar: 'الساعة ستّة', pron: 'es-sēʿa sitte' },
+      { h: 7, ar: 'الساعة سبعة', pron: 'es-sēʿa sabʿa' },
+      { h: 8, ar: 'الساعة تمانة', pron: 'es-sēʿa tmēne' },
+      { h: 9, ar: 'الساعة تسعة', pron: 'es-sēʿa tisʿa' },
+      { h: 10, ar: 'الساعة عشرة', pron: 'es-sēʿa ʿashra' },
+      { h: 11, ar: 'الساعة حدعش', pron: 'es-sēʿa ḥdaʿsh' },
+      { h: 12, ar: 'الساعة طنعش', pron: 'es-sēʿa ṭnaʿsh' }
+    ];
+
+    const MINUTE_EXPRESSIONS = [
+      { m: 0, nextHour: false, en: ':00 (o’clock)', ar: 'بالضبط', pron: 'biẓ-ẓabṭ' },
+      { m: 5, nextHour: false, en: ':05 (5 past)', ar: 'وخمسة', pron: 'w-khamse' },
+      { m: 10, nextHour: false, en: ':10 (10 past)', ar: 'وعشرة', pron: 'w-ʿashra' },
+      { m: 15, nextHour: false, en: ':15 (quarter past)', ar: 'وربع', pron: 'w-rubʿ' },
+      { m: 20, nextHour: false, en: ':20 (20 past)', ar: 'وتلت', pron: 'w-tilt' },
+      { m: 25, nextHour: false, en: ':25 (half minus 5)', ar: 'ونص إلّا خمسة', pron: 'w-nuṣṣ illa khamse' },
+      { m: 30, nextHour: false, en: ':30 (half past)', ar: 'ونص', pron: 'w-nuṣṣ' },
+      { m: 35, nextHour: false, en: ':35 (half plus 5)', ar: 'ونص وخمسة', pron: 'w-nuṣṣ w-khamse' },
+      { m: 40, nextHour: true, en: ':40 (20 to next hr)', ar: 'إلّا تلت', pron: 'illa tilt' },
+      { m: 45, nextHour: true, en: ':45 (quarter to next)', ar: 'إلّا ربع', pron: 'illa rubʿ' },
+      { m: 50, nextHour: true, en: ':50 (10 to next hr)', ar: 'إلّا عشرة', pron: 'illa ʿashra' },
+      { m: 55, nextHour: true, en: ':55 (5 to next hr)', ar: 'إلّا خمسة', pron: 'illa khamse' }
+    ];
+
+    const DAY_PERIODS = [
+      { id: 'morning', en: 'in the morning (AM)', ar: 'الصبح', pron: 'eṣ-ṣubḥ' },
+      { id: 'noon', en: 'at noon (12 PM)', ar: 'الضهر', pron: 'eḍ-ḍuhr' },
+      { id: 'afternoon', en: 'in the afternoon (PM)', ar: 'بعد الضهر', pron: 'baʿd eḍ-ḍuhr' },
+      { id: 'evening', en: 'in the evening (PM)', ar: 'المسا', pron: 'el-masa' },
+      { id: 'night', en: 'at night (PM/AM)', ar: 'بالليل', pron: 'bil-leyl' }
+    ];
+
+    function buildTimePhrase(hour12, minute, periodId) {
+      const minObj = MINUTE_EXPRESSIONS.find(x => x.m === minute) || MINUTE_EXPRESSIONS[0];
+      const spokenHourNum = minObj.nextHour ? (hour12 === 12 ? 1 : hour12 + 1) : hour12;
+      const hourObj = HOURS_LEBANESE.find(x => x.h === spokenHourNum);
+      const periodObj = DAY_PERIODS.find(x => x.id === periodId) || DAY_PERIODS[0];
+
+      const tokens = [
+        { ar: hourObj.ar, pron: hourObj.pron },
+        { ar: minObj.ar, pron: minObj.pron },
+        { ar: periodObj.ar, pron: periodObj.pron }
+      ];
+
+      const minStr = minute < 10 ? `0${minute}` : `${minute}`;
+      return {
+        hour12,
+        minute,
+        periodId,
+        en: `The time is ${hour12}:${minStr} ${periodObj.en.replace(/\s*\(.*?\)/, '')}`,
+        ar: tokens.map(t => t.ar).join(' '),
+        pron: tokens.map(t => t.pron).join(' '),
+        tokens
+      };
+    }
+
+    function generateRandomTime() {
+      const hour12 = Math.floor(Math.random() * 12) + 1;
+      const minute = Math.floor(Math.random() * 12) * 5;
+      let periodId = 'morning';
+      if (hour12 === 12 && minute === 0 && Math.random() > 0.5) {
+        periodId = 'noon';
+      } else {
+        periodId = pickRandom(['morning', 'afternoon', 'evening', 'night']);
+      }
+      return buildTimePhrase(hour12, minute, periodId);
+    }
+
+    const RELATIVE_DAYS = [
+      { id: 'today', en: 'Today is', ar: 'اليوم', pron: 'el-yōm' },
+      { id: 'tomorrow', en: 'Tomorrow is', ar: 'بكرة', pron: 'bukra' },
+      { id: 'yesterday', en: 'Yesterday was', ar: 'مبارح كان', pron: 'mbēriḥ kēn' }
+    ];
+
+    function buildDatePhrase(relId, dowId, monthNum, dayNum, yearNum, era) {
+      const rel = RELATIVE_DAYS.find(x => x.id === relId) || RELATIVE_DAYS[0];
+      const dow = DAYS_OF_WEEK.find(x => x.id === dowId) || DAYS_OF_WEEK[0];
+      const mon = MONTHS.find(x => x.num === monthNum) || MONTHS[0];
+      const dayObj = DAY_NUMBERS_1_31.find(x => x.n === dayNum) || DAY_NUMBERS_1_31[0];
+      const yrObj = yearToLebanese(yearNum, era);
+
+      const tokens = [
+        { ar: rel.ar, pron: rel.pron },
+        { ar: dow.ar, pron: dow.pron },
+        { ar: dayObj.ar, pron: dayObj.pron },
+        { ar: mon.ar, pron: mon.pron },
+        { ar: `سنة ${yrObj.ar}`, pron: `sinit ${yrObj.pron}` }
+      ];
+
+      const eraLabel = era === 'BC' ? ' BC' : '';
+      return {
+        relId,
+        dowId,
+        monthNum,
+        dayNum,
+        yearNum,
+        era,
+        en: `${rel.en} ${dow.en}, ${mon.en} ${dayNum}, ${yearNum}${eraLabel}`,
+        ar: tokens.map(t => t.ar).join(' '),
+        pron: tokens.map(t => t.pron).join(' '),
+        tokens
+      };
+    }
+
+    function generateRandomDate() {
+      const rel = pickRandom(RELATIVE_DAYS).id;
+      const dow = pickRandom(DAYS_OF_WEEK).id;
+      const monthNum = Math.floor(Math.random() * 12) + 1;
+      const maxDays = monthNum === 2 ? 28 : ([4, 6, 9, 11].includes(monthNum) ? 30 : 31);
+      const dayNum = Math.floor(Math.random() * maxDays) + 1;
+
+      // Mix modern years (1900-2100) and historical years (0-1899 AD/BC)
+      let yearNum;
+      let era = 'AD';
+      const roll = Math.random();
+      if (roll < 0.65) {
+        yearNum = Math.floor(Math.random() * 201) + 1900; // 1900-2100
+      } else if (roll < 0.85) {
+        yearNum = Math.floor(Math.random() * 1900); // 0-1899 AD
+      } else {
+        yearNum = Math.floor(Math.random() * 2100) + 1; // 1-2100 BC
+        era = 'BC';
+      }
+      return buildDatePhrase(rel, dow, monthNum, dayNum, yearNum, era);
+    }
+
+    // =========================================================================
+    // MINI-GAMES ENGINE (REUSABLE FOR NUMBERS, CALENDAR, TIME VOCAB)
+    // =========================================================================
+    const gameBank = {
+      numbers: null,
+      calendar: null,
+      timevocab: null
+    };
+
+    function getNumberPool() {
+      const items = [];
+      DAY_NUMBERS_1_31.forEach(d => {
+        items.push({ prompt: `Day ${d.n}`, sub: 'Day of the month', ar: d.ar, pron: d.pron });
+      });
+      const sampleYears = [
+        [0, 'AD'], [44, 'BC'], [33, 'AD'], [100, 'AD'], [325, 'AD'],
+        [622, 'AD'], [750, 'AD'], [1099, 'AD'], [1453, 'AD'], [1492, 'AD'],
+        [1789, 'AD'], [1850, 'AD'], [1920, 'AD'], [1943, 'AD'], [1975, 'AD'],
+        [1990, 'AD'], [2000, 'AD'], [2019, 'AD'], [2024, 'AD'], [2025, 'AD'],
+        [2030, 'AD'], [2050, 'AD'], [2100, 'AD'], [500, 'BC'], [1200, 'BC']
+      ];
+      sampleYears.forEach(([y, era]) => {
+        const res = yearToLebanese(y, era);
+        items.push({
+          prompt: `Year ${y}${era === 'BC' ? ' BC' : ''}`,
+          sub: era === 'BC' ? 'Before Christ (قبل الميلاد)' : 'AD Year (0–2100)',
+          ar: res.ar,
+          pron: res.pron
+        });
+      });
+      return items;
+    }
+
+    function getCalendarPool() {
+      const items = [];
+      DAYS_OF_WEEK.forEach(d => {
+        items.push({ prompt: d.en, sub: 'Day of the week', ar: d.ar, pron: d.pron });
+      });
+      MONTHS.forEach(m => {
+        items.push({ prompt: `${m.en} (Month ${m.num})`, sub: 'Levantine Month', ar: m.ar, pron: m.pron });
+      });
+      return items;
+    }
+
+    function getTimeVocabPool() {
+      const items = [];
+      HOURS_LEBANESE.forEach(h => {
+        items.push({ prompt: `${h.h}:00 (Hour ${h.h})`, sub: 'Hour in Lebanese', ar: h.ar, pron: h.pron });
+      });
+      MINUTE_EXPRESSIONS.forEach(m => {
+        items.push({ prompt: m.en, sub: '5-minute interval', ar: m.ar, pron: m.pron });
+      });
+      DAY_PERIODS.forEach(p => {
+        items.push({ prompt: p.en, sub: 'Time of day', ar: p.ar, pron: p.pron });
+      });
+      return items;
+    }
+
+    function initSectionGame(sec, mode) {
+      state.sub[sec] = mode;
+      const pool = sec === 'numbers' ? getNumberPool()
+                 : sec === 'calendar' ? getCalendarPool()
+                 : getTimeVocabPool();
+
+      if (mode === 'match') {
+        const chosen = shuffle(pool).slice(0, 5);
+        gameBank[sec] = {
+          mode: 'match',
+          left: shuffle(chosen.map((c, idx) => ({ idx, text: c.prompt }))),
+          right: shuffle(chosen.map((c, idx) => ({ idx, ar: c.ar, pron: c.pron }))),
+          selLeft: null,
+          selRight: null,
+          matched: [],
+          wrongPair: false
+        };
+      } else if (mode === 'mc') {
+        const q = pickRandom(pool);
+        const distractors = shuffle(pool.filter(x => x.ar !== q.ar)).slice(0, 3);
+        gameBank[sec] = {
+          mode: 'mc',
+          q,
+          options: shuffle([q, ...distractors]),
+          answered: null
+        };
+      } else if (mode === 'order') {
+        // Multi-word items for word-order assembly
+        const multiWord = pool.filter(x => x.ar.trim().split(/\s+/).length >= 2);
+        const q = pickRandom(multiWord.length ? multiWord : pool);
+        const wordsAr = q.ar.trim().split(/\s+/);
+        const wordsPron = q.pron.trim().split(/\s+/);
+        const tokens = wordsAr.map((w, i) => ({
+          id: i,
+          ar: w,
+          pron: wordsPron[i] || ''
+        }));
+        gameBank[sec] = {
+          mode: 'order',
+          q,
+          tokens,
+          bank: shuffle(tokens),
+          placed: [],
+          feedback: null
+        };
+      } else if (mode === 'fill') {
+        // Fill-in-the-blank for compound numbers, dates, or times
+        const multiWord = pool.filter(x => x.ar.trim().split(/\s+/).length >= 2);
+        const q = pickRandom(multiWord);
+        const wordsAr = q.ar.trim().split(/\s+/);
+        const wordsPron = q.pron.trim().split(/\s+/);
+        const blankIdx = Math.floor(Math.random() * wordsAr.length);
+        const missingAr = wordsAr[blankIdx];
+        const missingPron = wordsPron[blankIdx] || '';
+
+        const otherWords = [];
+        multiWord.forEach(item => {
+          const wa = item.ar.trim().split(/\s+/);
+          const wp = item.pron.trim().split(/\s+/);
+          wa.forEach((w, idx) => {
+            if (w !== missingAr && !otherWords.some(o => o.ar === w)) {
+              otherWords.push({ ar: w, pron: wp[idx] || '' });
+            }
+          });
+        });
+
+        const choices = shuffle([
+          { ar: missingAr, pron: missingPron, isTarget: true },
+          ...shuffle(otherWords).slice(0, 3).map(o => ({ ...o, isTarget: false }))
+        ]);
+
+        gameBank[sec] = {
+          mode: 'fill',
+          q,
+          wordsAr,
+          wordsPron,
+          blankIdx,
+          choices,
+          answered: null
+        };
+      }
+    }
+
+    // =========================================================================
+    // INIT LABS (DATES & TIME)
+    // =========================================================================
+    function refreshDateExercise(customSample) {
+      const sample = customSample || generateRandomDate();
+      state.dateSample = sample;
+      state.datePlaced = [];
+      state.dateBank = shuffle(sample.tokens.map((t, i) => ({ id: i, ...t })));
+      state.dateFeedback = null;
+
+      // Build 3 plausible distractors for MC mode
+      const distractors = [];
+      while (distractors.length < 3) {
+        const d = generateRandomDate();
+        if (d.ar !== sample.ar && !distractors.some(x => x.ar === d.ar)) {
+          distractors.push(d);
+        }
+      }
+      state.dateMcChoices = shuffle([sample, ...distractors]);
+      state.dateMcAnswered = null;
+    }
+
+    function refreshTimeExercise(customSample) {
+      const sample = customSample || generateRandomTime();
+      state.timeSample = sample;
+      state.timePlaced = [];
+      state.timeBank = shuffle(sample.tokens.map((t, i) => ({ id: i, ...t })));
+      state.timeFeedback = null;
+
+      const distractors = [];
+      while (distractors.length < 3) {
+        const d = generateRandomTime();
+        if (d.ar !== sample.ar && !distractors.some(x => x.ar === d.ar)) {
+          distractors.push(d);
+        }
+      }
+      state.timeMcChoices = shuffle([sample, ...distractors]);
+      state.timeMcAnswered = null;
+    }
+
+    // Initialize defaults
+    initSectionGame('numbers', 'match');
+    initSectionGame('calendar', 'match');
+    initSectionGame('timevocab', 'match');
+    refreshDateExercise(buildDatePhrase('today', 'mon', 10, 12, 2024, 'AD'));
+    refreshTimeExercise(buildTimePhrase(6, 25, 'evening'));
+
+    // =========================================================================
+    // RENDERING
+    // =========================================================================
+    function switchTab(tab) {
+      state.tab = tab;
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tab);
+      });
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderMiniGame(sec) {
+      const g = gameBank[sec];
+      if (!g) initSectionGame(sec, state.sub[sec]);
+      const game = gameBank[sec];
+
+      let bodyHtml = '';
+
+      if (game.mode === 'match') {
+        const allDone = game.matched.length === game.left.length;
+        bodyHtml = `
+          <div class="prompt-sub" style="margin-bottom:10px;">Tap an English number/term on the left, then its Lebanese Arabic match on the right.</div>
+          <div class="match-grid">
+            <div class="match-col">
+              ${game.left.map(item => {
+                const isMatched = game.matched.includes(item.idx);
+                const isSel = game.selLeft === item.idx;
+                const isWrong = game.wrongPair && isSel;
+                return `<button type="button" class="match-card ${isMatched ? 'matched' : ''} ${isSel ? 'selected' : ''} ${isWrong ? 'wrong' : ''}" onclick="handleMatchClick('${sec}','left',${item.idx})">${item.text}</button>`;
+              }).join('')}
+            </div>
+            <div class="match-col">
+              ${game.right.map(item => {
+                const isMatched = game.matched.includes(item.idx);
+                const isSel = game.selRight === item.idx;
+                const isWrong = game.wrongPair && isSel;
+                return `<button type="button" class="match-card ${isMatched ? 'matched' : ''} ${isSel ? 'selected' : ''} ${isWrong ? 'wrong' : ''}" onclick="handleMatchClick('${sec}','right',${item.idx})">
+                  <span class="ar" style="font-size:17px;">${item.ar}</span>
+                  <span class="tile-pron">${item.pron}</span>
+                </button>`;
+              }).join('')}
+            </div>
+          </div>
+          ${allDone ? `<div class="feedback ok">All matched! +5 points 🎉</div>` : ''}
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" onclick="initSectionGame('${sec}','match');render();">New Match Set</button>
+          </div>
+        `;
+      } else if (game.mode === 'mc') {
+        bodyHtml = `
+          <div class="prompt-box">
+            <div class="prompt-label">${game.q.sub}</div>
+            <div class="prompt-main">${game.q.prompt}</div>
+          </div>
+          <div class="mc-list">
+            ${game.options.map((opt, i) => {
+              let cls = '';
+              if (game.answered !== null) {
+                if (opt.ar === game.q.ar) cls = 'correct';
+                else if (i === game.answered) cls = 'wrong';
+              }
+              return `<button type="button" class="mc-opt ${cls}" onclick="handleMcClick('${sec}',${i})">
+                <div>
+                  <div class="ar" style="font-size:19px;font-weight:700;">${opt.ar}</div>
+                  <div class="pron-text" style="font-size:12px;color:var(--accent);font-weight:600;">${opt.pron}</div>
+                </div>
+                <span class="speaker-badge">🔊</span>
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" onclick="initSectionGame('${sec}','mc');render();">Next Question</button>
+          </div>
+        `;
+      } else if (game.mode === 'order') {
+        bodyHtml = `
+          <div class="prompt-box">
+            <div class="prompt-label">Arrange words right-to-left in Lebanese Arabic</div>
+            <div class="prompt-main">${game.q.prompt}</div>
+          </div>
+          <div class="dropzone">
+            ${game.placed.length === 0 ? '<span style="color:var(--muted);font-size:13px;width:100%;text-align:center;">Tap Arabic words below in order →</span>' : ''}
+            ${game.placed.map((t, idx) => `
+              <div class="word-tile placed" onclick="handleOrderRemove('${sec}',${idx})">
+                <span class="tile-ar ar">${t.ar}</span>
+                <span class="tile-pron">${t.pron}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="tile-bank">
+            ${game.bank.map((t, idx) => `
+              <div class="word-tile" onclick="handleOrderAdd('${sec}',${idx})">
+                <span class="tile-ar ar">${t.ar}</span>
+                <span class="tile-pron">${t.pron}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-teal btn-sm" onclick="checkOrderGame('${sec}')">Check Order</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="initSectionGame('${sec}','order');render();">Next Phrase</button>
+          </div>
+          ${game.feedback ? `<div class="feedback ${game.feedback.ok ? 'ok' : 'err'}">${game.feedback.msg}</div>` : ''}
+        `;
+      } else if (game.mode === 'fill') {
+        const sentenceHtml = game.wordsAr.map((w, idx) => {
+          if (idx === game.blankIdx) {
+            const filled = game.answered !== null ? game.choices[game.answered].ar : '______';
+            return `<span style="padding:2px 8px;border-bottom:2px solid var(--accent);color:var(--accent);">${filled}</span>`;
+          }
+          return w;
+        }).join(' ');
+
+        bodyHtml = `
+          <div class="prompt-box">
+            <div class="prompt-label">Fill in the missing Lebanese word for: ${game.q.prompt}</div>
+            <div class="prompt-main ar" style="font-size:24px;margin-top:6px;">${sentenceHtml}</div>
+          </div>
+          <div class="grid-2">
+            ${game.choices.map((c, idx) => {
+              let cls = '';
+              if (game.answered !== null) {
+                if (c.isTarget) cls = 'correct';
+                else if (idx === game.answered) cls = 'wrong';
+              }
+              return `<button type="button" class="mc-opt ${cls}" style="justify-content:center;text-align:center;" onclick="handleFillClick('${sec}',${idx})">
+                <div>
+                  <div class="ar" style="font-size:19px;font-weight:700;">${c.ar}</div>
+                  <div class="pron-text" style="font-size:12px;color:var(--accent);">${c.pron}</div>
+                </div>
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" onclick="initSectionGame('${sec}','fill');render();">Next Blank</button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="card">
+          <div class="score-bar">
+            <span>INTERACTIVE TRANSLATION PRACTICE</span>
+            <span>Score: ${state.score[sec]} pts</span>
+          </div>
+          <div class="subtabs">
+            <button type="button" class="subtab ${game.mode === 'match' ? 'active' : ''}" onclick="initSectionGame('${sec}','match');render();">Word Match</button>
+            <button type="button" class="subtab ${game.mode === 'mc' ? 'active' : ''}" onclick="initSectionGame('${sec}','mc');render();">Multiple Choice</button>
+            <button type="button" class="subtab ${game.mode === 'order' ? 'active' : ''}" onclick="initSectionGame('${sec}','order');render();">Word Order</button>
+            <button type="button" class="subtab ${game.mode === 'fill' ? 'active' : ''}" onclick="initSectionGame('${sec}','fill');render();">Fill in Blank</button>
+          </div>
+          ${bodyHtml}
+        </div>
+      `;
+    }
+
+    // Mini-game Handlers
+    function handleMatchClick(sec, side, idx) {
+      const g = gameBank[sec];
+      g.wrongPair = false;
+      if (side === 'left') g.selLeft = idx;
+      if (side === 'right') {
+        g.selRight = idx;
+        const rItem = g.right.find(x => x.idx === idx);
+        if (rItem) speakArabic(rItem.ar);
+      }
+
+      if (g.selLeft !== null && g.selRight !== null) {
+        if (g.selLeft === g.selRight) {
+          g.matched.push(g.selLeft);
+          g.selLeft = null;
+          g.selRight = null;
+          if (g.matched.length === g.left.length) state.score[sec] += 5;
+        } else {
+          g.wrongPair = true;
+          render();
+          setTimeout(() => {
+            g.selLeft = null;
+            g.selRight = null;
+            g.wrongPair = false;
+            render();
+          }, 500);
+          return;
+        }
+      }
+      render();
+    }
+
+    function handleMcClick(sec, idx) {
+      const g = gameBank[sec];
+      const chosen = g.options[idx];
+      speakArabic(chosen.ar);
+      if (g.answered === null) {
+        g.answered = idx;
+        if (chosen.ar === g.q.ar) state.score[sec] += 2;
+      }
+      render();
+    }
+
+    function handleOrderAdd(sec, bankIdx) {
+      const g = gameBank[sec];
+      const [item] = g.bank.splice(bankIdx, 1);
+      g.placed.push(item);
+      speakArabic(item.ar);
+      g.feedback = null;
+      render();
+    }
+
+    function handleOrderRemove(sec, placedIdx) {
+      const g = gameBank[sec];
+      const [item] = g.placed.splice(placedIdx, 1);
+      g.bank.push(item);
+      g.feedback = null;
+      render();
+    }
+
+    function checkOrderGame(sec) {
+      const g = gameBank[sec];
+      const attempt = g.placed.map(x => x.ar).join(' ');
+      const target = g.tokens.map(x => x.ar).join(' ');
+      speakArabic(target);
+      if (attempt === target) {
+        if (!g.feedback || !g.feedback.ok) state.score[sec] += 3;
+        g.feedback = { ok: true, msg: `Correct! ${target}` };
+      } else {
+        g.feedback = { ok: false, msg: `Not quite. Expected: ${target}` };
+      }
+      render();
+    }
+
+    function handleFillClick(sec, idx) {
+      const g = gameBank[sec];
+      const chosen = g.choices[idx];
+      speakArabic(chosen.ar);
+      if (g.answered === null) {
+        g.answered = idx;
+        if (chosen.isTarget) state.score[sec] += 2;
+      }
+      render();
+    }
+
+    // =========================================================================
+    // SECTION VIEWS
+    // =========================================================================
+    function renderNumbersTab() {
+      const refYears = [
+        { label: '0 AD', val: yearToLebanese(0, 'AD') },
+        { label: '44 BC', val: yearToLebanese(44, 'BC') },
+        { label: '750 AD', val: yearToLebanese(750, 'AD') },
+        { label: '1453 AD', val: yearToLebanese(1453, 'AD') },
+        { label: '1943 AD', val: yearToLebanese(1943, 'AD') },
+        { label: '1999 AD', val: yearToLebanese(1999, 'AD') },
+        { label: '2000 AD', val: yearToLebanese(2000, 'AD') },
+        { label: '2024 AD', val: yearToLebanese(2024, 'AD') },
+        { label: '2100 AD', val: yearToLebanese(2100, 'AD') }
+      ];
+
+      return `
+        <div class="section-head">
+          <h2>1. Numbers (1–31 & Years 0–2100)</h2>
+          <p>Translate day numerals and BC/AD years into spoken Lebanese Arabic.</p>
+        </div>
+
+        ${renderMiniGame('numbers')}
+
+        <div class="card">
+          <div class="card-title">
+            <span>How to Build Large Numbers & Years</span>
+            <span class="pill">Grammar Guide</span>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+            In Lebanese Arabic, say <strong>Thousands → Hundreds → Ones + "w-" + Tens</strong>. Add <span class="ar" style="font-weight:700;color:var(--text);">قبل الميلاد</span> <span class="pron-text">(abl el-mīlēd)</span> for <strong>BC</strong>.
+          </p>
+          <div class="grid-3">
+            ${refYears.map(y => `
+              <div class="ref-item" onclick="speakArabic('${y.val.ar}')">
+                <div class="ref-top"><span class="ref-en">${y.label}</span><span>🔊</span></div>
+                <div class="ref-ar ar">${y.val.ar}</div>
+                <div class="ref-pron">${y.val.pron}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Days of the Month (1–31)</span>
+            <span class="pill teal">Tap to hear</span>
+          </div>
+          <div class="grid-3">
+            ${DAY_NUMBERS_1_31.map(d => `
+              <div class="ref-item" onclick="speakArabic('${d.ar}')">
+                <div class="ref-top"><span class="ref-en">#${d.n}</span><span>🔊</span></div>
+                <div class="ref-ar ar">${d.ar}</div>
+                <div class="ref-pron">${d.pron}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCalendarTab() {
+      return `
+        <div class="section-head">
+          <h2>2. Days of the Week & Months</h2>
+          <p>Master the 7 Lebanese days and 12 Levantine month names.</p>
+        </div>
+
+        ${renderMiniGame('calendar')}
+
+        <div class="card">
+          <div class="card-title">
+            <span>Days of the Week (إيّام الأسبوع)</span>
+            <span class="pill">7 Days</span>
+          </div>
+          <div class="grid-2">
+            ${DAYS_OF_WEEK.map(d => `
+              <div class="ref-item" onclick="speakArabic('${d.ar}')">
+                <div class="ref-top"><span class="ref-en">${d.en}</span><span>🔊</span></div>
+                <div class="ref-ar ar">${d.ar}</div>
+                <div class="ref-pron">${d.pron}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Levantine Months (أشهر السنة)</span>
+            <span class="pill teal">12 Months</span>
+          </div>
+          <div class="grid-2">
+            ${MONTHS.map(m => `
+              <div class="ref-item" onclick="speakArabic('${m.ar}')">
+                <div class="ref-top"><span class="ref-en">${m.num}. ${m.en}</span><span>🔊</span></div>
+                <div class="ref-ar ar">${m.ar}</div>
+                <div class="ref-pron">${m.pron}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTimeVocabTab() {
+      return `
+        <div class="section-head">
+          <h2>3. Time Vocabulary (5-Minute Intervals)</h2>
+          <p>Hours, 5-minute increments, and morning/evening expressions.</p>
+        </div>
+
+        ${renderMiniGame('timevocab')}
+
+        <div class="card">
+          <div class="card-title">
+            <span>5-Minute Intervals</span>
+            <span class="pill gold">Every 5 mins</span>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+            From <strong>:40 to :55</strong>, Lebanese switches to the <strong>next hour</strong> minus the remaining minutes (<span class="ar">إلّا</span> <em>illa</em> = "minus / to").
+          </p>
+          <div class="grid-2">
+            ${MINUTE_EXPRESSIONS.map(m => `
+              <div class="ref-item" onclick="speakArabic('${m.ar}')">
+                <div class="ref-top"><span class="ref-en">${m.en}</span><span>🔊</span></div>
+                <div class="ref-ar ar">${m.ar}</div>
+                <div class="ref-pron">${m.pron}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Hours (1–12)</span>
+            <span class="pill">الساعة</span>
+          </div>
+          <div class="grid-3">
+            ${HOURS_LEBANESE.map(h => `
+              <div class="ref-item" onclick="speakArabic('${h.ar}')">
+                <div class="ref-top"><span class="ref-en">${h.h}:00</span><span>🔊</span></div>
+                <div class="ref-ar ar">${h.ar}</div>
+                <div class="ref-pron">${h.pron}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Periods of the Day</span>
+            <span class="pill teal">AM / PM</span>
+          </div>
+          <div class="grid-2">
+            ${DAY_PERIODS.map(p => `
+              <div class="ref-item" onclick="speakArabic('${p.ar}')">
+                <div class="ref-top"><span class="ref-en">${p.en}</span><span>🔊</span></div>
+                <div class="ref-ar ar">${p.ar}</div>
+                <div class="ref-pron">${p.pron}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDatesLabTab() {
+      const s = state.dateSample;
+      const mode = state.sub.datesex;
+
+      const pickerHtml = state.dateMode === 'picker' ? `
+        <div class="control-grid" style="margin-top:10px;">
+          <label class="field">Relative Day
+            <select onchange="updateDatePicker('relId', this.value)">
+              ${RELATIVE_DAYS.map(r => `<option value="${r.id}" ${s.relId === r.id ? 'selected' : ''}>${r.en}</option>`).join('')}
+            </select>
+          </label>
+          <label class="field">Day of Week
+            <select onchange="updateDatePicker('dowId', this.value)">
+              ${DAYS_OF_WEEK.map(d => `<option value="${d.id}" ${s.dowId === d.id ? 'selected' : ''}>${d.en}</option>`).join('')}
+            </select>
+          </label>
+          <label class="field">Month
+            <select onchange="updateDatePicker('monthNum', Number(this.value))">
+              ${MONTHS.map(m => `<option value="${m.num}" ${s.monthNum === m.num ? 'selected' : ''}>${m.num}. ${m.en}</option>`).join('')}
+            </select>
+          </label>
+          <label class="field">Day (1–31)
+            <select onchange="updateDatePicker('dayNum', Number(this.value))">
+              ${DAY_NUMBERS_1_31.map(d => `<option value="${d.n}" ${s.dayNum === d.n ? 'selected' : ''}>${d.n}</option>`).join('')}
+            </select>
+          </label>
+          <label class="field">Year (0–2100)
+            <input type="number" min="0" max="2100" value="${s.yearNum}" onchange="updateDatePicker('yearNum', Math.min(2100, Math.max(0, Number(this.value)||0)))" />
+          </label>
+          <label class="field">Era (BC / AD)
+            <select onchange="updateDatePicker('era', this.value)">
+              <option value="AD" ${s.era === 'AD' ? 'selected' : ''}>AD (ميلادي)</option>
+              <option value="BC" ${s.era === 'BC' ? 'selected' : ''}>BC (قبل الميلاد)</option>
+            </select>
+          </label>
+        </div>
+      ` : '';
+
+      let exerciseHtml = '';
+      if (mode === 'build') {
+        exerciseHtml = `
+          <div class="dropzone">
+            ${state.datePlaced.length === 0 ? '<span style="color:var(--muted);font-size:13px;width:100%;text-align:center;">Tap phrase blocks below right-to-left →</span>' : ''}
+            ${state.datePlaced.map((t, idx) => `
+              <div class="word-tile placed" onclick="removeDateTile(${idx})">
+                <span class="tile-ar ar">${t.ar}</span>
+                <span class="tile-pron">${t.pron}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="tile-bank">
+            ${state.dateBank.map((t, idx) => `
+              <div class="word-tile" onclick="addDateTile(${idx})">
+                <span class="tile-ar ar">${t.ar}</span>
+                <span class="tile-pron">${t.pron}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-teal btn-sm" onclick="checkDateSentence()">Check Sentence</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="revealDateSentence()">Show & Hear Answer</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="refreshDateExercise();render();">New Random Date</button>
+          </div>
+          ${state.dateFeedback ? `<div class="feedback ${state.dateFeedback.ok ? 'ok' : 'err'}">${state.dateFeedback.msg}</div>` : ''}
+        `;
+      } else {
+        exerciseHtml = `
+          <div class="mc-list">
+            ${state.dateMcChoices.map((c, idx) => {
+              let cls = '';
+              if (state.dateMcAnswered !== null) {
+                if (c.ar === s.ar) cls = 'correct';
+                else if (idx === state.dateMcAnswered) cls = 'wrong';
+              }
+              return `<button type="button" class="mc-opt ${cls}" onclick="answerDateMc(${idx})">
+                <div>
+                  <div class="ar" style="font-size:18px;font-weight:700;">${c.ar}</div>
+                  <div class="pron-text" style="font-size:12px;color:var(--accent);font-weight:600;">${c.pron}</div>
+                </div>
+                <span class="speaker-badge">🔊</span>
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" onclick="refreshDateExercise();render();">Next Random Date</button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="section-head">
+          <h2>4. Dates Sentence Lab</h2>
+          <p>Construct full sentences: <em>"Today/Tomorrow/Yesterday is/was [Day], [Month] [Date], [Year]"</em>.</p>
+        </div>
+
+        <div class="card">
+          <div class="score-bar">
+            <span>DATE BUILDER & CALENDAR</span>
+            <span>Score: ${state.score.datesex} pts</span>
+          </div>
+
+          <div class="subtabs">
+            <button type="button" class="subtab ${state.dateMode === 'random' ? 'active' : ''}" onclick="state.dateMode='random';refreshDateExercise();render();">🎲 Random Dates (100+)</button>
+            <button type="button" class="subtab ${state.dateMode === 'picker' ? 'active' : ''}" onclick="state.dateMode='picker';render();">📅 Calendar Picker</button>
+          </div>
+
+          ${pickerHtml}
+
+          <div class="prompt-box">
+            <div class="prompt-label">Translate into Lebanese Arabic</div>
+            <div class="prompt-main" style="font-size:19px;">"${s.en}"</div>
+          </div>
+
+          <div class="subtabs">
+            <button type="button" class="subtab ${mode === 'build' ? 'active' : ''}" onclick="state.sub.datesex='build';render();">Sentence Tiles</button>
+            <button type="button" class="subtab ${mode === 'mc' ? 'active' : ''}" onclick="state.sub.datesex='mc';render();">4-Option Quiz</button>
+          </div>
+
+          ${exerciseHtml}
+        </div>
+      `;
+    }
+
+    function updateDatePicker(field, val) {
+      const s = state.dateSample;
+      const updated = buildDatePhrase(
+        field === 'relId' ? val : s.relId,
+        field === 'dowId' ? val : s.dowId,
+        field === 'monthNum' ? val : s.monthNum,
+        field === 'dayNum' ? val : s.dayNum,
+        field === 'yearNum' ? val : s.yearNum,
+        field === 'era' ? val : s.era
+      );
+      refreshDateExercise(updated);
+      render();
+    }
+
+    function addDateTile(idx) {
+      const [item] = state.dateBank.splice(idx, 1);
+      state.datePlaced.push(item);
+      speakArabic(item.ar);
+      state.dateFeedback = null;
+      render();
+    }
+
+    function removeDateTile(idx) {
+      const [item] = state.datePlaced.splice(idx, 1);
+      state.dateBank.push(item);
+      state.dateFeedback = null;
+      render();
+    }
+
+    function checkDateSentence() {
+      const attempt = state.datePlaced.map(t => t.ar).join(' ');
+      const target = state.dateSample.ar;
+      speakArabic(target);
+      if (attempt === target) {
+        if (!state.dateFeedback || !state.dateFeedback.ok) state.score.datesex += 4;
+        state.dateFeedback = { ok: true, msg: `Excellent! ${target}` };
+      } else {
+        state.dateFeedback = { ok: false, msg: `Order mismatch. Target: ${target}` };
+      }
+      render();
+    }
+
+    function revealDateSentence() {
+      const s = state.dateSample;
+      state.datePlaced = s.tokens.map((t, i) => ({ id: i, ...t }));
+      state.dateBank = [];
+      speakArabic(s.ar);
+      state.dateFeedback = { ok: true, msg: `${s.ar} (${s.pron})` };
+      render();
+    }
+
+    function answerDateMc(idx) {
+      const chosen = state.dateMcChoices[idx];
+      speakArabic(chosen.ar);
+      if (state.dateMcAnswered === null) {
+        state.dateMcAnswered = idx;
+        if (chosen.ar === state.dateSample.ar) state.score.datesex += 3;
+      }
+      render();
+    }
+
+    // =========================================================================
+    // SECTION 5: TIME LAB & INTERACTIVE ANALOG CLOCK
+    // =========================================================================
+    function renderAnalogClockSvg(hour12, minute) {
+      const cx = 115, cy = 115, r = 98;
+      const minAngle = (minute / 60) * 2 * Math.PI - Math.PI / 2;
+      const hrAngle = (((hour12 % 12) + minute / 60) / 12) * 2 * Math.PI - Math.PI / 2;
+
+      const minX = cx + 72 * Math.cos(minAngle);
+      const minY = cy + 72 * Math.sin(minAngle);
+      const hrX = cx + 48 * Math.cos(hrAngle);
+      const hrY = cy + 48 * Math.sin(hrAngle);
+
+      let markers = '';
+      for (let i = 0; i < 12; i++) {
+        const mVal = i * 5;
+        const hLabel = i === 0 ? 12 : i;
+        const ang = (i / 12) * 2 * Math.PI - Math.PI / 2;
+        const dotX = cx + 84 * Math.cos(ang);
+        const dotY = cy + 84 * Math.sin(ang);
+        const lblX = cx + 65 * Math.cos(ang);
+        const lblY = cy + 65 * Math.sin(ang) + 4;
+        const isSelectedMin = minute === mVal;
+
+        markers += `
+          <text x="${lblX}" y="${lblY}" text-anchor="middle" font-size="11" font-weight="700" fill="#6e655c">${hLabel}</text>
+          <circle class="min-dot" cx="${dotX}" cy="${dotY}" r="${isSelectedMin ? 9 : 6}"
+            fill="${isSelectedMin ? '#b84a27' : '#e6ddd0'}"
+            onclick="setClockMinute(${mVal})" />
+        `;
+      }
+
+      return `
+        <svg class="clock-svg" viewBox="0 0 230 230" aria-label="Interactive 5-minute clock">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" stroke="#e6ddd0" stroke-width="3" />
+          ${markers}
+          <line x1="${cx}" y1="${cy}" x2="${hrX}" y2="${hrY}" stroke="#1f1c18" stroke-width="5" stroke-linecap="round" />
+          <line x1="${cx}" y1="${cy}" x2="${minX}" y2="${minY}" stroke="#b84a27" stroke-width="3.5" stroke-linecap="round" />
+          <circle cx="${cx}" cy="${cy}" r="5" fill="#1f1c18" />
+        </svg>
+      `;
+    }
+
+    function renderTimeLabTab() {
+      const s = state.timeSample;
+      const mode = state.sub.timeex;
+      const minStr = s.minute < 10 ? `0${s.minute}` : `${s.minute}`;
+
+      const clockControlsHtml = state.timeMode === 'clock' ? `
+        <div class="clock-wrap">
+          ${renderAnalogClockSvg(s.hour12, s.minute)}
+          <div style="font-size:12px;color:var(--muted);">Tap any outer dot on the dial to set 5-minute intervals</div>
+          <div class="control-grid" style="width:100%;">
+            <label class="field">Hour (1–12)
+              <select onchange="setClockHour(Number(this.value))">
+                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(h => `<option value="${h}" ${s.hour12 === h ? 'selected' : ''}>${h}</option>`).join('')}
+              </select>
+            </label>
+            <label class="field">Minutes (5-min steps)
+              <select onchange="setClockMinute(Number(this.value))">
+                ${[0,5,10,15,20,25,30,35,40,45,50,55].map(m => `<option value="${m}" ${s.minute === m ? 'selected' : ''}>:${m < 10 ? '0'+m : m}</option>`).join('')}
+              </select>
+            </label>
+            <label class="field" style="grid-column: span 2;">Time of Day (AM / PM)
+              <select onchange="setClockPeriod(this.value)">
+                ${DAY_PERIODS.map(p => `<option value="${p.id}" ${s.periodId === p.id ? 'selected' : ''}>${p.en}</option>`).join('')}
+              </select>
+            </label>
+          </div>
+        </div>
+      ` : '';
+
+      let exerciseHtml = '';
+      if (mode === 'build') {
+        exerciseHtml = `
+          <div class="dropzone">
+            ${state.timePlaced.length === 0 ? '<span style="color:var(--muted);font-size:13px;width:100%;text-align:center;">Tap time blocks below right-to-left →</span>' : ''}
+            ${state.timePlaced.map((t, idx) => `
+              <div class="word-tile placed" onclick="removeTimeTile(${idx})">
+                <span class="tile-ar ar">${t.ar}</span>
+                <span class="tile-pron">${t.pron}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="tile-bank">
+            ${state.timeBank.map((t, idx) => `
+              <div class="word-tile" onclick="addTimeTile(${idx})">
+                <span class="tile-ar ar">${t.ar}</span>
+                <span class="tile-pron">${t.pron}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-teal btn-sm" onclick="checkTimeSentence()">Check Time</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="revealTimeSentence()">Show & Hear Answer</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="refreshTimeExercise();render();">New Random Time</button>
+          </div>
+          ${state.timeFeedback ? `<div class="feedback ${state.timeFeedback.ok ? 'ok' : 'err'}">${state.timeFeedback.msg}</div>` : ''}
+        `;
+      } else {
+        exerciseHtml = `
+          <div class="mc-list">
+            ${state.timeMcChoices.map((c, idx) => {
+              let cls = '';
+              if (state.timeMcAnswered !== null) {
+                if (c.ar === s.ar) cls = 'correct';
+                else if (idx === state.timeMcAnswered) cls = 'wrong';
+              }
+              return `<button type="button" class="mc-opt ${cls}" onclick="answerTimeMc(${idx})">
+                <div>
+                  <div class="ar" style="font-size:18px;font-weight:700;">${c.ar}</div>
+                  <div class="pron-text" style="font-size:12px;color:var(--accent);font-weight:600;">${c.pron}</div>
+                </div>
+                <span class="speaker-badge">🔊</span>
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" onclick="refreshTimeExercise();render();">Next Random Time</button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="section-head">
+          <h2>5. Time & Clock Lab</h2>
+          <p>Construct full sentences: <em>"The time is 6:25 in the evening / morning"</em>.</p>
+        </div>
+
+        <div class="card">
+          <div class="score-bar">
+            <span>TELLING TIME IN LEBANESE</span>
+            <span>Score: ${state.score.timeex} pts</span>
+          </div>
+
+          <div class="subtabs">
+            <button type="button" class="subtab ${state.timeMode === 'random' ? 'active' : ''}" onclick="state.timeMode='random';refreshTimeExercise();render();">🎲 Random Times (100+)</button>
+            <button type="button" class="subtab ${state.timeMode === 'clock' ? 'active' : ''}" onclick="state.timeMode='clock';render();">🕰️ Interactive Clock</button>
+          </div>
+
+          ${clockControlsHtml}
+
+          <div class="prompt-box">
+            <div class="prompt-label">Translate into Lebanese Arabic (${s.hour12}:${minStr})</div>
+            <div class="prompt-main" style="font-size:19px;">"${s.en}"</div>
+          </div>
+
+          <div class="subtabs">
+            <button type="button" class="subtab ${mode === 'build' ? 'active' : ''}" onclick="state.sub.timeex='build';render();">Sentence Tiles</button>
+            <button type="button" class="subtab ${mode === 'mc' ? 'active' : ''}" onclick="state.sub.timeex='mc';render();">4-Option Quiz</button>
+          </div>
+
+          ${exerciseHtml}
+        </div>
+      `;
+    }
+
+    function setClockHour(h) {
+      const s = state.timeSample;
+      refreshTimeExercise(buildTimePhrase(h, s.minute, s.periodId));
+      render();
+    }
+
+    function setClockMinute(m) {
+      const s = state.timeSample;
+      refreshTimeExercise(buildTimePhrase(s.hour12, m, s.periodId));
+      render();
+    }
+
+    function setClockPeriod(p) {
+      const s = state.timeSample;
+      refreshTimeExercise(buildTimePhrase(s.hour12, s.minute, p));
+      render();
+    }
+
+    function addTimeTile(idx) {
+      const [item] = state.timeBank.splice(idx, 1);
+      state.timePlaced.push(item);
+      speakArabic(item.ar);
+      state.timeFeedback = null;
+      render();
+    }
+
+    function removeTimeTile(idx) {
+      const [item] = state.timePlaced.splice(idx, 1);
+      state.timeBank.push(item);
+      state.timeFeedback = null;
+      render();
+    }
+
+    function checkTimeSentence() {
+      const attempt = state.timePlaced.map(t => t.ar).join(' ');
+      const target = state.timeSample.ar;
+      speakArabic(target);
+      if (attempt === target) {
+        if (!state.timeFeedback || !state.timeFeedback.ok) state.score.timeex += 4;
+        state.timeFeedback = { ok: true, msg: `Spot on! ${target}` };
+      } else {
+        state.timeFeedback = { ok: false, msg: `Check the order. Target: ${target}` };
+      }
+      render();
+    }
+
+    function revealTimeSentence() {
+      const s = state.timeSample;
+      state.timePlaced = s.tokens.map((t, i) => ({ id: i, ...t }));
+      state.timeBank = [];
+      speakArabic(s.ar);
+      state.timeFeedback = { ok: true, msg: `${s.ar} (${s.pron})` };
+      render();
+    }
+
+    function answerTimeMc(idx) {
+      const chosen = state.timeMcChoices[idx];
+      speakArabic(chosen.ar);
+      if (state.timeMcAnswered === null) {
+        state.timeMcAnswered = idx;
+        if (chosen.ar === state.timeSample.ar) state.score.timeex += 3;
+      }
+      render();
+    }
+
+    // =========================================================================
+    // MAIN RENDER LOOP
+    // =========================================================================
+    function render() {
+      const app = document.getElementById('app');
+      if (state.tab === 'numbers') app.innerHTML = renderNumbersTab();
+      else if (state.tab === 'calendar') app.innerHTML = renderCalendarTab();
+      else if (state.tab === 'timevocab') app.innerHTML = renderTimeVocabTab();
+      else if (state.tab === 'datesex') app.innerHTML = renderDatesLabTab();
+      else if (state.tab === 'timeex') app.innerHTML = renderTimeLabTab();
+    }
+
+    render();
+  </script>
+</body>
+</html>
